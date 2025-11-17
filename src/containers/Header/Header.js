@@ -5,12 +5,17 @@ import * as actions from "../../store/actions";
 import Navigator from '../../components/Navigator';
 import { adminMenu } from './menuApp';
 import './Header.scss';
-
+import { LANGUAGES } from '../../utils';
+import { lang } from 'moment/moment';
 class Header extends Component {
 
-    render() {
-        const { processLogout } = this.props;
+    handleChangeLanguages = (languages) => {
+        alert(languages)
+    }
 
+    render() {
+        const { processLogout, language, userInfo } = this.props;
+        console.log('check', userInfo)
         return (
             <div className="header-container">
                 {/* thanh navigator */}
@@ -18,10 +23,17 @@ class Header extends Component {
                     <Navigator menus={adminMenu} />
                 </div>
 
-                {/* nút logout */}
-                <div className="btn btn-logout" onClick={processLogout}>
-                    <i className="fas fa-sign-out-alt"></i>
+                <div className='languages'>
+                    <span className='welcome'>Welcome, {userInfo && userInfo.firstName ? userInfo.firstName : ''}</span>
+                    <span className='languages-vi' onClick={() => this.handleChangeLanguages(LANGUAGES.VI)}>VN</span>
+                    <span className='languages-en' onClick={() => this.handleChangeLanguages(LANGUAGES.EN)}>EN</span>
+                    <div className="btn btn-logout" onClick={processLogout} title='Log out'>
+                        <i className="fas fa-sign-out-alt"></i>
+                    </div>
                 </div>
+
+                {/* nút logout */}
+
             </div>
         );
     }
@@ -30,13 +42,15 @@ class Header extends Component {
 
 const mapStateToProps = state => {
     return {
-        isLoggedIn: state.user.isLoggedIn
+        isLoggedIn: state.user.isLoggedIn,
+        userInfo: state.user.userInfo,
     };
 };
 
 const mapDispatchToProps = dispatch => {
     return {
         processLogout: () => dispatch(actions.processLogout()),
+        // changeLanguageAppRedux: (language) => dispatch(actions.changeLanguageApp(language))
     };
 };
 

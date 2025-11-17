@@ -1,0 +1,233 @@
+// =============================
+// Variables
+// =============================
+$hc-header-bg: rgba(15, 23, 42, 0.92);
+$hc-header-border: rgba(148, 163, 184, 0.2);
+$hc-link: #e2e8f0;
+$hc-link-active: #38bdf8;
+$hc-btn-primary: linear-gradient(120deg, #2563eb, #06b6d4);
+$hc-btn-secondary: rgba(148, 163, 184, 0.2);
+
+// =============================
+// Header
+// =============================
+.hc-header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 50;
+  background: $hc-header-bg;
+  border-bottom: 1px solid $hc-header-border;
+  backdrop-filter: blur(12px);
+
+  &__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+}
+
+// =============================
+// Brand
+// =============================
+.hc-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  color: #f8fafc;
+
+  &__name {
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+
+  small {
+    display: block;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(226, 232, 240, 0.7);
+  }
+
+  &__mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: $hc-btn-primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #fff;
+    font-size: 1.2rem;
+  }
+}
+
+// =============================
+// Desktop Nav
+// =============================
+.hc-nav {
+  display: none;
+  gap: 1.25rem;
+  align-items: center;
+  color: $hc-link;
+  font-size: 0.95rem;
+
+  button {
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover,
+    &.active {
+      color: $hc-link-active;
+    }
+  }
+}
+
+// =============================
+// Auth Buttons
+// =============================
+.hc-auth {
+  display: none;
+  gap: 0.75rem;
+
+  button {
+    border-radius: 999px;
+    padding: 0.55rem 1.3rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+
+  .ghost {
+    background: $hc-btn-secondary;
+    color: #f8fafc;
+    border-color: $hc-header-border;
+  }
+
+  .primary {
+    background: $hc-btn-primary;
+    color: #0f172a;
+  }
+
+  .outline {
+    background: transparent;
+    color: $hc-link;
+    border-color: $hc-header-border;
+  }
+}
+
+// =============================
+// Mobile Toggle
+// =============================
+.hc-mobile-toggle {
+  border: none;
+  background: none;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  padding: 0.35rem;
+  cursor: pointer;
+}
+
+// =============================
+// Mobile Menu
+// =============================
+.hc-mobile-menu {
+  padding: 1.25rem;
+  border-top: 1px solid $hc-header-border;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  color: $hc-link;
+
+  button {
+    background: none;
+    border: none;
+    color: inherit;
+    text-align: left;
+    font-size: 0.95rem;
+    padding: 0.4rem 0;
+    cursor: pointer;
+  }
+
+  // Quick Solutions
+  .hc-mobile-groups {
+    border-top: 1px solid $hc-header-border;
+    padding-top: 0.85rem;
+
+    h4 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      color: #cbd5f5;
+      margin-bottom: 0.35rem;
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      li button {
+        color: $hc-link;
+        opacity: 0.85;
+      }
+    }
+  }
+
+  // Auth Actions (Mobile)
+  .hc-mobile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+
+    button {
+      border-radius: 999px;
+      padding: 0.65rem 1rem;
+      border: 1px solid $hc-header-border;
+      background: rgba(148, 163, 184, 0.15);
+      color: #f8fafc;
+      font-weight: 600;
+    }
+
+    .primary {
+      background: $hc-btn-primary;
+      border: none;
+      color: #0f172a;
+    }
+
+    .ghost {
+      background: none;
+      border-color: $hc-header-border;
+    }
+  }
+}
+
+// =============================
+// Desktop Breakpoint
+// =============================
+@media (min-width: 960px) {
+  .hc-nav {
+    display: flex;
+  }
+
+  .hc-auth {
+    display: flex;
+  }
+
+  .hc-mobile-toggle {
+    display: none;
+  }
+}
