@@ -1,171 +1,109 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import "./HomeHeader.scss";
-
-const MenuIcon = ({ size = 20 }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size}
-        fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="4" x2="20" y1="12" y2="12" />
-        <line x1="4" x2="20" y1="6" y2="6" />
-        <line x1="4" x2="20" y1="18" y2="18" />
-    </svg>
-);
-
-const CloseIcon = ({ size = 20 }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size}
-        fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18" />
-        <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-);
-
-const NAV_ITEMS = [
-    { id: "home", label: "Trang chủ" },
-    { id: "technology", label: "Công nghệ hiện đại" },
-    { id: "treatments", label: "Bệnh điều trị" },
-    { id: "testimonials", label: "Cảm nhận khách hàng" },
-    { id: "doctor-team", label: "Đội ngũ bác sĩ" },
-    { id: "medical-records", label: "Hồ sơ số" },
-    { id: "support", label: "Trung tâm hỗ trợ" }
-];
-
+import logo from '../../assets/logo.svg';
+import { FormattedMessage } from 'react-intl';
+import { LANGUAGES } from "../../utils";
+import { changeLanguageApp } from "../../store/actions";
 class HomeHeader extends Component {
-    state = {
-        isMenuOpen: false,
-        currentPage: "home",
-    };
 
-    handleNavigation = (page) => {
-        this.setState({ currentPage: page, isMenuOpen: false });
-    };
+    changeLanguage = (language) => {
+        this.props.changeLanguageAppRedux(language)
+        //fire redux event: actions
 
-    handleLogout = () => {
-        this.setState({ isMenuOpen: false });
-    };
-
-    toggleMobileMenu = () => {
-        this.setState((prev) => ({ isMenuOpen: !prev.isMenuOpen }));
-    };
+    }
 
     render() {
-        const { isLoggedIn } = this.props;
-        const { isMenuOpen, currentPage } = this.state;
-
+        let language = this.props.language;
+        console.log('check lang: ', language)
         return (
-            <header className="hc-header">
-                <div className="hc-header__inner">
-
-                    {/* Logo */}
-                    <div className="hc-brand" onClick={() => this.handleNavigation("home")}>
-                        <div className="hc-brand__mark">H+</div>
-                        <div>
-                            <div className="hc-brand__name">HealthCare+</div>
-                            <small>Active Care Platform</small>
+            <React.Fragment>
+                <div className="home-header-container">
+                    <div className="home-header-content">
+                        <div className="left-content">
+                            <i class="fa-solid fa-bars"></i>
+                            <img className="header-logo" src={logo} />
+                        </div>
+                        <div className="center-content">
+                            <div className="child-content">
+                                <div><b><FormattedMessage id="homeheader.specialty" /></b></div>
+                                <div className="subs-title"><FormattedMessage id="homeheader.search-doctor" /></div>
+                            </div>
+                            <div className="child-content">
+                                <div><b><FormattedMessage id="homeheader.medical-facilities" /></b></div>
+                                <div className="subs-title"><FormattedMessage id="homeheader.select-clinic" /></div>
+                            </div>
+                            <div className="child-content">
+                                <div><b><FormattedMessage id="homeheader.doctor" /></b></div>
+                                <div className="subs-title"><FormattedMessage id="homeheader.choose-doctor" /></div>
+                            </div>
+                            <div className="child-content">
+                                <div><b><FormattedMessage id="homeheader.package" /></b></div>
+                                <div className="subs-title"><FormattedMessage id="homeheader.health-check" /></div>
+                            </div>
+                        </div>
+                        <div className="right-content">
+                            <div className="support"><i className="fa-solid fa-circle-question"></i><FormattedMessage id="homeheader.support" /></div>
+                            <div className={language === LANGUAGES.VI ? 'language-vi active' : 'language-vi'}><span onClick={() => this.changeLanguage(LANGUAGES.VI)}>VN</span></div>
+                            <div className={language === LANGUAGES.EN ? 'language-en active' : 'language-en'}><span onClick={() => this.changeLanguage(LANGUAGES.EN)}>EN</span></div>
                         </div>
                     </div>
-
-                    {/* Desktop Navigation */}
-                    <nav className="hc-nav">
-                        {NAV_ITEMS.map((item) => (
-                            <button
-                                key={item.id}
-                                className={currentPage === item.id ? "active" : ""}
-                                onClick={() => this.handleNavigation(item.id)}
-                            >
-                                {item.label}
-                            </button>
-                        ))}
-                        <button>Chat AI</button>
-                    </nav>
-
-                    {/* Auth Buttons */}
-                    <div className="hc-auth">
-                        {isLoggedIn ? (
-                            <>
-                                <button className="outline" onClick={() => this.handleNavigation("profile")}>
-                                    Tài khoản
-                                </button>
-                                <button className="primary" onClick={() => this.handleNavigation("booking")}>
-                                    Đặt lịch khám
-                                </button>
-                                <button className="ghost" onClick={this.handleLogout}>
-                                    Đăng xuất
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <button className="outline" onClick={() => this.handleNavigation("login")}>
-                                    Đăng nhập
-                                </button>
-                                <button className="primary" onClick={() => this.handleNavigation("register")}>
-                                    Đăng ký
-                                </button>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Mobile toggle */}
-                    <button className="hc-mobile-toggle" onClick={this.toggleMobileMenu}>
-                        {isMenuOpen ? <CloseIcon size={20} /> : <MenuIcon size={20} />}
-                    </button>
                 </div>
 
-                {/* Mobile Menu */}
-                {isMenuOpen && (
-                    <div className="hc-mobile-menu">
-
-                        {NAV_ITEMS.map((item) => (
-                            <button key={item.id} onClick={() => this.handleNavigation(item.id)}>
-                                {item.label}
-                            </button>
-                        ))}
-
-                        <button>Chat AI / Hotline</button>
-
-                        <div className="hc-mobile-groups">
-                            <h4>Giải pháp nhanh</h4>
-                            <ul>
-                                <li>
-                                    <button onClick={() => this.handleNavigation("booking")}>Đặt lịch khám</button>
-                                </li>
-                                <li>
-                                    <button onClick={() => this.handleNavigation("doctor-team")}>Tìm bác sĩ</button>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div className="hc-mobile-actions">
-                            {isLoggedIn ? (
-                                <>
-                                    <button className="outline" onClick={() => this.handleNavigation("profile")}>
-                                        Tài khoản
-                                    </button>
-                                    <button className="primary" onClick={() => this.handleNavigation("booking")}>
-                                        Đặt lịch khám
-                                    </button>
-                                    <button className="ghost" onClick={this.handleLogout}>
-                                        Đăng xuất
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <button onClick={() => this.handleNavigation("login")}>Đăng nhập</button>
-                                    <button className="primary" onClick={() => this.handleNavigation("register")}>
-                                        Đăng ký ngay
-                                    </button>
-                                </>
-                            )}
+                <div className="home-header-banner">
+                    <div className="content-up">
+                        <div className="title1"><FormattedMessage id="banner.title1" /></div>
+                        <div className="title2"><FormattedMessage id="banner.title2" /></div>
+                        <div className="search">
+                            <i className="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" placeholder="Tìm chuyên khoa khám bệnh" />
                         </div>
                     </div>
-                )}
-            </header>
-        );
+                    <div className="content-down">
+                        <div className="options">
+                            <div className="option-child">
+                                <div className="icon-child"><i class="fa-solid fa-hospital"></i></div>
+                                <div className="text-child"><FormattedMessage id="banner.specialist-examination" /></div>
+                            </div>
+                            <div className="option-child">
+                                <div className="icon-child"><i className="fa-solid fa-mobile-screen"></i></div>
+                                <div className="text-child"><FormattedMessage id="banner.remote-examination" /></div>
+                            </div>
+                            <div className="option-child">
+                                <div className="icon-child"><i className="fa-solid fa-bed"></i></div>
+                                <div className="text-child"><FormattedMessage id="banner.general-examination" /></div>
+                            </div>
+                            <div className="option-child">
+                                <div className="icon-child"><i className="fa-solid fa-microscope"></i></div>
+                                <div className="text-child"><FormattedMessage id="banner.medical-tests" /></div>
+                            </div>
+                            <div className="option-child">
+                                <div className="icon-child"><i className="fa-solid fa-user-doctor"></i></div>
+                                <div className="text-child"><FormattedMessage id="banner.mental-health" /></div>
+                            </div>
+                            <div className="option-child">
+                                <div className="icon-child"><i className="fa-solid fa-tooth"></i></div>
+                                <div className="text-child"><FormattedMessage id="banner.dental-examination" /></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </React.Fragment>
+        )
     }
 }
 
 const mapStateToProps = (state) => ({
     isLoggedIn: state.user.isLoggedIn,
-    //userInfo: state.user.userInfo,
+    language: state.app.language,
 });
 
-export default connect(mapStateToProps)(HomeHeader);
+const mapDispatchToProps = dispatch => {
+    return {
+        changeLanguageAppRedux: (language) => dispatch(changeLanguageApp(language))
+    };
+};
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(HomeHeader);

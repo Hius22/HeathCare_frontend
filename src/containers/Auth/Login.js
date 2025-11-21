@@ -60,7 +60,7 @@ class Login extends Component {
                     })
                 }
             }
-            console.log('duan ', error.response);
+            console.log('duan-new ', error.response);
         }
     }
 

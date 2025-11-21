@@ -9,8 +9,8 @@ import { LANGUAGES } from '../../utils';
 import { lang } from 'moment/moment';
 class Header extends Component {
 
-    handleChangeLanguages = (languages) => {
-        alert(languages)
+    handleChangeLanguages = (language) => {
+        this.props.changeLanguageAppRedux(language)
     }
 
     render() {
@@ -25,8 +25,16 @@ class Header extends Component {
 
                 <div className='languages'>
                     <span className='welcome'>Welcome, {userInfo && userInfo.firstName ? userInfo.firstName : ''}</span>
-                    <span className='languages-vi' onClick={() => this.handleChangeLanguages(LANGUAGES.VI)}>VN</span>
-                    <span className='languages-en' onClick={() => this.handleChangeLanguages(LANGUAGES.EN)}>EN</span>
+                    <span className={language === LANGUAGES.VI ? "languages-vi active" : "languages-vi"}
+                        onClick={() => this.handleChangeLanguages(LANGUAGES.VI)}
+                    >
+                        VN
+                    </span>
+                    <span className={language === LANGUAGES.EN ? "languages-en active" : "languages-en"}
+                        onClick={() => this.handleChangeLanguages(LANGUAGES.EN)}
+                    >
+                        EN
+                    </span>
                     <div className="btn btn-logout" onClick={processLogout} title='Log out'>
                         <i className="fas fa-sign-out-alt"></i>
                     </div>
@@ -43,6 +51,7 @@ class Header extends Component {
 const mapStateToProps = state => {
     return {
         isLoggedIn: state.user.isLoggedIn,
+        language: state.app.language,
         userInfo: state.user.userInfo,
     };
 };
@@ -50,7 +59,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         processLogout: () => dispatch(actions.processLogout()),
-        // changeLanguageAppRedux: (language) => dispatch(actions.changeLanguageApp(language))
+        changeLanguageAppRedux: (language) => dispatch(actions.changeLanguageApp(language))
     };
 };
 
