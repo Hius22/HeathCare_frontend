@@ -51,7 +51,13 @@
         "position": "Position",
         "role": "Role",
         "image": "Avatar",
-        "save": "Save"
+        "save": "Save",
+        "edit": "Save changes"
+    },
+
+    "homepage": {
+        "outstanding-doctor": "Featured doctor of the week",
+        "more-infor": "See more"
     }
     
 }
