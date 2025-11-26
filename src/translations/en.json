@@ -35,6 +35,10 @@
             "specialty": "Specialty",
             "handbook": "Handbook",
             "manage-handbook": "Manage handbook"
+        },
+
+        "doctor": {
+            "manage-schedule": "Manage medical examination plans"
         }
     },
 
