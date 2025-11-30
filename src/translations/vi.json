@@ -62,6 +62,31 @@
     "homepage": {
         "outstanding-doctor": "Bác sĩ nổi bật tuần qua",
         "more-infor": "Xem thêm"
+    },
+
+    "manage-schedule": {
+        "title": "Quản lý kế hoạch khám bệnh",
+        "choose-doctor": "Chọn bác sĩ",
+        "choose-date": "Chọn ngày",
+        "save-information": "Lưu"
+    },
+
+    "patient": {
+        "detail-doctor": {
+            "schedule": "Lịch khám",
+            "no-schedule": "Không có lịch hẹn trong thời gian này, vui lòng chọn thời gian khác!",
+            "choose": "Chọn ",
+            "book-free": " và đặt miễn phí"
+        }
+    },
+    "admin": {
+        "manage-doctor": {
+            "title": "Tạo thông tin bác sĩ",
+            "select-doctor": "Chọn bác sĩ",
+            "information": "Thông tin giới thiệu",
+            "create": "Tạo thông tin",
+            "save": "Lưu thông tin"
+        }
     }
     
 }

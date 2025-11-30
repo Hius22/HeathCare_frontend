@@ -62,6 +62,30 @@
     "homepage": {
         "outstanding-doctor": "Featured doctor of the week",
         "more-infor": "See more"
+    },
+
+    "manage-schedule": {
+        "title": "Manage medical examination plans",
+        "choose-doctor": "Choose a doctor",
+        "choose-date": "Select date",
+        "save-information": "Save"
+    },
+
+    "patient": {
+        "detail-doctor": {
+            "schedule": "Schedule",
+            "no-schedule": "There are no appointments available during this time, please choose another time!",
+            "choose": "Choose ",
+            "book-free": " and book free"
+        }
+    },
+    "admin": {
+        "manage-doctor": {
+            "title": "Create doctor information",
+            "select-doctor": "Choose a doctor",
+            "information": "Introductory information",
+            "create": "Create information",
+            "save": "Save information"
+        }
     }
-    
 }
