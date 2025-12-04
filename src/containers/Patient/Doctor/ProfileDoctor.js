@@ -5,6 +5,8 @@ import './ProfileDoctor.scss';
 import { getProfileDoctorById } from '../../../services/userService';
 import { LANGUAGES } from '../../../utils';
 import NumberFormat from 'react-number-format';
+import _ from "lodash";
+import moment from 'moment';
 
 class ProfileDoctor extends Component {
 
@@ -41,12 +43,42 @@ class ProfileDoctor extends Component {
         if (this.props.doctorId !== prevProps.doctorId) {
             // this.getInforDoctor(this.props.doctorId)
         }
-
     }
+
+    renderTimeBooking = (dataTime) => {
+        let { language } = this.props;
+
+        if (dataTime && !_.isEmpty(dataTime)) {
+
+            // Set locale tiếng Việt
+            moment.locale('vi');
+
+            // Xử lý ngày
+            let date =
+                language === LANGUAGES.VI
+                    ? moment.unix(+dataTime.date / 1000).format('dddd - DD/MM/YYYY')
+                    : moment.unix(+dataTime.date / 1000).locale('en').format('dddd - MM/DD/YYYY');
+
+            // Xử lý giờ
+            let time =
+                language === LANGUAGES.VI
+                    ? dataTime.timeTypeData.valueVi
+                    : dataTime.timeTypeData.valueEn;
+
+            return (
+                <>
+                    <div>{time} - {date}</div>
+                    <div><FormattedMessage id="patient.booking-modal.free" /></div>
+                </>
+            );
+        }
+
+        return <></>;
+    };
 
     render() {
         let { dataProfile } = this.state;
-        let { language } = this.props;
+        let { language, isShowDescriptionDoctor, dataTime } = this.props;
 
         let nameVi = '', nameEn = '';
         if (dataProfile && dataProfile.positionData) {
@@ -55,7 +87,7 @@ class ProfileDoctor extends Component {
         }
 
         //console.log('check sateeeee: ', this.state);
-
+        console.log('check props:  ', dataTime);
         return (
             <div className='profile-doctor-container'>
                 <div className='intro-doctor'>
@@ -69,24 +101,34 @@ class ProfileDoctor extends Component {
                             {language === LANGUAGES.VI ? nameVi : nameEn}
                         </div>
                         <div className='down'>
-                            {dataProfile && dataProfile.MarkDown && dataProfile.MarkDown.description
-                                &&
-                                <span>
-                                    {dataProfile.MarkDown.description}
-                                </span>
+                            {isShowDescriptionDoctor === true ?
+                                <>
+                                    {dataProfile && dataProfile.MarkDown && dataProfile.MarkDown.description
+                                        &&
+                                        <span>
+                                            {dataProfile.MarkDown.description}
+                                        </span>
+                                    }
+                                </>
+                                :
+                                <>
+                                    {this.renderTimeBooking(dataTime)}
+                                </>
                             }
+
+
                         </div>
                     </div>
 
                 </div>
 
                 <div className='price'>
-                    Gia kham:
+                    <FormattedMessage id="patient.booking-modal.price" />
                     {
                         dataProfile && dataProfile.Doctor_Infor && language === LANGUAGES.VI &&
                         <NumberFormat
                             className='currency'
-                            value={dataProfile.Doctor_Infor.priceTypeData.valueVi}
+                            value={Number(dataProfile.Doctor_Infor.priceTypeData.valueVi)}
                             displayType={'text'}
                             thousandSeparator={true}
                             suffix={' VND'}
@@ -96,13 +138,14 @@ class ProfileDoctor extends Component {
                         dataProfile && dataProfile.Doctor_Infor && language === LANGUAGES.EN &&
                         <NumberFormat
                             className='currency'
-                            value={dataProfile.Doctor_Infor.priceTypeData.valueEn}
+                            value={Number(dataProfile.Doctor_Infor.priceTypeData.valueEn)}
                             displayType={'text'}
                             thousandSeparator={true}
                             suffix={' $'}
                         />
                     }
                 </div>
+
             </div>
 
         )

@@ -78,12 +78,28 @@
             "choose": "Choose ",
             "book-free": " and book free"
         },
+        
         "extra-infor-doctor": {
             "text-address": "Examination address",
             "price": "Examination price:",
             "detail": "See details",
             "payment": "The clinic has the following payment methods: ",
             "hide": "Hide price list"
+        },
+
+        "booking-modal": {
+            "title": "Medical appointment information",
+            "fullName": "Full name",
+            "phoneNumber":"Phone number",
+            "email": "Email address",
+            "address": "Contact address",
+            "reason": "Reason for examination",
+            "birthday": "Date of birth",
+            "gender": "Gender",
+            "confirm": "Confirm",
+            "cancel": "Cancel",
+            "price": "Price: ",
+            "free": "Free appointment booking"
         }
     },
     "admin": {

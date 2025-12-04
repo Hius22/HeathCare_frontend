@@ -80,9 +80,9 @@ class ManageSchedule extends Component {
 
     };
 
-    handleOnchangeDatePicker = (data) => {
+    handleOnchangeDatePicker = (date) => {
         this.setState({
-            currentDate: data[0]
+            currentDate: date[0]
         })
     }
 
