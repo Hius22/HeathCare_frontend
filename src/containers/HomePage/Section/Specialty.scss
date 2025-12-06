@@ -1,0 +1,10 @@
+.specialty-child {
+  .specialty-name {
+    cursor: pointer;
+    padding: 10px 0;
+
+    &:hover {
+      color: #49bce2;
+    }
+  }
+}
