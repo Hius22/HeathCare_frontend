@@ -91,7 +91,13 @@ class TableManageUser extends Component {
                     </tbody>
                 </table>
 
-                <MdEditor style={{ height: '500px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange} />
+                {this.props.action === 'EDIT' &&
+                    <MdEditor
+                        style={{ height: '500px' }}
+                        renderHTML={text => mdParser.render(text)}
+                        onChange={handleEditorChange}
+                    />
+                }
             </React.Fragment>
 
         );

@@ -16,6 +16,33 @@
       th,
       td {
         border: 1px solid black;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 5px;
+        text-align: center;
+      }
+
+      button {
+        border: none;
+        outline: none;
+        cursor: pointer;
+      }
+
+      .mp-btn-confirm {
+        margin-right: 10px;
+        height: 30px;
+        border-radius: 3px;
+        background: orange;
+      }
+
+      .mp-btn-cancel {
+        margin-right: 10px;
+        height: 30px;
+        border-radius: 3px;
+        background: orange;
       }
     }
   }

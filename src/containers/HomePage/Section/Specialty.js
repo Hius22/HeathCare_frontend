@@ -16,7 +16,7 @@ class Specialty extends Component {
 
     async componentDidMount() {
         let res = await getAllSpecialty();
-        console.log('check res1:', res)
+        //console.log('check res1:', res)
         if (res && res.errCode === 0) {
             this.setState({
                 dataSpecialty: res.data ? res.data : []
@@ -38,7 +38,10 @@ class Specialty extends Component {
                 <div className=" section-container">
                     <div className="section-header">
                         <span className="title-section"><FormattedMessage id="homepage.specialty" /> </span>
-                        <button className="btn-section"><FormattedMessage id="homepage.more-infor" /></button>
+                        <button
+                            className="btn-section"
+                            onClick={() => this.props.history.push('/all-specialty')}
+                        ><FormattedMessage id="homepage.more-infor" /></button>
                     </div>
 
                     <div className="section-body">

@@ -38,7 +38,10 @@ class MedicalFacility extends Component {
                     <div className=" section-container">
                         <div className="section-header">
                             <span className="title-section">Cơ sở y tế nổi bật</span>
-                            <button className="btn-section">Xem thêm</button>
+                            <button
+                                className="btn-section"
+
+                            >Xem thêm</button>
                         </div>
 
                         <div className="section-body">

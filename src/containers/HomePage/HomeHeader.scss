@@ -6,6 +6,7 @@
   top: 0;
   background: white;
   z-index: 10000;
+  padding-right: 100px;
 
   .home-header-content {
     width: 100%;
@@ -29,6 +30,7 @@
         font-size: 25px;
         color: grey;
         cursor: pointer;
+        padding-left: 100px;
       }
     }
 
@@ -101,7 +103,7 @@
 }
 
 .home-header-banner {
-  background-image: url("../../assets/header-background.jpg");
+  background-image: url("../../assets/bookingcare-cover-2.jpg");
   height: 600px;
   background-repeat: no-repeat;
   background-size: cover;
@@ -142,7 +144,7 @@
       margin: 0 auto;
       padding: 10px;
       border-radius: 25px;
-      background: #f7d800;
+      background: #f5e373;
 
       i {
         margin: 0 5px;
