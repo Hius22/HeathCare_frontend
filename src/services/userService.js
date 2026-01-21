@@ -107,6 +107,14 @@ const postCancelBooking = (data) => {
     return axios.post('/api/cancel-booking', data)
 }
 
+const deleteScheduleDoctor = (scheduleId) => {
+    return axios.delete(`/api/delete-schedule-doctor?id=${scheduleId}`);
+}
+
+const getAllScheduleDoctor = () => {
+    return axios.get('/api/get-all-schedule');
+}
+
 export {
     handleLoginApi, getAllUsers, createNewUserService,
     deleteUserService, editUserService, getALLCodeService,
@@ -116,5 +124,5 @@ export {
     postVerifyBookingAppointment, createNewSpecialty, getAllSpecialty,
     getDetailSpecialtyById, createNewClinic, getAllClinic,
     getDetailClinicById, getAllPatientForDoctor, postSendRemedy,
-    postCancelBooking,
+    postCancelBooking, deleteScheduleDoctor, getAllScheduleDoctor
 }

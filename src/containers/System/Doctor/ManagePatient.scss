@@ -44,6 +44,20 @@
         border-radius: 3px;
         background: orange;
       }
+
+      .status-done {
+        margin-right: 10px;
+        border-radius: 3px;
+        background: orange;
+        padding: 5px 5px;
+      }
+
+      .status-cancel {
+        margin-right: 10px;
+        border-radius: 3px;
+        background: orange;
+        padding: 5px 10px;
+      }
     }
   }
 }

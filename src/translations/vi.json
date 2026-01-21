@@ -34,11 +34,13 @@
             "manage-specialty": "Quản lý chuyên khoa",
             "specialty": "Chuyên khoa",
             "handbook": "Cẩm nang",
-            "manage-handbook": "Quản lý cẩm nang"
+            "manage-handbook": "Quản lý cẩm nang",
+            "manage-schedule": "Quản lý đặt lịch khám bệnh"
         },
 
         "doctor": {
-            "manage-schedule": "Quản lý kế hoạch khám bệnh",
+            
+            "manage-schedule-doctor": "Quản lý lịch khám",
             "manage-patient": "Quản lý bệnh nhân khám bệnh"
         }
     },
@@ -67,7 +69,7 @@
     },
 
     "manage-schedule": {
-        "title": "Quản lý kế hoạch khám bệnh",
+        "title": "Quản lý đặt lịch khám bệnh",
         "choose-doctor": "Chọn bác sĩ",
         "choose-date": "Chọn ngày",
         "save-information": "Lưu"

@@ -23,8 +23,8 @@ export const adminMenu = [
             //     name: 'menu.admin.manage-admin', link: '/system/user-admin'
             // },
 
-            { //Quản lý kế hoạch khám bệnh của doctor
-                name: 'menu.doctor.manage-schedule', link: '/doctor/manage-schedule'
+            { //Quản lý đặt lịch khám bệnh 
+                name: 'menu.admin.manage-schedule', link: '/system/manage-schedule'
             },
         ]
     },
@@ -62,7 +62,7 @@ export const doctorMenu = [
         name: 'menu.admin.manage-user',
         menus: [
             { //Quản lý kế hoạch khám bệnh của doctor
-                name: 'menu.doctor.manage-schedule', link: '/doctor/manage-schedule'
+                name: 'menu.doctor.manage-schedule-doctor', link: '/doctor/manage-schedule-doctor'
             },
 
             { //Quản lý lịch hẹn khám bệnh của doctor

@@ -160,14 +160,20 @@ class ManagePatient extends Component {
                                         <th>Họ và tên</th>
                                         <th>Địa chỉ</th>
                                         <th>Giới tính</th>
+                                        <th>Trạng thái</th>
                                         <th>Hành động</th>
                                     </tr>
                                     {dataPatient && dataPatient.length > 0 ?
                                         dataPatient.map((item, index) => {
-                                            let time = language === LANGUAGES.VI ?
-                                                item.timeTypeDataPatient.valueVi : item.timeTypeDataPatient.valueEn;
-                                            let gender = language === LANGUAGES.VI ?
-                                                item.patientData.genderData.valueVi : item.patientData.genderData.valueEn;
+                                            let time = language === LANGUAGES.VI
+                                                ? item?.timeTypeDataPatient?.valueVi || ''
+                                                : item?.timeTypeDataPatient?.valueEn || '';
+                                            let gender = language === LANGUAGES.VI
+                                                ? item?.patientData?.genderData?.valueVi || ''
+                                                : item?.patientData?.genderData?.valueEn || '';
+                                            let status = language === LANGUAGES.VI
+                                                ? item?.statusData?.valueVi || 'Chưa xác định'
+                                                : item?.statusData?.valueEn || 'Unknown';
                                             return (
                                                 <tr key={index}>
                                                     <td>{index + 1}</td>
@@ -175,26 +181,40 @@ class ManagePatient extends Component {
                                                     <td>{item.patientData.firstName}</td>
                                                     <td>{item.patientData.address}</td>
                                                     <td>{gender}</td>
+                                                    <td>{status}</td>
                                                     <td>
-                                                        <button
-                                                            className='mp-btn-confirm'
-                                                            onClick={() => this.handleBtnConfirm(item)}
-                                                        >
-                                                            Xác nhận
-                                                        </button>
-                                                        <button
-                                                            className='mp-btn-cancel'
-                                                            onClick={() => this.handleBtnCancel(item)}
-                                                        >
-                                                            Hủy
-                                                        </button>
+                                                        {item.statusId === 'S2' && (
+                                                            <>
+                                                                <button
+                                                                    className='mp-btn-confirm'
+                                                                    onClick={() => this.handleBtnConfirm(item)}
+                                                                >
+                                                                    Khám xong
+                                                                </button>
+
+                                                                <button
+                                                                    className='mp-btn-cancel'
+                                                                    onClick={() => this.handleBtnCancel(item)}
+                                                                >
+                                                                    Hủy
+                                                                </button>
+                                                            </>
+                                                        )}
+
+                                                        {/* {item.statusId === 'S3' && (
+                                                            <span className="status-done">Đã khám</span>
+                                                        )}
+
+                                                        {item.statusId === 'S4' && (
+                                                            <span className="status-cancel">Đã hủy</span>
+                                                        )} */}
                                                     </td>
                                                 </tr>
                                             )
                                         })
                                         :
                                         <tr>
-                                            <td colSpan="6">No data</td>
+                                            <td colSpan="6">Chưa có lịch khám</td>
                                         </tr>
                                     }
 

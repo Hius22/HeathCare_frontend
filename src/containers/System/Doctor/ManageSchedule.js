@@ -9,7 +9,7 @@ import DatePicker from '../../../components/Input/DatePicker';
 import moment from 'moment';
 import { toast } from "react-toastify";
 import _ from 'lodash';
-import { saveBulkScheduleDoctor } from '../../../services/userService';
+import { saveBulkScheduleDoctor, getScheduleDoctorByDate, deleteScheduleDoctor, getAllScheduleDoctor } from '../../../services/userService';
 
 class ManageSchedule extends Component {
     constructor(props) {
@@ -19,13 +19,16 @@ class ManageSchedule extends Component {
             listDoctors: [],
             selectedDoctors: {},
             currentDate: '',
-            rangeTime: []
+            rangeTime: [],
+            doctorSchedules: [],
+
         }
     }
 
     componentDidMount() {
         this.props.fetchALLDoctors();
         this.props.fetchAllScheduleTime();
+        this.fetchAllSchedule();
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -76,14 +79,16 @@ class ManageSchedule extends Component {
     }
 
     handleChangeSelect = async (selectedDoctor) => {
-        this.setState({ selectedDoctors: selectedDoctor });
+        await this.setState({ selectedDoctors: selectedDoctor });
+        this.fetchDoctorSchedule();
 
     };
 
     handleOnchangeDatePicker = (date) => {
         this.setState({
             currentDate: date[0]
-        })
+        });
+        this.fetchDoctorSchedule();
     }
 
     handleClickBtnTime = (time) => {
@@ -142,11 +147,58 @@ class ManageSchedule extends Component {
         })
         if (res && res.errCode === 0) {
             toast.success("Information saved as!");
+            await this.fetchDoctorSchedule();
         } else {
             toast.error("error saveBulkScheduleDoctor");
-            console.log('error saveBulkScheduleDoctor >>> res: ', res)
+            //console.log('error saveBulkScheduleDoctor >>> res: ', res)
         }
     }
+
+    fetchDoctorSchedule = async () => {
+        let { selectedDoctors, currentDate } = this.state;
+
+        if (!selectedDoctors || !currentDate) return;
+
+        let date = new Date(currentDate).getTime();
+
+        let res = await getScheduleDoctorByDate(selectedDoctors.value, date);
+
+        if (res && res.errCode === 0) {
+            this.setState({
+                doctorSchedules: res.data || []
+            })
+        }
+    }
+
+    handleDeleteSchedule = async (schedule) => {
+        try {
+            let res = await deleteScheduleDoctor(schedule.id);
+
+            if (res && res.errCode === 0) {
+                toast.success("Appointment cancelled successfully!");
+                await this.fetchDoctorSchedule(); // load lại bảng
+            } else {
+                toast.error("Cancel the failed appointment!");
+            }
+        } catch (e) {
+            toast.error("Error deleting appointment!");
+            console.error(e);
+        }
+    }
+
+    fetchAllSchedule = async () => {
+        let res = await getAllScheduleDoctor();
+
+        if (res && res.errCode === 0) {
+            this.setState({
+                doctorSchedules: res.data || []
+            });
+        } else {
+            this.setState({
+                doctorSchedules: []
+            });
+        }
+    };
 
     render() {
         //console.log('check state: ', this.state);
@@ -199,6 +251,64 @@ class ManageSchedule extends Component {
                             >
                                 <FormattedMessage id="manage-schedule.save-information" />
                             </button>
+                        </div>
+
+                        <div className="col-12 mt-4">
+                            <h4 className="mb-3">
+                                <FormattedMessage id="manage-schedule.created-schedule" defaultMessage="Lịch khám đã tạo" />
+                            </h4>
+
+                            <table className="table table-bordered table-hover">
+                                <thead className="thead-dark">
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Bác sĩ</th>
+                                        <th>Ngày khám</th>
+                                        <th>Giờ khám</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {this.state.doctorSchedules && this.state.doctorSchedules.length > 0 ? (
+                                        this.state.doctorSchedules.map((item, index) => (
+                                            <tr key={item.id || index}>
+                                                <td>{index + 1}</td>
+                                                <td>
+                                                    {item.doctorData
+                                                        ? (language === LANGUAGES.VI
+                                                            ? `${item.doctorData.lastName} ${item.doctorData.firstName}`
+                                                            : `${item.doctorData.firstName} ${item.doctorData.lastName}`)
+                                                        : ''}
+                                                </td>
+                                                <td>
+                                                    {item.date
+                                                        ? moment(Number(item.date)).format('DD/MM/YYYY')
+                                                        : '---'}
+                                                </td>
+                                                <td>
+                                                    {language === LANGUAGES.VI
+                                                        ? item.timeTypeData.valueVi
+                                                        : item.timeTypeData.valueEn}
+                                                </td>
+                                                <td className="text-center align-middle">
+                                                    <button
+                                                        className="btn btn-warning btn-sm"
+                                                        onClick={() => this.handleDeleteSchedule(item)}
+                                                    >
+                                                        Xóa
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="5" className="text-center">
+                                                Chưa có lịch khám
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
 
                     </div>

@@ -138,19 +138,39 @@ class DoctorSchedule extends Component {
                             {allAvailableTime && allAvailableTime.length > 0 ?
                                 <>
                                     <div className='time-content-btns'>
-                                        {allAvailableTime.map((item, index) => {
-                                            let timeDisplay = language === LANGUAGES.VI ? item.timeTypeData.valueVi : item.timeTypeData.valueEn;
-                                            return (
-                                                <button
-                                                    key={index}
-                                                    className={language === LANGUAGES.VI ? 'btn-vie' : 'btn-en'}
-                                                    onClick={() => this.handleClickScheduleTime(item)}
-                                                >
-                                                    {timeDisplay}
-                                                </button>
-                                            )
-                                        })
-                                        }
+                                        {allAvailableTime && allAvailableTime.length > 0 &&
+                                            allAvailableTime
+                                                .filter(item => {
+                                                    // chỉ lọc nếu là hôm nay
+                                                    const isToday = moment(item.date).isSame(moment(), 'day');
+                                                    if (!isToday) return true;
+
+                                                    // giờ hiện tại
+                                                    const currentHour = moment().hour();
+
+                                                    // lấy giờ bắt đầu từ chuỗi "08:00 - 09:00"
+                                                    const startHour = parseInt(
+                                                        item.timeTypeData.valueVi.split(':')[0]
+                                                    );
+
+                                                    return startHour > currentHour;
+                                                })
+                                                .map((item, index) => {
+                                                    let timeDisplay =
+                                                        language === LANGUAGES.VI
+                                                            ? item.timeTypeData.valueVi
+                                                            : item.timeTypeData.valueEn;
+
+                                                    return (
+                                                        <button
+                                                            key={index}
+                                                            className={language === LANGUAGES.VI ? 'btn-vie' : 'btn-en'}
+                                                            onClick={() => this.handleClickScheduleTime(item)}
+                                                        >
+                                                            {timeDisplay}
+                                                        </button>
+                                                    )
+                                                })}
                                     </div>
 
                                     <div className='book-free'>

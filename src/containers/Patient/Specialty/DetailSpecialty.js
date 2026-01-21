@@ -39,7 +39,9 @@ class DetailSpecialty extends Component {
                     let arr = data.doctorSpecialty;
                     if (arr && arr.length > 0) {
                         arr.map(item => {
-                            arrDoctorId.push(item.doctorId)
+                            if (item.doctorId) {
+                                arrDoctorId.push(item.doctorId);
+                            }
                         })
                     }
                 }
