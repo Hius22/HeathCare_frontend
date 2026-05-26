@@ -4,13 +4,12 @@ import { Route, Switch } from 'react-router-dom';
 import { ConnectedRouter as Router } from 'connected-react-router';
 import { history } from '../redux'
 import { ToastContainer } from 'react-toastify';
-import { userIsAuthenticated, userIsNotAuthenticated } from '../hoc/authentication';
+import { userIsAuthenticated, userIsNotAuthenticated, userIsAdmin, userIsDoctor } from '../hoc/authentication';
 import { path } from '../utils'
 import Home from '../routes/Home';
 import Login from './Auth/Login';
 import System from '../routes/System';
 import Doctor from '../routes/Doctor';
-import { CustomToastCloseButton } from '../components/CustomToast';
 import HomePage from './HomePage/HomePage.js';
 import CustomScrollbars from '../components/CustomScrollbars';
 import DetailDoctor from './Patient/Doctor/DetailDoctor';
@@ -18,6 +17,12 @@ import VerifyEmail from './Patient/VerifyEmail';
 import DetailSpecialty from './Patient/Specialty/DetailSpecialty';
 import DetailClinic from './Patient/Clinic/DetailClinic';
 import AllSpecialty from './Patient/Specialty/AllSpecialty';
+import BookingFlow from './Patient/BookingFlow';
+import BookingHistory from './Patient/BookingHistory';
+import AllDoctors from './Patient/Doctor/AllDoctors';
+import AllClinics from './Patient/Clinic/AllClinics';
+import NotFound from './NotFound';
+import GlobalSpinner from '../components/GlobalSpinner';
 class App extends Component {
 
     handlePersistorState = () => {
@@ -48,8 +53,8 @@ class App extends Component {
                                 <Switch>
                                     <Route path={path.HOME} exact component={(Home)} />
                                     <Route path={path.LOGIN} component={userIsNotAuthenticated(Login)} />
-                                    <Route path={path.SYSTEM} component={userIsAuthenticated(System)} />
-                                    <Route path={'/doctor'} component={userIsAuthenticated(Doctor)} />
+                                    <Route path={path.SYSTEM} component={userIsAdmin(System)} />
+                                    <Route path={'/doctor'} component={userIsDoctor(Doctor)} />
 
                                     <Route path={path.HOMEPAGE} component={HomePage} />
                                     <Route path={path.DETAIL_DOCTOR} component={DetailDoctor} />
@@ -60,16 +65,19 @@ class App extends Component {
 
                                     <Route path={path.ALL_SPECIALTY} component={AllSpecialty} />
 
+                                    <Route path={path.BOOKING_FLOW} component={BookingFlow} />
+
+                                    <Route path={path.APPOINTMENTS} component={BookingHistory} />
+
+                                    <Route path={path.ALL_DOCTORS} component={AllDoctors} />
+
+                                    <Route path={path.ALL_CLINICS} component={AllClinics} />
+
+                                    <Route component={NotFound} />
+
                                 </Switch>
                             </CustomScrollbars>
                         </div>
-
-                        {/* <ToastContainer
-                            className="toast-container" toastClassName="toast-item" bodyClassName="toast-item-body"
-                            autoClose={false} hideProgressBar={true} pauseOnHover={false}
-                            pauseOnFocusLoss={true} closeOnClick={false} draggable={false}
-                            closeButton={<CustomToastCloseButton />}
-                        /> */}
 
                         <ToastContainer
                             position='bottom-right'
@@ -84,6 +92,7 @@ class App extends Component {
                         />
                     </div>
                 </Router>
+                <GlobalSpinner />
             </Fragment>
         )
     }

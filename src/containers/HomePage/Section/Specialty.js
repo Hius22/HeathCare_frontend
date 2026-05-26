@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { FormattedMessage } from 'react-intl';
+import { LANGUAGES } from '../../../utils';
 import Slider from "react-slick";
 import { getAllSpecialty } from '../../../services/userService';
 import './Specialty.scss';
@@ -32,40 +32,51 @@ class Specialty extends Component {
 
     render() {
         let { dataSpecialty } = this.state;
-        //let { language } = this.props;
+        let displaySpecialties = dataSpecialty.slice(0, 5);
+        let hasMore = dataSpecialty.length > 5;
+
         return (
-            <div className="sections-share section-specialty">
-                <div className=" section-container">
-                    <div className="section-header">
-                        <span className="title-section"><FormattedMessage id="homepage.specialty" /> </span>
-                        <button
-                            className="btn-section"
-                            onClick={() => this.props.history.push('/all-specialty')}
-                        ><FormattedMessage id="homepage.more-infor" /></button>
+            <section className="specialty-section section-padding">
+                <div className="section-container-main">
+                    <div className="section-header-center">
+                        <h2 className="section-title">
+                            {this.props.language === LANGUAGES.VI ? 'Chuyên Khoa Phổ Biến' : 'Popular Specialties'}
+                        </h2>
+                        <div className="title-underline"></div>
                     </div>
 
-                    <div className="section-body">
-                        <Slider {...this.props.settings}>
-                            {dataSpecialty && dataSpecialty.length > 0 &&
-                                dataSpecialty.map((item, index) => {
-                                    return (
-                                        <div className="section-customize specialty-child"
-                                            key={index}
-                                            onClick={() => this.handleViewDetailSpecialty(item)}
-                                        >
-                                            <div className="bg-image section-specialty"
+                    <div className="specialty-grid">
+                        {displaySpecialties && displaySpecialties.length > 0 &&
+                            displaySpecialties.map((item, index) => {
+                                return (
+                                    <div className="specialty-card"
+                                        key={index}
+                                        onClick={() => this.handleViewDetailSpecialty(item)}
+                                    >
+                                        <div className="specialty-icon-wrapper">
+                                            <div className="specialty-image"
                                                 style={{ backgroundImage: `url(${item.image})` }}
                                             />
-                                            <div className="specialty-name">{item.name}</div>
                                         </div>
-                                    )
-                                })
-                            }
-                        </Slider>
+                                        <h4 className="specialty-name">{item.name}</h4>
+                                    </div>
+                                )
+                            })
+                        }
                     </div>
 
+                    {hasMore && (
+                        <div className="section-footer">
+                            <button
+                                className="view-all-btn"
+                                onClick={() => this.props.history.push('/all-specialty')}
+                            >
+                                {this.props.language === LANGUAGES.VI ? 'Xem tất cả →' : 'View all →'}
+                            </button>
+                        </div>
+                    )}
                 </div>
-            </div>
+            </section>
         );
     }
 }

@@ -10,7 +10,8 @@ import passIcon from '../../src/assets/images/pass.svg';
 import './Login.scss';
 import { FormattedMessage } from 'react-intl';
 
-import adminService from '../services/adminService';
+import { handleLoginApi } from '../services/userService';
+import { USER_ROLE } from '../utils';
 
 class Login extends Component {
     constructor(props) {
@@ -42,37 +43,40 @@ class Login extends Component {
         this.setState({ password: e.target.value })
     }
 
-    redirectToSystemPage = () => {
+    redirectToSystemPage = (userInfo) => {
         const { navigate } = this.props;
-        const redirectPath = '/system/user-manage';
-        navigate(`${redirectPath}`);
+        let redirectPath = '/home';
+        if (userInfo && userInfo.roleId === USER_ROLE.ADMIN) {
+            redirectPath = '/system/user-manage';
+        } else if (userInfo && userInfo.roleId === USER_ROLE.DOCTOR) {
+            redirectPath = '/doctor/manage-schedule-doctor';
+        }
+        navigate(redirectPath);
     }
 
-    processLogin = () => {
+    processLogin = async () => {
         const { username, password } = this.state;
 
-        const { adminLoginSuccess, adminLoginFail } = this.props;
-        let loginBody = {
-            username: 'admin',
-            password: '123456'
-        }
-        //sucess
-        let adminInfo = {
-            "tlid": "0",
-            "tlfullname": "Administrator",
-            "custype": "A",
-            "accessToken": "eyJhbGciOiJIU"
+        if (!username || !password) {
+            this.setState({ loginError: 'Missing username or password!' });
+            return;
         }
 
-        adminLoginSuccess(adminInfo);
-        this.refresh();
-        this.redirectToSystemPage();
         try {
-            adminService.login(loginBody)
+            let res = await handleLoginApi(username, password);
+            if (res && res.errCode === 0) {
+                this.props.userLoginSuccess(res.user);
+                this.refresh();
+                this.redirectToSystemPage(res.user);
+            } else {
+                this.setState({ loginError: res.errMessage });
+                this.props.userLoginFail();
+            }
         } catch (e) {
-            console.log('error login : ', e)
+            console.log('error login: ', e);
+            this.setState({ loginError: 'Login failed. Please try again.' });
+            this.props.userLoginFail();
         }
-
     }
 
     handlerKeyDown = (event) => {
@@ -165,8 +169,8 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         navigate: (path) => dispatch(push(path)),
-        adminLoginSuccess: (adminInfo) => dispatch(actions.adminLoginSuccess(adminInfo)),
-        adminLoginFail: () => dispatch(actions.adminLoginFail()),
+        userLoginSuccess: (userInfo) => dispatch(actions.userLoginSuccess(userInfo)),
+        userLoginFail: () => dispatch(actions.userLoginFail()),
     };
 };
 

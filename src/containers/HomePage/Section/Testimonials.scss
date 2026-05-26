@@ -1,0 +1,133 @@
+.testimonials-section {
+  background-color: #e6e8ea;
+  padding-top: 32px;
+  padding-bottom: 32px;
+
+  @media (min-width: 768px) {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .section-container-main {
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 16px;
+    padding-right: 16px;
+
+    @media (min-width: 768px) {
+      padding-left: 32px;
+      padding-right: 32px;
+    }
+  }
+
+  .section-header-center {
+    text-align: center;
+    margin-bottom: 32px;
+
+    @media (min-width: 768px) {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #191c1e;
+      margin-bottom: 8px;
+
+      @media (min-width: 768px) {
+        font-size: 30px;
+      }
+
+      @media (min-width: 1024px) {
+        font-size: 36px;
+      }
+    }
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+  }
+
+  .testimonial-card {
+    background-color: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid #bec8d2;
+
+    @media (min-width: 768px) {
+      padding: 24px;
+    }
+
+    .rating-stars {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+
+      .star {
+        font-size: 20px;
+        color: #bec8d2;
+
+        &.filled {
+          color: #006877;
+        }
+
+        &.half {
+          color: #006877;
+        }
+      }
+    }
+
+    .testimonial-comment {
+      font-size: 16px;
+      line-height: 1.5;
+      font-style: italic;
+      color: #627078;
+      margin-bottom: 24px;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .author-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: rgba(0, 101, 145, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #006591;
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .author-info {
+        .author-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #191c1e;
+          margin-bottom: 2px;
+        }
+
+        .author-location {
+          font-size: 12px;
+          font-weight: 500;
+          color: #6e7881;
+          letter-spacing: 0.04em;
+        }
+      }
+    }
+  }
+}

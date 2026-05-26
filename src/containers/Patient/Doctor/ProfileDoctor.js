@@ -41,7 +41,8 @@ class ProfileDoctor extends Component {
 
         }
         if (this.props.doctorId !== prevProps.doctorId) {
-            // this.getInforDoctor(this.props.doctorId)
+            let data = await this.getInforDoctor(this.props.doctorId);
+            this.setState({ dataProfile: data });
         }
     }
 
@@ -49,14 +50,10 @@ class ProfileDoctor extends Component {
         let { language } = this.props;
 
         if (dataTime && !_.isEmpty(dataTime)) {
-
-            // Set locale tiếng Việt
-            moment.locale('vi');
-
             // Xử lý ngày
             let date =
                 language === LANGUAGES.VI
-                    ? moment.unix(+dataTime.date / 1000).format('dddd - DD/MM/YYYY')
+                    ? moment.unix(+dataTime.date / 1000).locale('vi').format('dddd - DD/MM/YYYY')
                     : moment.unix(+dataTime.date / 1000).locale('en').format('dddd - MM/DD/YYYY');
 
             // Xử lý giờ
@@ -86,8 +83,6 @@ class ProfileDoctor extends Component {
             nameEn = `${dataProfile.positionData.valueEn}, ${dataProfile.firstName} ${dataProfile.lastName}`;
         }
 
-        //console.log('check sateeeee: ', this.state);
-        console.log('check props:  ', dataTime);
         return (
             <div className='profile-doctor-container'>
                 <div className='intro-doctor'>

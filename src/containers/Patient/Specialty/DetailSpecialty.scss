@@ -1,74 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+$primary:    #006ea8;
+$primary-lt: #e8f4ff;
+$text-dark:  #0f172a;
+$text-mid:   #475569;
+$border:     #e2e8f0;
+$bg-page:    #f8fafc;
+$radius-lg:  16px;
+$radius-sm:  10px;
+$shadow-card: 0 4px 24px rgba(0,0,0,0.08);
+
 .detail-specialty-container {
+  font-family: 'Inter', sans-serif;
+  background: $bg-page;
+  min-height: 100vh;
+  padding-bottom: 60px;
+
+  // ─── Hero banner from DB HTML ─────────────────────────
   .description-specialty {
-    background-color: white !important;
-    padding: 10px;
-    margin: 15px 0;
+    background: #fff;
+    border-bottom: 1px solid $border;
 
-    h1,
-    h2,
-    h3 {
-      font-size: 16px;
-      font-weight: 600;
+    .description-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px 24px;
+
+      h1, h2, h3 {
+        color: $text-dark;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+      h1 { font-size: 26px; }
+      h2 { font-size: 21px; }
+      h3 { font-size: 17px; }
+
+      p {
+        color: $text-mid;
+        line-height: 1.75;
+        font-size: 15px;
+        margin-bottom: 10px;
+      }
+
+      img {
+        max-width: 100%;
+        border-radius: $radius-sm;
+        margin: 12px 0;
+      }
     }
   }
 
-  .search-sp-doctor {
-    select {
-      height: 30px;
-      padding: 5px 8px;
-      border: none;
-      outline: none;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-  }
-
+  // ─── Main page body ───────────────────────────────────
   .detail-specialty-body {
-    padding: 0 100px;
-    background: #eee;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 24px;
     display: flex;
     flex-direction: column;
+    gap: 20px;
+    background: transparent;
   }
 
-  .each-doctor {
+  // ─── Province filter ──────────────────────────────────
+  .search-sp-doctor {
     display: flex;
-    width: 100%;
-    min-height: 300px;
-    margin: 10px 0;
-    background-color: #fff;
-    box-shadow: 0 1px 6px rgb(32 33 35 / 28%);
-    border-radius: 8px;
-    padding: 10px;
+    align-items: center;
+    gap: 12px;
 
+    .filter-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: $text-dark;
+      white-space: nowrap;
+
+      i { margin-right: 6px; color: $primary; }
+    }
+
+    select {
+      height: 42px;
+      padding: 0 14px;
+      border: 1.5px solid $border;
+      border-radius: $radius-sm;
+      outline: none;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: $text-dark;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      min-width: 200px;
+
+      &:focus {
+        border-color: $primary;
+        box-shadow: 0 0 0 3px rgba(0, 110, 168, 0.12);
+      }
+    }
+  }
+
+  // ─── Each doctor card ─────────────────────────────────
+  .each-doctor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    background: #fff;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-card;
+    padding: 24px;
+    border: 1px solid $border;
+    transition: box-shadow 0.2s;
+
+    &:hover {
+      box-shadow: 0 8px 32px rgba(0, 110, 168, 0.12);
+    }
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+
+    // ─── Left: profile ─────────────────────────────────
     .dt-content-left {
-      width: 50%;
-      border-right: 1px solid #ddd;
+      border-right: 1px solid $border;
+      padding-right: 20px;
+
+      @media (max-width: 768px) {
+        border-right: none;
+        border-bottom: 1px solid $border;
+        padding-right: 0;
+        padding-bottom: 20px;
+      }
 
       .profile-doctor-container {
+        .up {
+          font-size: 16px;
+          font-weight: 700;
+          color: $text-dark;
+        }
         .down {
-          padding: 5px;
+          padding: 8px 0;
+          font-size: 14px;
+          color: $text-mid;
+          line-height: 1.6;
         }
       }
     }
 
+    // ─── Right: schedule + extra info ──────────────────
     .dt-content-right {
-      width: 50%;
-      padding: 10px;
+      padding-left: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
 
       .doctor-schedule {
         .doctor-schedule-container {
           border-right: unset !important;
+          border: none !important;
         }
       }
 
       .doctor-extra-infor {
-        border-top: 1px solid #ddd;
-        margin-top: 10px;
-        padding-top: 10px;
+        border-top: 1px solid $border;
+        padding-top: 16px;
+
         .doctor-extra-infor-container {
           padding-left: 0 !important;
         }
       }
+    }
+  }
+
+  // ─── Empty state ──────────────────────────────────────
+  .empty-doctors {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: $radius-lg;
+    border: 1px solid $border;
+
+    i {
+      font-size: 48px;
+      color: $text-mid;
+      margin-bottom: 16px;
+    }
+
+    p {
+      font-size: 16px;
+      color: $text-mid;
     }
   }
 }

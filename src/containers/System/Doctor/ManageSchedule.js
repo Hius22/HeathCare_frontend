@@ -166,25 +166,33 @@ class ManageSchedule extends Component {
         if (res && res.errCode === 0) {
             this.setState({
                 doctorSchedules: res.data || []
-            })
+            });
+        } else {
+            this.setState({
+                doctorSchedules: []
+            });
         }
-    }
+    };
 
     handleDeleteSchedule = async (schedule) => {
         try {
             let res = await deleteScheduleDoctor(schedule.id);
 
             if (res && res.errCode === 0) {
-                toast.success("Appointment cancelled successfully!");
-                await this.fetchDoctorSchedule(); // load lại bảng
+                toast.success("Xóa lịch thành công!");
+
+                // 🔥 luôn reload lại danh sách đang hiển thị
+                await this.fetchDoctorSchedule();
+
             } else {
-                toast.error("Cancel the failed appointment!");
+                toast.error(res?.errMessage || "Xóa thất bại!");
             }
+
         } catch (e) {
-            toast.error("Error deleting appointment!");
             console.error(e);
+            toast.error("Lỗi server khi xóa!");
         }
-    }
+    };
 
     fetchAllSchedule = async () => {
         let res = await getAllScheduleDoctor();
@@ -202,119 +210,126 @@ class ManageSchedule extends Component {
 
     render() {
         //console.log('check state: ', this.state);
-        let { rangeTime } = this.state;
+        let { rangeTime, doctorSchedules } = this.state;
         let { language } = this.props;
         let yesterday = new Date(new Date().setDate(new Date().getDate() - 1));
 
         return (
             <div className='manage-schedule-container'>
-                <div className='m-s-title'>
+                <div className='title'>
                     <FormattedMessage id="manage-schedule.title" />
                 </div>
-                <div className='container'>
-                    <div className='row'>
-                        <div className='col-6 form-group'>
-                            <label><FormattedMessage id="manage-schedule.choose-doctor" /></label>
-                            <Select
-                                value={this.state.selectedDoctors}
-                                onChange={this.handleChangeSelect}
-                                options={this.state.listDoctors}
-                            />
+                
+                <div className='manage-schedule-body'>
+                    <div className='container'>
+                        <div className='row'>
+                            <div className='col-6 form-group'>
+                                <label><FormattedMessage id="manage-schedule.choose-doctor" /></label>
+                                <Select
+                                    value={this.state.selectedDoctors}
+                                    onChange={this.handleChangeSelect}
+                                    options={this.state.listDoctors}
+                                />
+                            </div>
+                            <div className='col-6 form-group'>
+                                <label><FormattedMessage id="manage-schedule.choose-date" /></label>
+                                <DatePicker
+                                    onChange={this.handleOnchangeDatePicker}
+                                    className='form-control'
+                                    value={this.state.currentDate}
+                                    minDate={yesterday}
+                                />
+                            </div>
+                            <div className='col-12 pick-hour-container'>
+                                {rangeTime && rangeTime.length > 0 &&
+                                    rangeTime.map((item, index) => {
+                                        return (
+                                            <button className={item.isSelected === true ? 'btn btn-schedule active' : 'btn btn-schedule'}
+                                                key={index}
+                                                onClick={() => this.handleClickBtnTime(item)}
+                                            >
+                                                {language === LANGUAGES.VI ? item.valueVi : item.valueEn}
+                                            </button>
+                                        )
+                                    })
+                                }
+                            </div>
+                            <div className='col-12'>
+                                <button className='btn btn-primary btn-save-schedule'
+                                    onClick={() => this.handleSaveSchedule()}
+                                >
+                                    <FormattedMessage id="manage-schedule.save-information" />
+                                </button>
+                            </div>
                         </div>
-                        <div className='col-6 form-group'>
-                            <label><FormattedMessage id="manage-schedule.choose-date" /></label>
-                            <DatePicker
-                                onChange={this.handleOnchangeDatePicker}
-                                className='form-control'
-                                value={this.state.currentDate}
-                                minDate={yesterday}
-                            />
-                        </div>
-                        <div className='col-12 pick-hour-container'>
-                            {rangeTime && rangeTime.length > 0 &&
-                                rangeTime.map((item, index) => {
-                                    return (
-                                        <button className={item.isSelected === true ? 'btn btn-schedule active' : 'btn btn-schedule'}
-                                            key={index}
-                                            onClick={() => this.handleClickBtnTime(item)}
-                                        >
-                                            {language === LANGUAGES.VI ? item.valueVi : item.valueEn}
+                    </div>
+                </div>
 
-                                        </button>
-                                    )
-                                })
-                            }
-                        </div>
-                        <div className='col-12'>
-                            <button className='btn btn-primary btn-save-schedule'
-                                onClick={() => this.handleSaveSchedule()}
-                            >
-                                <FormattedMessage id="manage-schedule.save-information" />
-                            </button>
-                        </div>
+                <div className="table-container">
+                    <div className="table-header">
+                        <h3><i className="fas fa-calendar-alt"></i> <FormattedMessage id="manage-schedule.created-schedule" defaultMessage="Lịch khám đã tạo" /></h3>
+                        <span className="schedule-count">Tổng: {doctorSchedules ? doctorSchedules.length : 0} lịch</span>
+                    </div>
 
-                        <div className="col-12 mt-4">
-                            <h4 className="mb-3">
-                                <FormattedMessage id="manage-schedule.created-schedule" defaultMessage="Lịch khám đã tạo" />
-                            </h4>
-
-                            <table className="table table-bordered table-hover">
-                                <thead className="thead-dark">
-                                    <tr>
-                                        <th>STT</th>
-                                        <th>Bác sĩ</th>
-                                        <th>Ngày khám</th>
-                                        <th>Giờ khám</th>
-                                        <th>Hành động</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {this.state.doctorSchedules && this.state.doctorSchedules.length > 0 ? (
-                                        this.state.doctorSchedules.map((item, index) => (
-                                            <tr key={item.id || index}>
-                                                <td>{index + 1}</td>
-                                                <td>
-                                                    {item.doctorData
-                                                        ? (language === LANGUAGES.VI
-                                                            ? `${item.doctorData.lastName} ${item.doctorData.firstName}`
-                                                            : `${item.doctorData.firstName} ${item.doctorData.lastName}`)
-                                                        : ''}
-                                                </td>
-                                                <td>
-                                                    {item.date
-                                                        ? moment(Number(item.date)).format('DD/MM/YYYY')
-                                                        : '---'}
-                                                </td>
-                                                <td>
-                                                    {language === LANGUAGES.VI
-                                                        ? item.timeTypeData.valueVi
-                                                        : item.timeTypeData.valueEn}
-                                                </td>
-                                                <td className="text-center align-middle">
+                    <div className="table-wrapper">
+                        <table id='TableManageSchedule'>
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Bác sĩ</th>
+                                    <th>Ngày khám</th>
+                                    <th>Giờ khám</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {doctorSchedules && doctorSchedules.length > 0 ? (
+                                    doctorSchedules.map((item, index) => (
+                                        <tr key={item.id || index}>
+                                            <td>{index + 1}</td>
+                                            <td className="doctor-name">
+                                                {item.doctorData
+                                                    ? (language === LANGUAGES.VI
+                                                        ? `${item.doctorData.lastName} ${item.doctorData.firstName}`
+                                                        : `${item.doctorData.firstName} ${item.doctorData.lastName}`)
+                                                    : ''}
+                                            </td>
+                                            <td className="date-cell">
+                                                {item.date
+                                                    ? moment(Number(item.date)).format('DD/MM/YYYY')
+                                                    : '---'}
+                                            </td>
+                                            <td className="time-cell">
+                                                {language === LANGUAGES.VI
+                                                    ? item.timeTypeData.valueVi
+                                                    : item.timeTypeData.valueEn}
+                                            </td>
+                                            <td>
+                                                <div className="action-buttons">
                                                     <button
-                                                        className="btn btn-warning btn-sm"
+                                                        className="btn-delete"
                                                         onClick={() => this.handleDeleteSchedule(item)}
+                                                        title="Xóa"
                                                     >
-                                                        Xóa
+                                                        <i className="fas fa-trash-alt"></i>
                                                     </button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="5" className="text-center">
-                                                Chưa có lịch khám
+                                                </div>
                                             </td>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="empty-message">
+                                            <i className="fas fa-calendar-times"></i>
+                                            <p>Chưa có lịch khám</p>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-
         );
     }
 }

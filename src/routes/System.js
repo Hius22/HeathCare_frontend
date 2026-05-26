@@ -1,33 +1,32 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { Redirect, Route, Switch } from 'react-router-dom';
-import UserManage from '../containers/System/UserManage';
 import UserRedux from '../containers/System/Admin/UserRedux';
-import Header from '../containers/Header/Header';
 import ManageDoctor from '../containers/System/Admin/ManageDoctor';
 import ManageSpecialty from '../containers/System/Specialty/ManageSpecialty';
 import ManageClinic from '../containers/System/Clinic/ManageClinic';
 import ManageSchedule from '../containers/System/Doctor/ManageSchedule';
+import ManageBooking from '../containers/System/Admin/ManageBooking';
+import AdminLayout from '../containers/System/Admin/AdminLayout';
+
 class System extends Component {
     render() {
-        const { systemMenuPath, isLoggedIn } = this.props;
+        const { isLoggedIn } = this.props;
         return (
             <React.Fragment>
-                {isLoggedIn && <Header />}
-                <div className="system-container">
-                    <div className="system-list">
+                {isLoggedIn && (
+                    <AdminLayout>
                         <Switch>
-                            <Route path="/system/user-manage" component={UserManage} />
-                            <Route path="/system/user-redux" component={UserRedux} />
+                            <Route path="/system/manage-users" component={UserRedux} />
                             <Route path="/system/manage-doctor" component={ManageDoctor} />
                             <Route path="/system/manage-specialty" component={ManageSpecialty} />
                             <Route path="/system/manage-clinic" component={ManageClinic} />
                             <Route path="/system/manage-schedule" component={ManageSchedule} />
-
-                            <Route component={() => { return (<Redirect to={systemMenuPath} />) }} />
+                            <Route path="/system/manage-booking" component={ManageBooking} />
+                            <Redirect to="/system/manage-booking" />
                         </Switch>
-                    </div>
-                </div>
+                    </AdminLayout>
+                )}
             </React.Fragment>
         );
     }
@@ -35,7 +34,6 @@ class System extends Component {
 
 const mapStateToProps = state => {
     return {
-        systemMenuPath: state.app.systemMenuPath,
         isLoggedIn: state.user.isLoggedIn,
     };
 };

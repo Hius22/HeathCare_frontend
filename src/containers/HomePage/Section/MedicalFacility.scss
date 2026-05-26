@@ -1,11 +1,236 @@
-.clinic-child {
-  .clinic-name {
-    cursor: pointer;
-    padding: 10px 0;
+.facility-section {
+  background-color: #f7f9fb;
+  padding-top: 32px;
+  padding-bottom: 32px;
+
+  @media (min-width: 768px) {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .section-container-main {
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 16px;
+    padding-right: 16px;
+
+    @media (min-width: 768px) {
+      padding-left: 32px;
+      padding-right: 32px;
+    }
+  }
+
+  .section-header-center {
     text-align: center;
+    margin-bottom: 32px;
+
+    @media (min-width: 768px) {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #191c1e;
+      margin-bottom: 8px;
+
+      @media (min-width: 768px) {
+        font-size: 30px;
+      }
+
+      @media (min-width: 1024px) {
+        font-size: 36px;
+      }
+    }
+
+    .section-subtitle-center {
+      font-size: 16px;
+      color: #627078;
+      margin-top: 8px;
+    }
+  }
+
+  /* Featured Facility */
+  .facility-featured {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #bec8d2;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
 
     &:hover {
-      color: #49bce2;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      transform: translateY(-4px);
+    }
+
+    @media (min-width: 768px) {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .facility-image-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 300px;
+      overflow: hidden;
+
+      @media (min-width: 768px) {
+        min-height: 400px;
+      }
+
+      .facility-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      &:hover .facility-image {
+        transform: scale(1.05);
+      }
+
+      .facility-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #e6e8ea, #d6d8da);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        i {
+          font-size: 80px;
+          color: #6e7881;
+        }
+      }
+    }
+
+    .facility-content {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      @media (min-width: 768px) {
+        padding: 32px;
+      }
+
+      .facility-header {
+        margin-bottom: 20px;
+
+        .facility-name {
+          font-size: 24px;
+          font-weight: 700;
+          color: #191c1e;
+          margin: 0 0 12px 0;
+
+          @media (min-width: 768px) {
+            font-size: 28px;
+          }
+        }
+
+        .facility-location {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #3e4850;
+          font-size: 15px;
+
+          i {
+            font-size: 18px;
+            color: #006591;
+          }
+        }
+      }
+
+      .facility-description {
+        margin-bottom: 24px;
+        font-size: 15px;
+        line-height: 1.7;
+        color: #3e4850;
+
+        p {
+          margin: 0 0 12px 0;
+        }
+
+        ul,
+        ol {
+          margin: 12px 0;
+          padding-left: 24px;
+        }
+
+        li {
+          margin-bottom: 8px;
+        }
+      }
+
+      .facility-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        .btn-primary-action {
+          flex: 1;
+          min-width: 150px;
+          padding: 12px 24px;
+          background-color: #006591;
+          color: #ffffff;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+
+          i {
+            font-size: 14px;
+          }
+
+          &:hover {
+            background-color: #004c6e;
+            transform: scale(1.02);
+          }
+
+          &:active {
+            transform: scale(0.95);
+          }
+        }
+
+        .btn-secondary-action {
+          flex: 1;
+          min-width: 150px;
+          padding: 12px 24px;
+          background-color: transparent;
+          color: #006591;
+          border: 2px solid #006591;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+
+          i {
+            font-size: 14px;
+          }
+
+          &:hover {
+            background-color: #c9e6ff;
+          }
+        }
+      }
     }
   }
 }

@@ -9,118 +9,113 @@ const initialState = {
     topDoctors: [],
     allDoctors: [],
     allScheduleTime: [],
-    allRequiredDoctorInfor: []
+    allRequiredDoctorInfor: {}
 }
 
 const adminReducer = (state = initialState, action) => {
     switch (action.type) {
         //gender
         case actionTypes.FETCH_GENDER_START:
-            let copyState = { ...state };
-            copyState.isLoadingGender = true;
             return {
-                ...copyState
+                ...state,
+                isLoadingGender: true
             }
         case actionTypes.FETCH_GENDER_SUCCESS:
-            state.genders = action.data;
-            state.isLoadingGender = false;
             return {
-                ...state
+                ...state,
+                genders: action.data,
+                isLoadingGender: false
             }
         case actionTypes.FETCH_GENDER_FAILED:
-            state.isLoadingGender = false;
-            state.genders = [];
             return {
-                ...state
+                ...state,
+                isLoadingGender: false,
+                genders: []
             }
 
         //position
         case actionTypes.FETCH_POSITION_SUCCESS:
-            state.positions = action.data;
-
             return {
-                ...state
+                ...state,
+                positions: action.data
             }
         case actionTypes.FETCH_POSITION_FAILED:
-            state.positions = [];
             return {
-                ...state
+                ...state,
+                positions: []
             }
 
         //role
         case actionTypes.FETCH_ROLE_SUCCESS:
-            state.roles = action.data;
             return {
-                ...state
+                ...state,
+                roles: action.data
             }
         case actionTypes.FETCH_ROLE_FAILED:
-            state.roles = [];
             return {
-                ...state
+                ...state,
+                roles: []
             }
 
         //users
         case actionTypes.FETCH_ALL_USERS_SUCCESS:
-            state.users = action.users;
             return {
-                ...state
+                ...state,
+                users: action.users
             }
         case actionTypes.FETCH_ALL_USERS_FAILED:
-            state.users = [];
             return {
-                ...state
+                ...state,
+                users: []
             }
 
         //get top doctors
         case actionTypes.FETCH_TOP_DOCTORS_SUCCESS:
-            state.topDoctors = action.dataDoctors;
             return {
-                ...state
+                ...state,
+                topDoctors: action.dataDoctors
             }
         case actionTypes.FETCH_TOP_DOCTORS_FAILED:
-            state.topDoctos = [];
             return {
-                ...state
+                ...state,
+                topDoctors: []
             }
 
         //get all doctors
         case actionTypes.FETCH_ALL_DOCTORS_SUCCESS:
-            state.allDoctors = action.dataDr;
             return {
-                ...state
+                ...state,
+                allDoctors: action.dataDr
             }
         case actionTypes.FETCH_ALL_DOCTORS_FAILED:
-            state.allDoctors = [];
             return {
-                ...state
+                ...state,
+                allDoctors: []
             }
 
         //get all time
         case actionTypes.FETCH_ALLCODE_SCHEDULE_TIME_SUCCESS:
-            state.allScheduleTime = action.dataTime;
             return {
-                ...state
+                ...state,
+                allScheduleTime: action.dataTime
             }
         case actionTypes.FETCH_ALLCODE_SCHEDULE_TIME_FAILED:
-            state.allScheduleTime = [];
             return {
-                ...state
+                ...state,
+                allScheduleTime: []
             }
 
         //get price, payment, province
         case actionTypes.FETCH_REQUIRED_DOCTOR_INFOR_SUCCESS:
-            state.allRequiredDoctorInfor = action.data;
-            //console.log('fetch req doctor data: ', action)
             return {
-                ...state
+                ...state,
+                allRequiredDoctorInfor: action.data
             }
         case actionTypes.FETCH_REQUIRED_DOCTOR_INFOR_FAILED:
-            state.allRequiredDoctorInfor = [];
             return {
-                ...state
+                ...state,
+                allRequiredDoctorInfor: {}
             }
-
-
 
         default:
             return state;

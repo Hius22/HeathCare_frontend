@@ -11,8 +11,9 @@ class ManageScheduleForDoctor extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            currentDate: new Date(),
-            schedules: []
+            currentDate: moment(new Date()).startOf('day').valueOf(),
+            schedules: [],
+            isLoading: false
         }
     }
 
@@ -21,22 +22,29 @@ class ManageScheduleForDoctor extends Component {
     }
 
     fetchDoctorSchedule = async () => {
-        let { userInfo } = this.props;
-        let { currentDate } = this.state;
+        this.setState({ isLoading: true });
+        try {
+            let { userInfo } = this.props;
+            let { currentDate } = this.state;
 
-        if (!userInfo || !userInfo.id) return;
+            if (!userInfo || !userInfo.id) return;
 
-        let date = new Date(currentDate).getTime();
+            let date = currentDate ? new Date(currentDate).getTime() : '';
 
-        let res = await getScheduleDoctorByDate(userInfo.id, date);
+            let res = await getScheduleDoctorByDate(userInfo.id, date);
 
-        if (res && res.errCode === 0) {
-            this.setState({
-                schedules: res.data || []
-            });
-        } else {
-            toast.error("Không thể tải lịch khám");
+            if (res && res.errCode === 0) {
+                this.setState({
+                    schedules: res.data || []
+                });
+            } else {
+                toast.error("Không thể tải lịch khám");
+            }
+        } catch (error) {
+            console.error('Error fetching schedule:', error);
+            toast.error("Lỗi tải lịch khám");
         }
+        this.setState({ isLoading: false });
     }
 
     handleChangeDate = (date) => {
@@ -46,59 +54,141 @@ class ManageScheduleForDoctor extends Component {
         );
     }
 
+    handleClearDate = () => {
+        this.setState({
+            currentDate: ''
+        }, async () => {
+            await this.fetchDoctorSchedule();
+        });
+    }
+
     render() {
-        let { schedules, currentDate } = this.state;
+        let { schedules, currentDate, isLoading } = this.state;
         let { language } = this.props;
+
+        let stats = {
+            total: schedules.length,
+            morning: schedules.filter(s => {
+                // Determine if morning based on timeType (T1, T2, T3, T4 usually)
+                let type = s.timeType;
+                return ['T1', 'T2', 'T3', 'T4'].includes(type);
+            }).length,
+            afternoon: schedules.filter(s => {
+                let type = s.timeType;
+                return !['T1', 'T2', 'T3', 'T4'].includes(type);
+            }).length
+        };
 
         return (
             <div className="manage-schedule-doctor-container">
-                <h3 className="title">Lịch khám của tôi</h3>
+                <div className="manage-schedule-header">
+                    <h2>
+                        <i className="fa-solid fa-calendar-days"></i>
+                        {language === LANGUAGES.VI ? 'Lịch khám của tôi' : 'My Schedule'}
+                    </h2>
+                </div>
 
-                <div className="row mb-3">
-                    <div className="col-4">
-                        <label>Chọn ngày</label>
-                        <DatePicker
-                            className="form-control"
-                            value={currentDate}
-                            onChange={this.handleChangeDate}
-                        />
+                <div className="stats-cards">
+                    <div className="stat-card stat-total">
+                        <div className="stat-icon">
+                            <i className="fa-solid fa-list-check"></i>
+                        </div>
+                        <div className="stat-info">
+                            <div className="stat-value">{stats.total}</div>
+                            <div className="stat-label">{language === LANGUAGES.VI ? 'Tổng ca khám' : 'Total Shifts'}</div>
+                        </div>
+                    </div>
+                    <div className="stat-card stat-morning">
+                        <div className="stat-icon" style={{background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'}}>
+                            <i className="fa-solid fa-sun"></i>
+                        </div>
+                        <div className="stat-info">
+                            <div className="stat-value">{stats.morning}</div>
+                            <div className="stat-label">{language === LANGUAGES.VI ? 'Ca sáng' : 'Morning'}</div>
+                        </div>
+                    </div>
+                    <div className="stat-card stat-afternoon">
+                        <div className="stat-icon" style={{background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'}}>
+                            <i className="fa-solid fa-cloud-sun"></i>
+                        </div>
+                        <div className="stat-info">
+                            <div className="stat-value">{stats.afternoon}</div>
+                            <div className="stat-label">{language === LANGUAGES.VI ? 'Ca chiều' : 'Afternoon'}</div>
+                        </div>
                     </div>
                 </div>
 
-                <table className="table table-bordered table-hover">
-                    <thead className="thead-dark">
-                        <tr>
-                            <th>STT</th>
-                            <th className="text-center">Ngày khám</th>
-                            <th className="text-center">Giờ khám</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {schedules && schedules.length > 0 ? (
-                            schedules.map((item, index) => (
-                                <tr key={item.id}>
-                                    <td>{index + 1}</td>
+                <div className="schedule-filters">
+                    <div className="filter-group">
+                        <label>{language === LANGUAGES.VI ? 'Chọn ngày xem lịch' : 'Select Date'}</label>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <DatePicker
+                                className="form-control"
+                                value={currentDate}
+                                onChange={this.handleChangeDate}
+                            />
+                            {currentDate && (
+                                <button 
+                                    className="btn btn-secondary" 
+                                    onClick={this.handleClearDate} 
+                                    title={language === LANGUAGES.VI ? 'Xóa bộ lọc ngày' : 'Clear date filter'}
+                                    style={{ padding: '0 15px', borderRadius: '8px', border: 'none', background: '#e0e0e0', cursor: 'pointer' }}
+                                >
+                                    <i className="fas fa-times"></i>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
-                                    <td className="text-center schedule-date">
-                                        {moment(Number(item.date)).format('DD/MM/YYYY')}
-                                    </td>
+                <div className="schedules-table-container">
+                    <div className="table-header-bar">
+                        <h3><i className="fas fa-clock"></i> {language === LANGUAGES.VI ? 'Danh Sách Thời Gian Khám' : 'Schedule Timetable'}</h3>
+                        <span className="record-count">{language === LANGUAGES.VI ? `Tổng: ${schedules.length} ca` : `Total: ${schedules.length} shifts`}</span>
+                    </div>
 
-                                    <td className="text-center schedule-time">
-                                        {language === LANGUAGES.VI
-                                            ? item.timeTypeData.valueVi
-                                            : item.timeTypeData.valueEn}
-                                    </td>
+                    {isLoading ? (
+                        <div className="loading">
+                            <i className="fa-solid fa-spinner fa-spin"></i>
+                            <span>{language === LANGUAGES.VI ? 'Đang tải...' : 'Loading...'}</span>
+                        </div>
+                    ) : schedules.length === 0 ? (
+                        <div className="no-data">
+                            <i className="fa-solid fa-calendar-xmark"></i>
+                            <p>{language === LANGUAGES.VI ? 'Chưa có lịch khám nào' : 'No schedules found'}</p>
+                        </div>
+                    ) : (
+                        <table className="schedules-table">
+                            <thead>
+                                <tr>
+                                    <th>{language === LANGUAGES.VI ? 'STT' : 'No.'}</th>
+                                    <th>{language === LANGUAGES.VI ? 'Ngày khám' : 'Date'}</th>
+                                    <th>{language === LANGUAGES.VI ? 'Giờ khám' : 'Time Shift'}</th>
                                 </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="3" className="text-center">
-                                    Chưa có lịch khám
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                            </thead>
+                            <tbody>
+                                {schedules.map((item, index) => (
+                                    <tr key={item.id} className="schedule-row">
+                                        <td>{index + 1}</td>
+                                        <td>
+                                            <div className="date-info">
+                                                <i className="fa-solid fa-calendar"></i> {moment(Number(item.date)).format('DD/MM/YYYY')}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span className="time-badge">
+                                                <i className="fa-regular fa-clock"></i>
+                                                {language === LANGUAGES.VI
+                                                    ? item.timeTypeData?.valueVi
+                                                    : item.timeTypeData?.valueEn}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
             </div>
         );
     }

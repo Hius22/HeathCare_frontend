@@ -36,56 +36,62 @@ class OutStandingDoctor extends Component {
     render() {
         let arrDoctors = this.state.arrDoctors;
         let { language } = this.props;
-        //arrDoctors = arrDoctors.concat(arrDoctors).concat(arrDoctors)
-        console.log('arrDoctors: ', arrDoctors);
+        let displayDoctors = arrDoctors.slice(0, 4);
+        let hasMore = arrDoctors.length > 4;
+
         return (
-            <div>
-                <div className="sections-share  section-outstanding-doctor">
-                    <div className=" section-container">
-                        <div className="section-header">
-                            <span className="title-section">
-                                <FormattedMessage id="homepage.outstanding-doctor" />
-                            </span>
-                            <button className="btn-section"><FormattedMessage id="homepage.more-infor" /></button>
+            <section className="doctors-section section-padding">
+                <div className="section-container-main">
+                    <div className="section-header-flex">
+                        <div>
+                            <h2 className="section-title-left">
+                                {language === LANGUAGES.VI ? 'Bác Sĩ Nổi Bật' : 'Featured Doctors'}
+                            </h2>
+                            <p className="section-subtitle">
+                                {language === LANGUAGES.VI
+                                    ? 'Đội ngũ chuyên gia hàng đầu từ các bệnh viện lớn'
+                                    : 'Top medical experts from leading hospitals'}
+                            </p>
                         </div>
+                        {hasMore && (
+                            <button
+                                className="view-all-link"
+                                onClick={() => this.props.history.push('/doctors')}
+                            >
+                                Xem tất cả <span>→</span>
+                            </button>
+                        )}
+                    </div>
 
-                        <div className="section-body">
-                            <Slider {...this.props.settings}>
-
-                                {arrDoctors && arrDoctors.length > 0
-                                    && arrDoctors.map((item, index) => {
-                                        let imageBase64 = '';
-                                        if (item.image) {
-                                            imageBase64 = new Buffer(item.image, 'base64').toString('binary');
-                                        }
-                                        let nameVi = `${item.positionData.valueVi}, ${item.lastName} ${item.firstName}`;
-                                        let nameEn = `${item.positionData.valueEn}, ${item.firstName} ${item.lastName}`;
-                                        return (
-                                            <div className="section-customize section-child" key={index} onClick={() => this.handleViewDetailDoctor(item)}>
-                                                <div className="customize-border">
-                                                    <div className="outer-bg">
-                                                        <div className="bg-image section-outstanding-doctor"
-                                                            style={{ backgroundImage: `url(${imageBase64})` }}
-
-                                                        />
-                                                    </div>
-                                                    <div className="position text-center section-name">
-                                                        <div>{language === LANGUAGES.VI ? nameVi : nameEn}</div>
-                                                        <div className="section-name">
-                                                            {item.Doctor_Infor?.specialtyData?.name || ''}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </Slider>
-                        </div>
-
+                    <div className="doctors-grid">
+                        {displayDoctors && displayDoctors.length > 0
+                            && displayDoctors.map((item, index) => {
+                                let imageUrl = item.image || '';
+                                let nameVi = `${item.positionData.valueVi}, ${item.lastName} ${item.firstName}`;
+                                let nameEn = `${item.positionData.valueEn}, ${item.firstName} ${item.lastName}`;
+                                return (
+                                    <div className="doctor-card" key={index} onClick={() => this.handleViewDetailDoctor(item)}>
+                                        <img
+                                            alt={language === LANGUAGES.VI ? nameVi : nameEn}
+                                            className="doctor-image"
+                                            src={imageUrl}
+                                        />
+                                        <div className="doctor-info">
+                                            <h4 className="doctor-name">{language === LANGUAGES.VI ? nameVi : nameEn}</h4>
+                                            <p className="doctor-specialty">
+                                                {item.Doctor_Infor?.specialtyData?.name || ''}
+                                            </p>
+                                            <button className="book-btn">
+                                                {language === LANGUAGES.VI ? 'Đặt lịch' : 'Book now'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )
+                            })
+                        }
                     </div>
                 </div>
-            </div>
+            </section>
         );
     }
 }

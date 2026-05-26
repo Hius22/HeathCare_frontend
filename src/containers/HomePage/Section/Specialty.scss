@@ -1,11 +1,135 @@
-.specialty-child {
-  .specialty-name {
-    cursor: pointer;
-    padding: 10px 0;
+.specialty-section {
+  background-color: #f7f9fb;
+  padding-top: 32px;
+  padding-bottom: 32px;
+
+  @media (min-width: 768px) {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .section-container-main {
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 16px;
+    padding-right: 16px;
+
+    @media (min-width: 768px) {
+      padding-left: 32px;
+      padding-right: 32px;
+    }
+  }
+
+  .section-header-center {
     text-align: center;
+    margin-bottom: 32px;
+
+    @media (min-width: 768px) {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #191c1e;
+      margin-bottom: 12px;
+
+      @media (min-width: 768px) {
+        font-size: 30px;
+      }
+
+      @media (min-width: 1024px) {
+        font-size: 36px;
+      }
+    }
+
+    .title-underline {
+      height: 6px;
+      width: 96px;
+      background-color: #006591;
+      margin-left: auto;
+      margin-right: auto;
+      border-radius: 9999px;
+    }
+  }
+
+  .specialty-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+
+  .specialty-card {
+    background-color: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid #bec8d2;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
 
     &:hover {
-      color: #49bce2;
+      border-color: #006591;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      transform: translateY(-4px);
+    }
+
+    .specialty-icon-wrapper {
+      margin-bottom: 16px;
+
+      .specialty-image {
+        width: 80px;
+        height: 80px;
+        margin-left: auto;
+        margin-right: auto;
+        background-size: cover;
+        background-position: center;
+        border-radius: 12px;
+        transition: transform 0.3s;
+      }
+    }
+
+    .specialty-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #191c1e;
+    }
+
+    &:hover .specialty-image {
+      transform: scale(1.1);
+    }
+  }
+
+  .section-footer {
+    text-align: center;
+    margin-top: 32px;
+
+    .view-all-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #006591;
+      font-weight: 600;
+      font-size: 16px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 }

@@ -1,24 +1,314 @@
 .manage-specialty-container {
-  padding: 0 10px;
+  padding: 20px;
+  background: #f5f7fa;
+  min-height: 100vh;
 
-  .ms-title {
-    text-align: center;
-    text-transform: uppercase;
-    font-weight: bold;
-    font-size: 20px;
-    margin-top: 15px;
-    color: #0071ba;
+  .ms-header {
+    margin-bottom: 25px;
+
+    h2 {
+      color: #0071ba;
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      i {
+        font-size: 28px;
+      }
+    }
   }
 
-  .add-new-specialty {
-    .btn-save-specialty {
-      border: none;
-      background: #0071ba;
-      padding: 8px 5px;
-      min-width: 60px;
-      border-radius: 3px;
-      margin: 15px 0;
-      color: white;
+  .form-section {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .form-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      i {
+        color: #0071ba;
+      }
+    }
+
+    .add-new-specialty {
+      label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .preview-img-container {
+        .label-upload {
+          display: inline-block;
+          padding: 8px 16px;
+          background: #0071ba;
+          color: white;
+          border-radius: 5px;
+          cursor: pointer;
+          margin-bottom: 10px;
+          transition: background 0.3s;
+
+          &:hover {
+            background: #005a94;
+          }
+
+          i {
+            margin-left: 5px;
+          }
+        }
+
+        .preview-image {
+          width: 200px;
+          height: 150px;
+          border: 2px dashed #ddd;
+          border-radius: 8px;
+          background-position: center center;
+          background-repeat: no-repeat;
+          background-size: contain;
+          cursor: pointer;
+          transition: border-color 0.3s;
+
+          &:hover {
+            border-color: #0071ba;
+          }
+        }
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+
+        .btn {
+          padding: 10px 20px;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: all 0.3s;
+
+          i {
+            font-size: 15px;
+          }
+
+          &.btn-save {
+            background: #0071ba;
+            color: white;
+
+            &:hover {
+              background: #005a94;
+            }
+          }
+
+          &.btn-cancel {
+            background: #999;
+            color: white;
+
+            &:hover {
+              background: #777;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .specialties-list-section {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+
+      h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        i {
+          color: #0071ba;
+        }
+      }
+
+      .search-box {
+        position: relative;
+        width: 300px;
+
+        input {
+          width: 100%;
+          padding: 10px 40px 10px 15px;
+          border: 2px solid #e0e0e0;
+          border-radius: 6px;
+          font-size: 14px;
+          transition: border-color 0.3s;
+
+          &:focus {
+            outline: none;
+            border-color: #0071ba;
+          }
+        }
+
+        i {
+          position: absolute;
+          right: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #999;
+        }
+      }
+    }
+
+    .loading,
+    .no-data {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+
+      i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        display: block;
+      }
+
+      span,
+      p {
+        font-size: 16px;
+      }
+    }
+
+    .specialties-table-container {
+      overflow-x: auto;
+
+      .specialties-table {
+        width: 100%;
+        border-collapse: collapse;
+
+        thead {
+          background: #f5f7fa;
+
+          th {
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #e0e0e0;
+          }
+        }
+
+        tbody {
+          tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+
+            &:hover {
+              background: #f8f9fa;
+            }
+
+            td {
+              padding: 15px 12px;
+              font-size: 14px;
+              color: #555;
+
+              &.specialty-name {
+                font-weight: 600;
+                color: #333;
+              }
+
+              .specialty-thumb {
+                width: 80px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 6px;
+                border: 1px solid #e0e0e0;
+              }
+
+              .no-image {
+                color: #999;
+                font-style: italic;
+                font-size: 13px;
+              }
+
+              &.description-cell {
+                max-width: 300px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                font-size: 13px;
+                color: #666;
+              }
+
+              .action-buttons {
+                display: flex;
+                gap: 8px;
+                justify-content: center;
+
+                .btn {
+                  padding: 10px 1px;
+                  border: none;
+                  border-radius: 5px;
+                  cursor: pointer;
+                  font-size: 12px;
+                  font-weight: 600;
+                  display: flex;
+                  align-items: center;
+                  gap: 5px;
+                  transition: all 0.2s;
+
+                  i {
+                    font-size: 13px;
+                  }
+
+                  &.btn-edit {
+                    background: #ff9800;
+                    color: white;
+
+                    &:hover {
+                      background: #f57c00;
+                    }
+                  }
+
+                  &.btn-delete {
+                    background: #f44336;
+                    color: white;
+
+                    &:hover {
+                      background: #d32f2f;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -1,66 +1,166 @@
-.doctor-detail-container {
-  height: 500px;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+// ─── Design Tokens (matching website) ─────────────────────
+$primary:    #006ea8;
+$primary-lt: #e8f4ff;
+$text-dark:  #0f172a;
+$text-mid:   #475569;
+$text-soft:  #94a3b8;
+$border:     #e2e8f0;
+$bg-page:    #f8fafc;
+$radius-lg:  16px;
+$radius-sm:  10px;
+$shadow-card: 0 4px 24px rgba(0,0,0,0.08);
+
+.doctor-detail-container {
+  font-family: 'Inter', sans-serif;
+  background: $bg-page;
+  min-height: 100vh;
+  padding-bottom: 60px;
+
+  // ─── Hero intro ─────────────────────────────────────────
   .intro-doctor {
-    display: flex;
-    margin: 0 100px;
+    background: #fff;
+    border-bottom: 1px solid $border;
+
+    .intro-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px 24px 32px;
+      display: flex;
+      align-items: flex-start;
+      gap: 28px;
+    }
 
     .content-left {
-      width: 20%;
-      background: center center no-repeat;
       width: 120px;
       height: 120px;
       border-radius: 50%;
-      margin: 10px 20px;
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+      background-color: $primary-lt;
+      flex-shrink: 0;
+      border: 3px solid $primary-lt;
+      box-shadow: 0 4px 16px rgba(0, 110, 168, 0.18);
     }
 
     .content-right {
-      width: 80%;
-      display: flex;
-      flex-direction: column;
-      padding-left: 10px;
+      flex: 1;
+
       .up {
-        font-size: 20px;
-        font-weight: 600;
-        padding-top: 15px;
+        font-size: 22px;
+        font-weight: 700;
+        color: $text-dark;
+        line-height: 1.3;
+        margin-bottom: 10px;
       }
+
       .down {
-        padding-top: 10px;
+        font-size: 15px;
+        color: $text-mid;
+        line-height: 1.7;
+        max-width: 680px;
+
+        span {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      }
+
+      .doctor-tags {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        .tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: $primary-lt;
+          color: $primary;
+          padding: 4px 12px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 500;
+
+          i { font-size: 12px; }
+        }
       }
     }
   }
 
-  .schedule-doctor {
-    margin: 0 100px;
-    display: flex;
-    padding: 10px 0;
-    min-height: 200px;
+  // ─── Page layout ────────────────────────────────────────
+  .detail-page-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 0;
+  }
 
-    .content-left {
-      width: 50%;
+  // ─── Schedule + Extra info ──────────────────────────────
+  .schedule-doctor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
     }
 
+    .content-left,
     .content-right {
-      width: 50%;
+      background: #fff;
+      border-radius: $radius-lg;
+      box-shadow: $shadow-card;
+      padding: 24px;
+      border: 1px solid $border;
     }
   }
 
+  // ─── Full description ────────────────────────────────────
   .detail-infor-doctor {
-    background-color: #f0f0f0;
-    padding: 10px 100px;
-    border-top: 1px solid #929292;
-    border-bottom: 1px solid #929292;
+    background: #fff;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-card;
+    padding: 32px 36px;
+    border: 1px solid $border;
+    margin-bottom: 28px;
 
-    h3 {
-      font-size: 17px;
+    h1, h2, h3 {
+      color: $text-dark;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    h2 { font-size: 20px; }
+    h3 { font-size: 17px; }
+
+    p {
+      color: $text-mid;
+      line-height: 1.75;
+      margin-bottom: 12px;
+      font-size: 15px;
     }
 
     img {
       width: 100%;
+      border-radius: $radius-sm;
+      margin: 12px 0;
+    }
+
+    ul, ol {
+      padding-left: 20px;
+      color: $text-mid;
+      line-height: 1.8;
+      font-size: 15px;
     }
   }
 
+  // ─── Empty comment placeholder ───────────────────────────
   .comment-doctor {
-    height: 50px;
+    display: none;
   }
 }

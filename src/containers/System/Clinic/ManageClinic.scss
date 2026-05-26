@@ -1,24 +1,140 @@
-.manage-specialty-container {
-  padding: 0 10px;
+.manage-clinic-container {
+  padding: 20px;
+  background: #f5f7fa;
+  min-height: 100vh;
 
-  .ms-title {
+  .clinic-header {
     text-align: center;
+    margin: 20px 0 30px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a73e8;
     text-transform: uppercase;
-    font-weight: bold;
-    font-size: 20px;
-    margin-top: 15px;
-    color: #0071ba;
+    letter-spacing: 1px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid #1a73e8;
   }
 
-  .add-new-specialty {
-    .btn-save-specialty {
+  .clinic-form {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    .form-group {
+      margin-bottom: 25px;
+
+      label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+        display: block;
+        font-size: 14px;
+      }
+
+      .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px 15px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+
+        &:focus {
+          border-color: #1a73e8;
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+        }
+      }
+    }
+
+    .preview-img-container {
+      .label-upload {
+        padding: 12px 24px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        color: white;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        text-align: center;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        i {
+          margin-left: 8px;
+        }
+      }
+
+      .preview-image {
+        height: 200px;
+        width: 100%;
+        border: 2px dashed #e0e0e0;
+        background: center center no-repeat;
+        background-size: contain;
+        cursor: pointer;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+
+        &:hover {
+          border-color: #667eea;
+          background-color: #f8f9ff;
+        }
+      }
+    }
+
+    .editor-container {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid #e0e0e0;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #1a73e8;
+      }
+    }
+
+    .btn-save-clinic {
+      margin-top: 25px;
+      border-radius: 10px;
+      outline: none;
       border: none;
-      background: #0071ba;
-      padding: 8px 5px;
-      min-width: 60px;
-      border-radius: 3px;
-      margin: 15px 0;
+      padding: 14px 40px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
       color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .manage-clinic-container {
+    padding: 10px;
+
+    .clinic-form {
+      padding: 20px;
+
+      .col-6 {
+        width: 100%;
+      }
     }
   }
 }

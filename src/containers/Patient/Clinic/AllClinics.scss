@@ -1,0 +1,426 @@
+/* ===== ALL CLINICS / FACILITIES PAGE ===== */
+
+.all-clinics-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  min-height: calc(100vh - 200px);
+
+  @media (min-width: 768px) {
+    padding: 40px 32px;
+  }
+
+  /* Breadcrumb */
+  .breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    margin-bottom: 24px;
+
+    a {
+      color: #3e4850;
+      text-decoration: none;
+      transition: color 0.15s ease;
+
+      &:hover {
+        color: #006591;
+      }
+    }
+
+    i {
+      font-size: 12px;
+      color: #6e7881;
+    }
+
+    .current {
+      color: #191c1e;
+      font-weight: 500;
+    }
+  }
+
+  /* Page Header */
+  .page-header {
+    margin-bottom: 40px;
+
+    .page-title {
+      font-size: 30px;
+      font-weight: 700;
+      color: #191c1e;
+      margin: 0 0 12px 0;
+
+      @media (min-width: 768px) {
+        font-size: 36px;
+      }
+
+      @media (min-width: 1024px) {
+        font-size: 48px;
+      }
+    }
+
+    .page-description {
+      font-size: 16px;
+      color: #3e4850;
+      margin: 0;
+      max-width: 800px;
+      line-height: 1.6;
+
+      @media (min-width: 768px) {
+        font-size: 18px;
+      }
+    }
+  }
+
+  /* Loading State */
+  .loading-state {
+    text-align: center;
+    padding: 80px 20px;
+
+    i {
+      font-size: 48px;
+      color: #006591;
+      margin-bottom: 16px;
+    }
+
+    p {
+      font-size: 16px;
+      color: #3e4850;
+      margin: 0;
+    }
+  }
+
+  /* Clinics Content */
+  .clinics-content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  /* Clinic Card */
+  .clinic-card {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow:
+      0 4px 6px rgba(0, 0, 0, 0.05),
+      0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid #bec8d2;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow:
+        0 10px 15px rgba(0, 0, 0, 0.1),
+        0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .clinic-image-section {
+      position: relative;
+      width: 100%;
+      height: 256px;
+      overflow: hidden;
+
+      @media (min-width: 768px) {
+        height: 384px;
+      }
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      &:hover img {
+        transform: scale(1.05);
+      }
+
+      .clinic-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #e6e8ea, #d6d8da);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        i {
+          font-size: 80px;
+          color: #6e7881;
+        }
+      }
+
+      .clinic-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        padding: 8px 16px;
+        background-color: #0ea5e9;
+        color: #ffffff;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+    }
+
+    .clinic-info-section {
+      padding: 24px;
+
+      @media (min-width: 768px) {
+        padding: 32px;
+      }
+
+      .clinic-header {
+        margin-bottom: 20px;
+
+        .clinic-name {
+          font-size: 24px;
+          font-weight: 700;
+          color: #191c1e;
+          margin: 0 0 12px 0;
+
+          @media (min-width: 768px) {
+            font-size: 30px;
+          }
+        }
+
+        .clinic-location {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #3e4850;
+
+          i {
+            font-size: 20px;
+            color: #006591;
+          }
+
+          p {
+            font-size: 16px;
+            margin: 0;
+          }
+        }
+      }
+
+      .clinic-description {
+        margin-bottom: 24px;
+
+        .description-content {
+          font-size: 15px;
+          line-height: 1.7;
+          color: #3e4850;
+
+          p {
+            margin: 0 0 12px 0;
+          }
+
+          ul,
+          ol {
+            margin: 12px 0;
+            padding-left: 24px;
+          }
+
+          li {
+            margin-bottom: 8px;
+          }
+        }
+      }
+
+      .clinic-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        .btn-view-detail {
+          flex: 1;
+          min-width: 150px;
+          padding: 12px 24px;
+          background-color: #006591;
+          color: #ffffff;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-align: center;
+
+          &:hover {
+            background-color: #004c6e;
+            transform: scale(1.02);
+          }
+
+          &:active {
+            transform: scale(0.95);
+          }
+        }
+
+        .btn-directions {
+          flex: 1;
+          min-width: 150px;
+          padding: 12px 24px;
+          background-color: transparent;
+          color: #006591;
+          border: 2px solid #006591;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+
+          i {
+            font-size: 14px;
+          }
+
+          &:hover {
+            background-color: #c9e6ff;
+          }
+        }
+      }
+    }
+  }
+
+  /* Empty State */
+  .empty-state {
+    background: #ffffff;
+    border: 1px solid #bec8d2;
+    border-radius: 12px;
+    padding: 80px 32px;
+    text-align: center;
+
+    .empty-icon {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background-color: #f2f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+
+      i {
+        font-size: 40px;
+        color: #6e7881;
+      }
+    }
+
+    .empty-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #191c1e;
+      margin: 0 0 12px 0;
+    }
+
+    .empty-description {
+      font-size: 16px;
+      color: #3e4850;
+      margin: 0;
+    }
+  }
+
+  /* CTA Section */
+  .cta-section {
+    margin-top: 48px;
+    padding: 32px;
+    background: linear-gradient(135deg, #0ea5e9, #22d3ee);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    position: relative;
+    overflow: hidden;
+
+    @media (min-width: 768px) {
+      padding: 48px;
+      flex-direction: row;
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: -80px;
+      right: -80px;
+      width: 256px;
+      height: 256px;
+      background-color: rgba(0, 55, 81, 0.1);
+      border-radius: 50%;
+      filter: blur(64px);
+    }
+
+    .cta-content {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+
+      .cta-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 8px 0;
+
+        @media (min-width: 768px) {
+          font-size: 24px;
+        }
+      }
+
+      .cta-description {
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+      }
+    }
+
+    .cta-actions {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      .btn-chat {
+        padding: 12px 24px;
+        background-color: #003751;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+        &:hover {
+          transform: scale(1.02);
+          background-color: #002a3e;
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
+      }
+
+      .btn-hotline {
+        padding: 12px 24px;
+        background-color: transparent;
+        color: #ffffff;
+        border: 2px solid #003751;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-color: #003751;
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}

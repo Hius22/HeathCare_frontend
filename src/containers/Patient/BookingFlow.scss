@@ -1,0 +1,667 @@
+.booking-flow-page {
+  min-height: 100vh;
+  background-color: #f7f9fb;
+  padding: 24px 16px;
+
+  @media (min-width: 768px) {
+    padding: 40px 16px;
+  }
+
+  .booking-container {
+    max-width: 960px;
+    margin: 0 auto;
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      font-size: 14px;
+
+      a {
+        color: #006591;
+        text-decoration: none;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #004d6e;
+        }
+      }
+
+      i {
+        color: #8c97a5;
+        font-size: 12px;
+      }
+
+      .current {
+        color: #4c5863;
+        font-weight: 500;
+      }
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+
+      .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a202c;
+        margin: 0 0 8px 0;
+
+        @media (min-width: 768px) {
+          font-size: 32px;
+        }
+      }
+
+      .page-subtitle {
+        font-size: 16px;
+        color: #657180;
+        margin: 0;
+      }
+    }
+
+    .step-indicator {
+      margin-bottom: 40px;
+
+      .step-indicator-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 640px;
+        margin: 0 auto;
+
+        .step-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+
+          .step-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #bec8d2;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s;
+
+            &.active {
+              background-color: #006591;
+              color: #ffffff;
+            }
+          }
+
+          .step-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a202c;
+            display: none;
+
+            @media (min-width: 768px) {
+              display: block;
+            }
+          }
+        }
+
+        .step-line {
+          flex: 1;
+          height: 4px;
+          background-color: #bec8d2;
+          margin: 0 8px;
+          transition: background-color 0.3s;
+
+          &.active {
+            background-color: #006591;
+          }
+        }
+      }
+    }
+
+    .step-content-wrapper {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+      @media (min-width: 768px) {
+        padding: 40px;
+      }
+
+      .booking-step {
+        .step-title {
+          font-size: 22px;
+          font-weight: 700;
+          color: #1a202c;
+          margin: 0 0 24px 0;
+
+          @media (min-width: 768px) {
+            font-size: 24px;
+          }
+        }
+
+        .step-content {
+          .form-field {
+            margin-bottom: 24px;
+
+            .form-label {
+              display: block;
+              font-size: 15px;
+              font-weight: 500;
+              color: #657180;
+              margin-bottom: 8px;
+
+              .required {
+                color: #ff4444;
+              }
+            }
+
+            .form-select,
+            .form-input {
+              width: 100%;
+              height: 48px;
+              padding: 0 16px;
+              border: 1px solid #bec8d2;
+              border-radius: 12px;
+              font-size: 15px;
+              background-color: #ffffff;
+              transition: all 0.2s;
+
+              &:focus {
+                outline: none;
+                border-color: #006591;
+                box-shadow: 0 0 0 3px rgba(0, 101, 145, 0.1);
+              }
+            }
+
+            .form-textarea {
+              height: auto;
+              padding: 12px 16px;
+              resize: vertical;
+            }
+
+            .no-doctors-message {
+              text-align: center;
+              padding: 40px 20px;
+              background-color: #f7f9fb;
+              border-radius: 12px;
+              border: 2px dashed #bec8d2;
+
+              i {
+                font-size: 48px;
+                color: #bec8d2;
+                margin-bottom: 12px;
+              }
+
+              p {
+                font-size: 15px;
+                color: #657180;
+                margin: 0;
+                font-weight: 500;
+              }
+            }
+
+            .no-time-message {
+              text-align: center;
+              padding: 40px 20px;
+              background-color: #f7f9fb;
+              border-radius: 12px;
+              border: 2px dashed #bec8d2;
+
+              i {
+                font-size: 48px;
+                color: #bec8d2;
+                margin-bottom: 12px;
+              }
+
+              p {
+                font-size: 15px;
+                color: #657180;
+                margin: 0;
+                font-weight: 500;
+              }
+            }
+
+            .doctor-grid {
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: 16px;
+
+              @media (min-width: 768px) {
+                grid-template-columns: repeat(2, 1fr);
+              }
+
+              .doctor-card {
+                cursor: pointer;
+                border: 2px solid #bec8d2;
+                border-radius: 12px;
+                transition: all 0.2s;
+
+                &.selected {
+                  border-color: #006591;
+                  background-color: rgba(0, 101, 145, 0.05);
+                }
+
+                &:hover {
+                  border-color: #006591;
+                }
+
+                .doctor-card-content {
+                  display: flex;
+                  align-items: center;
+                  gap: 16px;
+                  padding: 16px;
+
+                  .doctor-avatar {
+                    width: 56px;
+                    height: 56px;
+                    border-radius: 50%;
+                    overflow: hidden;
+                    flex-shrink: 0;
+
+                    img {
+                      width: 100%;
+                      height: 100%;
+                      object-fit: cover;
+                    }
+
+                    .avatar-placeholder {
+                      width: 100%;
+                      height: 100%;
+                      background: linear-gradient(135deg, #006591, #006877);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      color: #ffffff;
+                      font-weight: 700;
+                      font-size: 20px;
+                    }
+                  }
+
+                  .doctor-info {
+                    flex: 1;
+
+                    .doctor-name {
+                      font-weight: 700;
+                      color: #1a202c;
+                      margin: 0 0 4px 0;
+                      font-size: 15px;
+                    }
+
+                    .doctor-specialty {
+                      font-size: 13px;
+                      color: #657180;
+                      margin: 0 0 4px 0;
+                    }
+
+                    .doctor-price {
+                      font-size: 13px;
+                      font-weight: 600;
+                      color: #006591;
+                      margin: 0;
+                    }
+                  }
+                }
+              }
+            }
+
+            .time-grid {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 12px;
+
+              @media (min-width: 640px) {
+                grid-template-columns: repeat(4, 1fr);
+              }
+
+              @media (min-width: 768px) {
+                grid-template-columns: repeat(6, 1fr);
+              }
+
+              .time-slot {
+                padding: 8px 12px;
+                border: 1px solid #bec8d2;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                background-color: #ffffff;
+                cursor: pointer;
+                transition: all 0.2s;
+
+                &:hover {
+                  border-color: #006591;
+                  background-color: rgba(0, 101, 145, 0.05);
+                }
+
+                &.selected {
+                  background-color: #006591;
+                  color: #ffffff;
+                  border-color: #006591;
+                }
+              }
+            }
+
+            .type-grid {
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: 16px;
+
+              @media (min-width: 640px) {
+                grid-template-columns: repeat(2, 1fr);
+              }
+
+              .type-card {
+                cursor: pointer;
+                border: 2px solid #bec8d2;
+                border-radius: 12px;
+                transition: all 0.2s;
+
+                &.selected {
+                  border-color: #006591;
+                  background-color: rgba(0, 101, 145, 0.05);
+                }
+
+                &:hover {
+                  border-color: #006591;
+                }
+
+                .type-card-content {
+                  padding: 16px;
+
+                  .type-icon {
+                    font-size: 20px;
+                    color: #006591;
+                    margin-right: 8px;
+                  }
+
+                  .type-title {
+                    font-weight: 700;
+                    color: #1a202c;
+                    font-size: 15px;
+                  }
+
+                  .type-desc {
+                    font-size: 13px;
+                    color: #657180;
+                    margin: 4px 0 0 0;
+                  }
+                }
+              }
+            }
+
+            .gender-options {
+              display: flex;
+              gap: 16px;
+
+              .gender-option {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+
+                input[type="radio"] {
+                  accent-color: #006591;
+                  width: 18px;
+                  height: 18px;
+                }
+
+                span {
+                  font-size: 15px;
+                  color: #1a202c;
+                }
+              }
+            }
+          }
+
+          .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+
+            @media (min-width: 768px) {
+              grid-template-columns: repeat(2, 1fr);
+              margin-bottom: 0;
+            }
+          }
+        }
+
+        .step-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 32px;
+          gap: 16px;
+
+          .btn-primary,
+          .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            i {
+              font-size: 14px;
+            }
+          }
+
+          .btn-primary {
+            background: linear-gradient(135deg, #006591, #006877);
+            color: #ffffff;
+
+            &:hover {
+              box-shadow: 0 4px 12px rgba(0, 101, 145, 0.3);
+              transform: translateY(-2px);
+            }
+          }
+
+          .btn-secondary {
+            background-color: #f7f9fb;
+            color: #1a202c;
+            border: 1px solid #bec8d2;
+
+            &:hover {
+              background-color: #e9ecef;
+            }
+          }
+        }
+
+        .review-card {
+          background-color: #ffffff;
+          border: 1px solid #bec8d2;
+          border-radius: 12px;
+          padding: 24px;
+          margin-bottom: 24px;
+
+          @media (min-width: 768px) {
+            padding: 32px;
+          }
+
+          .review-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #bec8d2;
+            margin-bottom: 20px;
+
+            .review-doctor-avatar {
+              width: 64px;
+              height: 64px;
+              border-radius: 50%;
+              overflow: hidden;
+              flex-shrink: 0;
+
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+              }
+
+              .avatar-placeholder {
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #006591, #006877);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 24px;
+              }
+            }
+
+            .review-doctor-info {
+              flex: 1;
+
+              .doctor-name {
+                font-size: 18px;
+                font-weight: 700;
+                color: #1a202c;
+                margin: 0 0 4px 0;
+              }
+
+              .doctor-specialty {
+                font-size: 14px;
+                color: #657180;
+                margin: 0 0 8px 0;
+              }
+
+              .doctor-rating {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+
+                i {
+                  color: #006877;
+                  font-size: 16px;
+                }
+
+                .rating-value {
+                  font-weight: 700;
+                  color: #006877;
+                  font-size: 14px;
+                }
+
+                .rating-count {
+                  font-size: 13px;
+                  color: #657180;
+                }
+              }
+            }
+          }
+
+          .review-details {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+
+            @media (min-width: 768px) {
+              grid-template-columns: repeat(2, 1fr);
+            }
+
+            .detail-item {
+              display: flex;
+              align-items: flex-start;
+              gap: 12px;
+
+              i {
+                color: #657180;
+                font-size: 20px;
+                margin-top: 2px;
+              }
+
+              .detail-label {
+                font-size: 13px;
+                color: #657180;
+                margin: 0 0 2px 0;
+              }
+
+              .detail-value {
+                font-weight: 600;
+                color: #1a202c;
+                margin: 0;
+                font-size: 15px;
+              }
+            }
+          }
+
+          .review-pricing {
+            padding-top: 20px;
+            border-top: 1px solid #bec8d2;
+
+            .price-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 8px;
+              font-size: 15px;
+              color: #657180;
+
+              &.total {
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid #bec8d2;
+                font-weight: 700;
+                font-size: 16px;
+                color: #1a202c;
+
+                span:last-child {
+                  color: #006591;
+                  font-size: 20px;
+                }
+              }
+            }
+          }
+        }
+
+        .info-alert {
+          background-color: rgba(0, 104, 119, 0.1);
+          border: 1px solid rgba(0, 104, 119, 0.3);
+          border-radius: 12px;
+          padding: 16px;
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          margin-bottom: 24px;
+
+          i {
+            color: #006877;
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+          }
+
+          p {
+            font-size: 14px;
+            color: #004d6e;
+            margin: 0;
+            line-height: 1.5;
+          }
+        }
+      }
+    }
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

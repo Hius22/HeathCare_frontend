@@ -13,3 +13,8 @@ export const changeLanguageApp = (languageInput) => ({
     type: actionTypes.CHANGE_LANGUAGE,
     language: languageInput
 })
+
+export const setLoading = (isLoading) => ({
+    type: actionTypes.SET_LOADING,
+    isLoading: isLoading
+})

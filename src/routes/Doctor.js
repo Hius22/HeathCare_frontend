@@ -2,25 +2,30 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { Redirect, Route, Switch } from 'react-router-dom';
 // import ManageSchedule from '../containers/System/Doctor/ManageSchedule';
-import Header from '../containers/Header/Header';
+// import Header from '../containers/Header/Header';
 import ManagePatient from '../containers/System/Doctor/ManagePatient';
-import ManageScheduleDoctor from '../containers/System/Doctor/ManageScheduleForDoctor'
+import ManageScheduleDoctor from '../containers/System/Doctor/ManageScheduleForDoctor';
+import DoctorLayout from '../containers/System/Doctor/DoctorLayout';
+import DoctorDashboard from '../containers/System/Doctor/DoctorDashboard';
+import DoctorProfile from '../containers/System/Doctor/DoctorProfile';
 
 class Doctor extends Component {
     render() {
         const { isLoggedIn } = this.props;
         return (
             <React.Fragment>
-                {isLoggedIn && <Header />}
-                <div className="system-container">
-                    <div className="system-list">
+                {isLoggedIn && (
+                    <DoctorLayout>
                         <Switch>
-                            {/* <Route path='/doctor/manage-schedule' component={ManageSchedule} /> */}
+                            <Route path='/doctor/dashboard' component={DoctorDashboard} />
                             <Route path='/doctor/manage-schedule-doctor' component={ManageScheduleDoctor} />
                             <Route path='/doctor/manage-patient' component={ManagePatient} />
+                            <Route path='/doctor/profile' component={DoctorProfile} />
+                            {/* Default redirect to dashboard */}
+                            <Route render={() => <Redirect to="/doctor/dashboard" />} />
                         </Switch>
-                    </div>
-                </div>
+                    </DoctorLayout>
+                )}
             </React.Fragment>
         );
     }
@@ -28,7 +33,6 @@ class Doctor extends Component {
 
 const mapStateToProps = state => {
     return {
-        systemMenuPath: state.app.systemMenuPath,
         isLoggedIn: state.user.isLoggedIn,
     };
 };

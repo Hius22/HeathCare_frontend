@@ -89,8 +89,6 @@ class DoctorSchedule extends Component {
                     allAvailableTime: res.data ? res.data : []
                 })
             }
-
-            console.log('check res: ', res)
         }
     }
 
@@ -99,7 +97,6 @@ class DoctorSchedule extends Component {
             isOpenModalBooking: true,
             dataScheduleTimeModal: time
         })
-        console.log('time: ', time)
     }
 
     closeBookingClose = () => {
@@ -142,16 +139,17 @@ class DoctorSchedule extends Component {
                                             allAvailableTime
                                                 .filter(item => {
                                                     // chỉ lọc nếu là hôm nay
-                                                    const isToday = moment(item.date).isSame(moment(), 'day');
+                                                    const isToday = moment(+item.date).isSame(moment(), 'day');
                                                     if (!isToday) return true;
 
                                                     // giờ hiện tại
                                                     const currentHour = moment().hour();
 
-                                                    // lấy giờ bắt đầu từ chuỗi "08:00 - 09:00"
-                                                    const startHour = parseInt(
-                                                        item.timeTypeData.valueVi.split(':')[0]
-                                                    );
+                                                    // lấy giờ bắt đầu từ chuỗi "08:00 - 09:00" (cả VI và EN đều dùng định dạng HH:mm)
+                                                    const timeStr = language === LANGUAGES.VI
+                                                        ? item.timeTypeData.valueVi
+                                                        : item.timeTypeData.valueEn;
+                                                    const startHour = parseInt(timeStr.split(':')[0]);
 
                                                     return startHour > currentHour;
                                                 })

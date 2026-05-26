@@ -10,7 +10,8 @@ const initContentOfConfirmModal = {
 const initialState = {
     started: true,
     language: 'vi',
-    systemMenuPath: '/system/user-manage',
+    isLoading: false,
+    systemMenuPath: '/system/manage-booking',
     contentOfConfirmModal: {
         ...initContentOfConfirmModal
     }
@@ -32,8 +33,10 @@ const appReducer = (state = initialState, action) => {
                 }
             }
 
+        case actionTypes.SET_LOADING:
+            return { ...state, isLoading: action.isLoading };
+
         case actionTypes.CHANGE_LANGUAGE:
-            console.log("check redux: ", action)
             return {
                 ...state,
                 language: action.language,

@@ -1,11 +1,11 @@
 {
     "homeheader": {
         "specialty": "Specialty",
-        "medical-facilities": "Medical facilities",
+        "medical-facilities": "Our Clinic",
         "doctor": "Doctor",
         "package": "Health check-up package",
         "search-doctor": "Find a doctor by specialty",
-        "select-clinic": "Select hospital clinic",
+        "select-clinic": "Clinic information",
         "choose-doctor": "Choose a good doctor",
         "health-check": "General health check-up",
         "support": "Support"
@@ -27,14 +27,12 @@
             "manage-user": "User System",
             "manage-doctor": "Manage doctor",
             "manage-admin": "Manage admin",
-            "crud": "CRUD user",
-            "crud-redux": "CRUD Redux",
-            "manage-clinic": "Manage clinic",
+            "crud-redux": "User Management",
+            "manage-clinic": "Clinic Information",
             "clinic": "Clinic",
             "manage-specialty": "Manage specialty",
             "specialty": "Specialty",
-            "handbook": "Handbook",
-            "manage-handbook": "Manage handbook"
+            "manage-booking": "Manage Appointments"
         },
 
         "doctor": {
@@ -107,13 +105,12 @@
     },
     "admin": {
         "manage-doctor": {
-            "title": "Create doctor information",
+            "title": "Update doctor information",
             "select-doctor": "Choose a doctor",
             "information": "Introductory information",
             "create": "Create information",
             "save": "Save information",
             "price": "Price",
-            "payment": "Payment method",
             "province": "Province",
             "nameClinic": "Clinic name",
             "addressClinic": "Clinic address",

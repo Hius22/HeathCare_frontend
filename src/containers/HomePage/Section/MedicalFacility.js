@@ -1,8 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { FormattedMessage } from 'react-intl';
-import Slider from "react-slick";
-import { getAllClinic } from "../../../services/userService";
+import { getClinicInfo } from "../../../services/userService";
 import { withRouter } from 'react-router';
 import './MedicalFacility.scss';
 
@@ -10,69 +8,109 @@ class MedicalFacility extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            dataClinics: [],
+            clinicInfo: null,
         }
     }
 
     async componentDidMount() {
-        let res = await getAllClinic();
+        let res = await getClinicInfo();
         if (res && res.errCode === 0) {
             this.setState({
-                dataClinics: res.data ? res.data : []
+                clinicInfo: res.data ? res.data : null
             })
         }
-        //console.log('Check res clinic: ', res);
     }
 
-    handleViewDetailClinic = (clinic) => {
-        if (this.props.history) {
-            this.props.history.push(`/detail-clinic/${clinic.id}`);
+    handleViewDetail = () => {
+        if (this.props.history && this.state.clinicInfo) {
+            this.props.history.push(`/detail-clinic/${this.state.clinicInfo.id}`);
         }
+    }
+
+    handleBookAppointment = () => {
+        this.props.history.push('/booking-flow');
     }
 
     render() {
-        let { dataClinics } = this.state;
+        let { clinicInfo } = this.state;
         return (
-            <div>
-                <div className="sections-share  section-medical-facility">
-                    <div className=" section-container">
-                        <div className="section-header">
-                            <span className="title-section">Cơ sở y tế nổi bật</span>
-                            <button
-                                className="btn-section"
-
-                            >Xem thêm</button>
-                        </div>
-
-                        <div className="section-body">
-                            <Slider {...this.props.settings}>
-                                {dataClinics && dataClinics.length > 0 &&
-                                    dataClinics.map((item, index) => {
-                                        return (
-                                            <div className="section-customize clinic-child"
-                                                key={index}
-                                                onClick={() => this.handleViewDetailClinic(item)}
-                                            >
-                                                <div className="bg-image section-medical-facility"
-                                                    style={{ backgroundImage: `url(${item.image})` }}
-                                                />
-                                                <div className="clinic-name">{item.name}</div>
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </Slider>
-                        </div>
-
+            <section className="facility-section section-padding">
+                <div className="section-container-main">
+                    <div className="section-header-center">
+                        <h2 className="section-title">
+                            {this.props.language === 'vi' ? 'CƠ SỞ Y TẾ' : 'Medical Facilities'}
+                        </h2>
+                        <p className="section-subtitle-center">
+                            {this.props.language === 'vi'
+                                ? 'Hệ thống bệnh viện và phòng khám hiện đại'
+                                : 'Modern hospitals and clinic network'}
+                        </p>
                     </div>
+
+                    {clinicInfo && (
+                        <div className="facility-featured" onClick={() => this.handleViewDetail()}>
+                            <div className="facility-image-wrapper">
+                                {clinicInfo.image ? (
+                                    <img
+                                        alt={clinicInfo.name}
+                                        className="facility-image"
+                                        src={clinicInfo.image}
+                                    />
+                                ) : (
+                                    <div className="facility-image-placeholder">
+                                        <i className="fa-solid fa-hospital"></i>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="facility-content">
+                                <div className="facility-header">
+                                    <h3 className="facility-name">{clinicInfo.name}</h3>
+                                    <div className="facility-location">
+                                        <i className="fa-solid fa-location-dot"></i>
+                                        <span>{clinicInfo.address}</span>
+                                    </div>
+                                </div>
+
+                                <div
+                                    className="facility-description"
+                                    dangerouslySetInnerHTML={{ __html: clinicInfo.descriptionHTML }}
+                                />
+
+                                <div className="facility-actions">
+                                    <button
+                                        className="btn-primary-action"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            this.handleBookAppointment();
+                                        }}
+                                    >
+                                        <i className="fa-solid fa-calendar-check"></i>
+                                        {this.props.language === 'vi' ? 'Đặt lịch khám ngay' : 'Book appointment'}
+                                    </button>
+                                    <button
+                                        className="btn-secondary-action"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            this.handleViewDetail();
+                                        }}
+                                    >
+                                        <i className="fa-solid fa-circle-info"></i>
+                                        {this.props.language === 'vi' ? 'Xem chi tiết' : 'View details'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            </div>
+            </section>
         );
     }
 }
 
 const mapStateToProps = state => ({
-    isLoggedIn: state.user.isLoggedIn
+    isLoggedIn: state.user.isLoggedIn,
+    language: state.app.language
 });
 
 const mapDispatchToProps = dispatch => {

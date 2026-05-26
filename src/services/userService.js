@@ -1,4 +1,3 @@
-import { stringify } from "react-auth-wrapper/helpers";
 import axios from "../axios"
 
 const handleLoginApi = (userEmail, userPassword) => {
@@ -11,7 +10,6 @@ const getAllUsers = (inputId) => {
 }
 
 const createNewUserService = (data) => {
-    console.log('check data: ', data);
     return axios.post('/api/create-new-user', data)
 }
 
@@ -37,6 +35,10 @@ const getTopDoctorHomeService = (limit) => {
 
 const getAllDoctors = () => {
     return axios.get(`/api/get-all-doctors`);
+}
+
+const getDoctorsBySpecialty = (specialtyId) => {
+    return axios.get(`/api/get-doctors-by-specialty?specialtyId=${specialtyId}`);
 }
 
 const saveDetailDoctorService = (data) => {
@@ -83,8 +85,29 @@ const getDetailSpecialtyById = (data) => {
     return axios.get(`/api/get-detail-specialty-by-id?id=${data.id}&location=${data.location}`)
 }
 
-const createNewClinic = (data) => {
-    return axios.post('/api/create-new-clinic', data)
+const updateSpecialty = (data) => {
+    return axios.put('/api/update-specialty', data)
+}
+
+const deleteSpecialty = (data) => {
+    return axios.delete('/api/delete-specialty', {
+        data: { id: data.id }
+    })
+}
+
+const getAllBookings = (data) => {
+    let url = `/api/get-all-bookings?date=${data.date || ''}`;
+    if (data.patientId) {
+        url += `&patientId=${data.patientId}`;
+    }
+    if (data.patientEmail) {
+        url += `&patientEmail=${encodeURIComponent(data.patientEmail)}`;
+    }
+    return axios.get(url);
+}
+
+const updateBookingStatus = (data) => {
+    return axios.put('/api/update-booking-status', data)
 }
 
 const getAllClinic = () => {
@@ -93,6 +116,18 @@ const getAllClinic = () => {
 
 const getDetailClinicById = (data) => {
     return axios.get(`/api/get-detail-clinic-by-id?id=${data.id}`)
+}
+
+const getClinicInfo = () => {
+    return axios.get('/api/get-clinic-info')
+}
+
+const createClinicInfo = (data) => {
+    return axios.post('/api/create-clinic-info', data)
+}
+
+const updateClinicInfo = (data) => {
+    return axios.put('/api/update-clinic-info', data)
 }
 
 const getAllPatientForDoctor = (data) => {
@@ -115,14 +150,26 @@ const getAllScheduleDoctor = () => {
     return axios.get('/api/get-all-schedule');
 }
 
+const getPatientHistory = (patientId) => {
+    return axios.get(`/api/get-patient-history?patientId=${patientId}`);
+}
+
+const savePatientHistory = (data) => {
+    return axios.post('/api/save-patient-history', data);
+}
+
 export {
     handleLoginApi, getAllUsers, createNewUserService,
     deleteUserService, editUserService, getALLCodeService,
-    getTopDoctorHomeService, getAllDoctors, saveDetailDoctorService,
+    getTopDoctorHomeService, getAllDoctors, getDoctorsBySpecialty, saveDetailDoctorService,
     getDetailInforDoctor, saveBulkScheduleDoctor, getScheduleDoctorByDate,
     getExtraInforDoctorById, getProfileDoctorById, postPatientBookingAppointment,
     postVerifyBookingAppointment, createNewSpecialty, getAllSpecialty,
-    getDetailSpecialtyById, createNewClinic, getAllClinic,
-    getDetailClinicById, getAllPatientForDoctor, postSendRemedy,
-    postCancelBooking, deleteScheduleDoctor, getAllScheduleDoctor
+    getDetailSpecialtyById, getAllClinic,
+    getDetailClinicById, getClinicInfo, createClinicInfo, updateClinicInfo,
+    getAllPatientForDoctor, postSendRemedy,
+    postCancelBooking, deleteScheduleDoctor, getAllScheduleDoctor,
+    updateSpecialty, deleteSpecialty,
+    getAllBookings, updateBookingStatus,
+    getPatientHistory, savePatientHistory
 }

@@ -11,7 +11,7 @@ const adminService = {
      * }
      */
     login(loginBody) {
-        return axios.post(`/admin/login`, loginBody)
+        return axios.post(`/api/login`, loginBody)
     },
 
 };

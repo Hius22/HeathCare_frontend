@@ -1,0 +1,412 @@
+/* ===== BOOKING HISTORY / APPOINTMENTS PAGE ===== */
+
+.booking-history-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  min-height: calc(100vh - 200px);
+
+  @media (min-width: 768px) {
+    padding: 40px 32px;
+  }
+
+  /* Breadcrumb */
+  .breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    margin-bottom: 24px;
+
+    a {
+      color: #3e4850;
+      text-decoration: none;
+      transition: color 0.15s ease;
+
+      &:hover {
+        color: #006591;
+      }
+    }
+
+    i {
+      font-size: 12px;
+      color: #6e7881;
+    }
+
+    .current {
+      color: #191c1e;
+      font-weight: 500;
+    }
+  }
+
+  /* Page Header */
+  .page-header {
+    margin-bottom: 32px;
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #191c1e;
+      margin: 0 0 8px 0;
+
+      @media (min-width: 768px) {
+        font-size: 30px;
+      }
+    }
+
+    .page-description {
+      font-size: 16px;
+      color: #3e4850;
+      margin: 0;
+    }
+  }
+
+  /* Tabs */
+  .tabs-container {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+
+    .tab-button {
+      padding: 8px 20px;
+      border-radius: 9999px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background-color: #e6e8ea;
+      color: #3e4850;
+
+      &:hover {
+        background-color: #d6d8da;
+      }
+
+      &.active {
+        background-color: #006591;
+        color: #ffffff;
+      }
+    }
+  }
+
+  /* Appointments Grid */
+  .appointments-content {
+    .appointments-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+
+      @media (min-width: 1024px) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+      }
+    }
+
+    /* Appointment Card */
+    .appointment-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #bec8d2;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow:
+          0 20px 25px rgba(0, 0, 0, 0.1),
+          0 8px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-content {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        @media (min-width: 768px) {
+          flex-direction: row;
+        }
+      }
+
+      /* Doctor Image */
+      .doctor-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+        margin: 0 auto;
+
+        @media (min-width: 768px) {
+          width: 96px;
+          height: 96px;
+          margin: 0;
+        }
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .doctor-avatar {
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(135deg, #0ea5e9, #22d3ee);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          font-weight: 700;
+        }
+      }
+
+      /* Appointment Info */
+      .appointment-info {
+        flex: 1;
+
+        .info-header {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 8px;
+          margin-bottom: 12px;
+
+          @media (min-width: 768px) {
+            flex-direction: row;
+            align-items: flex-start;
+          }
+
+          .doctor-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #191c1e;
+            margin: 0 0 4px 0;
+          }
+
+          .doctor-specialty {
+            font-size: 14px;
+            color: #3e4850;
+            margin: 0;
+          }
+
+          .status-badge {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+
+            &.S1 {
+              background-color: rgba(255, 193, 7, 0.15);
+              color: #856404;
+            }
+
+            &.S2 {
+              background-color: rgba(16, 185, 129, 0.1);
+              color: #0d9668;
+              font-weight: 700;
+            }
+
+            &.S3 {
+              background-color: rgba(16, 185, 129, 0.15);
+              color: #065f46;
+            }
+
+            &.S4 {
+              background-color: rgba(239, 68, 68, 0.1);
+              color: #dc2626;
+            }
+          }
+        }
+
+        /* Appointment Details */
+        .appointment-details {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 16px;
+
+          .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #3e4850;
+
+            i {
+              font-size: 18px;
+              color: #6e7881;
+            }
+          }
+        }
+
+        /* Card Actions */
+        .card-actions {
+          display: flex;
+          gap: 8px;
+          padding-top: 12px;
+          border-top: 1px solid #bec8d2;
+
+          .btn-reschedule,
+          .btn-cancel,
+          .btn-view-profile {
+            flex: 1;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+          }
+
+          .btn-reschedule {
+            background-color: #006591;
+            color: #ffffff;
+            border: none;
+
+            &:hover {
+              transform: scale(1.02);
+              background-color: #004c6e;
+            }
+
+            &:active {
+              transform: scale(0.95);
+            }
+          }
+
+          .btn-cancel {
+            background-color: transparent;
+            color: #3e4850;
+            border: 1px solid #bec8d2;
+
+            &:hover {
+              background-color: #f2f4f6;
+            }
+
+            &:active {
+              transform: scale(0.95);
+            }
+          }
+
+          .btn-view-profile {
+            background-color: transparent;
+            color: #006591;
+            border: none;
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+
+    /* Empty State */
+    .empty-state {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #bec8d2;
+      padding: 48px 32px;
+      text-align: center;
+
+      .empty-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background-color: #e6e8ea;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+
+        i {
+          font-size: 32px;
+          color: #6e7881;
+        }
+      }
+
+      .empty-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #191c1e;
+        margin: 0 0 8px 0;
+      }
+
+      .empty-description {
+        font-size: 16px;
+        color: #3e4850;
+        margin: 0 0 24px 0;
+      }
+
+      .btn-book-now {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 24px;
+        border-radius: 9999px;
+        background-color: #006591;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+
+        &:hover {
+          transform: scale(1.02);
+          background-color: #004c6e;
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
+      }
+    }
+  }
+
+  /* Tip Section */
+  .tip-section {
+    margin-top: 32px;
+    padding: 20px;
+    background-color: rgba(47, 217, 244, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(47, 217, 244, 0.3);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+
+    i {
+      font-size: 24px;
+      color: #006877;
+      flex-shrink: 0;
+    }
+
+    .tip-content {
+      .tip-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #004e5a;
+        margin: 0 0 4px 0;
+      }
+
+      .tip-description {
+        font-size: 14px;
+        color: #004e5a;
+        margin: 0;
+        line-height: 1.5;
+      }
+    }
+  }
+}

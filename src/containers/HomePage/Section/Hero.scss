@@ -1,0 +1,291 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.hero-section {
+  background: linear-gradient(135deg, #005d8e 0%, #006ea8 40%, #0ea5e9 100%);
+  min-height: 580px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: 56px 20px;
+  font-family: 'Inter', sans-serif;
+
+  @media (min-width: 768px) {
+    min-height: 640px;
+    padding: 72px 32px;
+  }
+
+  // ─── Decorative blobs ──────────────────────────────────
+  .hero-blob {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.12;
+
+    &--1 {
+      width: 520px;
+      height: 520px;
+      background: #fff;
+      top: -180px;
+      left: -160px;
+    }
+
+    &--2 {
+      width: 360px;
+      height: 360px;
+      background: #fff;
+      bottom: -120px;
+      right: -100px;
+    }
+  }
+
+  // ─── Container ─────────────────────────────────────────
+  .hero-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  // ─── Grid ──────────────────────────────────────────────
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 36px;
+    align-items: center;
+
+    @media (min-width: 1024px) {
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
+    }
+  }
+
+  // ─── LEFT: content ─────────────────────────────────────
+  .hero-content {
+    color: #fff;
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.3);
+      backdrop-filter: blur(6px);
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      letter-spacing: 0.3px;
+
+      i { font-size: 12px; }
+    }
+
+    .hero-title {
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+
+      @media (min-width: 768px) { font-size: 44px; }
+    }
+
+    .hero-description {
+      font-size: 17px;
+      line-height: 1.7;
+      margin-bottom: 28px;
+      opacity: 0.88;
+      max-width: 500px;
+    }
+
+    .hero-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 32px;
+
+      .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .feature-icon {
+          width: 34px;
+          height: 34px;
+          background: rgba(255,255,255,0.18);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 15px;
+        }
+
+        .feature-text {
+          font-size: 14px;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .hero-stats {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      .stat {
+        display: flex;
+        flex-direction: column;
+
+        .stat-num {
+          font-size: 22px;
+          font-weight: 800;
+          line-height: 1;
+        }
+
+        .stat-lbl {
+          font-size: 12px;
+          opacity: 0.75;
+          margin-top: 3px;
+        }
+      }
+
+      .stat-divider {
+        width: 1px;
+        height: 36px;
+        background: rgba(255,255,255,0.3);
+      }
+    }
+  }
+
+  // ─── RIGHT: search card ────────────────────────────────
+  .hero-form-card {
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(12px);
+    padding: 28px 28px 24px;
+    border-radius: 20px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255,255,255,0.6);
+
+    @media (min-width: 768px) { padding: 32px 32px 28px; }
+
+    .form-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+
+      i {
+        font-size: 22px;
+        color: #006ea8;
+      }
+
+      .form-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+      }
+    }
+
+    .booking-form {
+      .form-group {
+        margin-bottom: 16px;
+
+        .form-label {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: #475569;
+          margin-bottom: 7px;
+
+          i { color: #006ea8; font-size: 13px; }
+        }
+
+        .form-input {
+          height: 46px;
+          width: 100%;
+          border-radius: 10px;
+          border: 1.5px solid #e2e8f0;
+          background: #fff;
+          padding: 0 14px;
+          color: #0f172a;
+          font-size: 15px;
+          font-family: 'Inter', sans-serif;
+          transition: all 0.2s;
+          cursor: pointer;
+
+          &:focus {
+            border-color: #006ea8;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 110, 168, 0.14);
+          }
+
+          &:disabled {
+            background: #f8fafc;
+            color: #94a3b8;
+            cursor: not-allowed;
+          }
+
+          // Date input specific
+          &[type="date"] {
+            cursor: pointer;
+            &::-webkit-calendar-picker-indicator {
+              cursor: pointer;
+              opacity: 0.6;
+            }
+          }
+        }
+      }
+
+      .submit-btn {
+        width: 100%;
+        height: 52px;
+        background: linear-gradient(135deg, #005d8e, #006ea8);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 16px rgba(0, 110, 168, 0.35);
+        margin-top: 4px;
+        font-family: 'Inter', sans-serif;
+
+        i { font-size: 16px; }
+
+        &:hover {
+          background: linear-gradient(135deg, #004d78, #005d8e);
+          box-shadow: 0 6px 20px rgba(0, 110, 168, 0.45);
+          transform: translateY(-1px);
+        }
+
+        &:active { transform: scale(0.98); }
+      }
+
+      .form-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 14px;
+        text-align: center;
+
+        i { color: #006ea8; }
+      }
+    }
+  }
+}

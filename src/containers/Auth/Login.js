@@ -3,11 +3,7 @@ import { connect } from 'react-redux';
 import { push } from "connected-react-router";
 import * as actions from "../../store/actions";
 import './Login.scss';
-import { FormattedMessage } from 'react-intl';
-//import { divide } from 'lodash';
 import { handleLoginApi } from '../../services/userService';
-
-
 
 class Login extends Component {
     constructor(props) {
@@ -21,53 +17,32 @@ class Login extends Component {
     }
 
     handleOnChangeUsername = (event) => {
-        this.setState({
-            username: event.target.value,
-        })
+        this.setState({ username: event.target.value });
     }
 
     handleOnChangePassword = (event) => {
-        this.setState({
-            password: event.target.value,
-        })
+        this.setState({ password: event.target.value });
     }
 
     handleLogin = async () => {
-        console.log("Đã click nút login");
-        this.setState({
-            errMessage: ''
-        })
-
+        this.setState({ errMessage: '' });
         try {
-            let data = await handleLoginApi(this.state.username, this.state.password)
-            console.log("Kết quả API:", data);
+            let data = await handleLoginApi(this.state.username, this.state.password);
             if (data && data.errCode !== 0) {
-                this.setState({
-                    errMessage: data.message
-                })
+                this.setState({ errMessage: data.message });
             }
             if (data && data.errCode === 0) {
-                this.props.userLoginSuccess(data.user)
-                console.log('login succeeds')
+                this.props.userLoginSuccess(data.user);
             }
-
-
         } catch (error) {
-            if (error.response) {
-                if (error.response.data) {
-                    this.setState({
-                        errMessage: error.response.data.message,
-                    })
-                }
+            if (error.response && error.response.data) {
+                this.setState({ errMessage: error.response.data.message });
             }
-            console.log('duan-new ', error.response);
         }
     }
 
     handleShowHidePassword = () => {
-        this.setState({
-            isShowPassword: !this.state.isShowPassword
-        })
+        this.setState({ isShowPassword: !this.state.isShowPassword });
     }
 
     handleKeyDown = (event) => {
@@ -79,44 +54,135 @@ class Login extends Component {
     render() {
         return (
             <div className="login-background">
-                <div className="login-container">
-                    <div className="login-content row">
-                        <div className="col-12 text-login">Login</div>
-                        <div className="col-12 form-ground login-input">
-                            <label>Username: </label>
-                            <input type="text" className="form-control" placeholder='Enter your username' value={this.state.username} onChange={(event) => this.handleOnChangeUsername(event)} />
+
+                {/* LEFT — Brand Panel */}
+                <div className="login-brand-panel">
+                    <div className="brand-logo">
+                        <div className="logo-icon">
+                            <i className="fas fa-heartbeat"></i>
                         </div>
-                        <div className="col-12 form-ground login-input">
-                            <label>Password: </label>
-                            <div className="custom-input-password" >
-                                <input
-                                    type={this.state.isShowPassword ? 'text' : 'password'}
-                                    className="form-control" placeholder='Enter your password'
-                                    value={this.state.password}
-                                    onChange={(event) => this.handleOnChangePassword(event)}
-                                    onKeyDown={(event) => this.handleKeyDown(event)}
-                                />
-                                <span onClick={() => { this.handleShowHidePassword() }}>
-                                    <i className={this.state.isShowPassword ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash'} ></i>
-                                </span>
+                        <div className="logo-text">
+                            Health<span>Care+</span>
+                        </div>
+                    </div>
+
+                    <div className="brand-illustration">
+                        <i className="fas fa-user-md"></i>
+                    </div>
+
+                    <h2 className="brand-title">Hệ thống quản lý<br />y tế thông minh</h2>
+                    <p className="brand-subtitle">
+                        Kết nối bệnh nhân với đội ngũ y bác sĩ chuyên nghiệp. Đặt lịch khám nhanh chóng, tiện lợi và an toàn.
+                    </p>
+
+                    <div className="brand-features">
+                        <div className="feature-item">
+                            <div className="feature-icon">
+                                <i className="fas fa-calendar-check"></i>
                             </div>
+                            <span>Đặt lịch<br />nhanh</span>
                         </div>
-                        <div className='col-12' style={{ color: 'red' }}>
+                        <div className="feature-item">
+                            <div className="feature-icon">
+                                <i className="fas fa-shield-alt"></i>
+                            </div>
+                            <span>Bảo mật<br />tuyệt đối</span>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon">
+                                <i className="fas fa-stethoscope"></i>
+                            </div>
+                            <span>Bác sĩ<br />chuyên môn</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* RIGHT — Form Panel */}
+                <div className="login-form-panel">
+                    <div className="login-header">
+                        <h2>Chào mừng trở lại 👋</h2>
+                        <p>Vui lòng đăng nhập vào tài khoản của bạn</p>
+                    </div>
+
+                    {/* Email / Username */}
+                    <div className="form-group-custom">
+                        <label>Tên đăng nhập</label>
+                        <div className="input-wrapper">
+                            <i className="fas fa-user input-icon"></i>
+                            <input
+                                id="login-username"
+                                type="text"
+                                placeholder="Nhập tên đăng nhập"
+                                value={this.state.username}
+                                onChange={this.handleOnChangeUsername}
+                                onKeyDown={this.handleKeyDown}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Password */}
+                    <div className="form-group-custom">
+                        <label>Mật khẩu</label>
+                        <div className="input-wrapper">
+                            <i className="fas fa-lock input-icon"></i>
+                            <input
+                                id="login-password"
+                                type={this.state.isShowPassword ? 'text' : 'password'}
+                                placeholder="Nhập mật khẩu"
+                                value={this.state.password}
+                                onChange={this.handleOnChangePassword}
+                                onKeyDown={this.handleKeyDown}
+                            />
+                            <span className="toggle-password" onClick={this.handleShowHidePassword}>
+                                <i className={this.state.isShowPassword ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash'}></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Options */}
+                    <div className="form-options">
+                        <label className="remember-me">
+                            <input type="checkbox" />
+                            <span>Ghi nhớ đăng nhập</span>
+                        </label>
+                        <span className="forgot-password">Quên mật khẩu?</span>
+                    </div>
+
+                    {/* Error */}
+                    {this.state.errMessage && (
+                        <div className="err-message">
+                            <i className="fas fa-exclamation-circle"></i>
                             {this.state.errMessage}
                         </div>
-                        <div className="col-12">
-                            <button className='btn-login' onClick={() => { this.handleLogin() }}>Log in</button>
-                        </div>
-                        <div className="col-12">
-                            <span className='forgot-password'>Forgot your password?</span>
-                        </div>
-                        <div className="col-12 text-center mt-3">
-                            <span className='text-other-login'>Or Login with:</span>
-                        </div>
-                        <div className='col-12 social-login'>
-                            <i className="fa-brands fa-google-plus-g google"></i>
-                            <i className="fa-brands fa-facebook facebook"></i>
-                        </div>
+                    )}
+
+                    {/* Submit */}
+                    <button id="login-btn" className="btn-login" onClick={this.handleLogin}>
+                        <i className="fas fa-sign-in-alt"></i>
+                        Đăng nhập
+                    </button>
+
+                    {/* Divider */}
+                    <div className="divider">
+                        <div className="line"></div>
+                        <span>Hoặc tiếp tục với</span>
+                        <div className="line"></div>
+                    </div>
+
+                    {/* Social */}
+                    <div className="social-login">
+                        <button className="social-btn google">
+                            <i className="fa-brands fa-google"></i>
+                            Google
+                        </button>
+                        <button className="social-btn facebook">
+                            <i className="fa-brands fa-facebook-f"></i>
+                            Facebook
+                        </button>
+                    </div>
+
+                    <div className="login-footer">
+                        Chưa có tài khoản? <span className="link">Liên hệ quản trị viên</span>
                     </div>
                 </div>
             </div>
@@ -133,7 +199,6 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         navigate: (path) => dispatch(push(path)),
-        //userLoginFail: () => dispatch(actions.adminLoginFail()),
         userLoginSuccess: (userInfor) => dispatch(actions.userLoginSuccess(userInfor))
     };
 };

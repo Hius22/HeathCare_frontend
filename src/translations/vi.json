@@ -1,11 +1,11 @@
 {
     "homeheader": {
         "specialty": "Chuyên khoa",
-        "medical-facilities": "Cơ sở y tế",
+        "medical-facilities": "Phòng khám",
         "doctor": "Bác sỹ",
         "package": "Gói khám",
         "search-doctor": "Tìm bác sỹ theo chuyên khoa",
-        "select-clinic": "Chọn bệnh viện phòng khám",
+        "select-clinic": "Thông tin phòng khám",
         "choose-doctor": "Chọn bác sỹ giỏi",
         "health-check": "Khám sức khoẻ tổng quát",
         "support": "Hỗ trợ"
@@ -27,15 +27,13 @@
             "manage-user": "Người dùng",
             "manage-doctor": "Quản lý bác sĩ",
             "manage-admin": "Quản lý admin",
-            "crud": "CRUD user",
-            "crud-redux": "CRUD Redux",
-            "manage-clinic": "Quản lý phòng khám",
+            "crud-redux": "Quản lý người dùng",
+            "manage-clinic": "Thông tin phòng khám",
             "clinic": "Phòng khám",
             "manage-specialty": "Quản lý chuyên khoa",
             "specialty": "Chuyên khoa",
-            "handbook": "Cẩm nang",
-            "manage-handbook": "Quản lý cẩm nang",
-            "manage-schedule": "Quản lý đặt lịch khám bệnh"
+            "manage-schedule": "Quản lý đặt lịch khám bệnh",
+            "manage-booking": "Quản lý lịch hẹn"
         },
 
         "doctor": {
@@ -111,13 +109,12 @@
 
     "admin": {
         "manage-doctor": {
-            "title": "Tạo thông tin bác sĩ",
+            "title": "Cập nhật thông tin bác sĩ",
             "select-doctor": "Chọn bác sĩ",
             "information": "Thông tin giới thiệu",
             "create": "Tạo thông tin",
             "save": "Lưu thông tin",
             "price": "Giá khám bệnh",
-            "payment": "Phương thức thanh toán",
             "province": "Tỉnh thành",
             "nameClinic": "Tên phòng khám",
             "addressClinic": "Địa chỉ phòng khám",
