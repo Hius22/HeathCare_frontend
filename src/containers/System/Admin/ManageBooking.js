@@ -84,10 +84,10 @@ class ManageBooking extends Component {
         if (searchKeyword) {
             let keyword = searchKeyword.toLowerCase();
             filtered = filtered.filter(booking => {
-                let patientName = `${booking.patientData.firstName} ${booking.patientData.lastName}`.toLowerCase();
-                let doctorName = booking.doctorName ? booking.doctorName.toLowerCase() : '';
-                let email = booking.patientData.email.toLowerCase();
-                let phone = booking.patientData.phonenumber || '';
+                let patientName = `${booking.patientData?.firstName || ''} ${booking.patientData?.lastName || ''}`.toLowerCase();
+                let doctorName = booking.doctorData ? `${booking.doctorData.lastName || ''} ${booking.doctorData.firstName || ''}`.toLowerCase() : '';
+                let email = (booking.patientData?.email || '').toLowerCase();
+                let phone = booking.patientData?.phonenumber || '';
 
                 return patientName.includes(keyword) ||
                     doctorName.includes(keyword) ||
@@ -135,8 +135,8 @@ class ManageBooking extends Component {
         let statusConfig = {
             'S1': { label: language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending', color: '#ff9800', icon: 'fa-clock' },
             'S2': { label: language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed', color: '#2196f3', icon: 'fa-check-circle' },
-            'S3': { label: language === LANGUAGES.VI ? 'Đã hủy' : 'Cancelled', color: '#f44336', icon: 'fa-times-circle' },
-            'S4': { label: language === LANGUAGES.VI ? 'Hoàn thành' : 'Completed', color: '#4caf50', icon: 'fa-check-double' }
+            'S3': { label: language === LANGUAGES.VI ? 'Hoàn thành' : 'Completed', color: '#4caf50', icon: 'fa-check-double' },
+            'S4': { label: language === LANGUAGES.VI ? 'Đã hủy' : 'Cancelled', color: '#f44336', icon: 'fa-times-circle' }
         };
 
         let config = statusConfig[statusId] || statusConfig['S1'];
@@ -161,7 +161,7 @@ class ManageBooking extends Component {
                     </button>
                     <button
                         className="btn btn-cancel"
-                        onClick={() => this.handleUpdateStatus(booking.id, 'S3')}
+                        onClick={() => this.handleUpdateStatus(booking.id, 'S4')}
                     >
                         <i className="fa-solid fa-times"></i> {language === LANGUAGES.VI ? 'Hủy' : 'Cancel'}
                     </button>
@@ -172,7 +172,7 @@ class ManageBooking extends Component {
                 <div className="action-buttons">
                     <button
                         className="btn btn-complete"
-                        onClick={() => this.handleUpdateStatus(booking.id, 'S4')}
+                        onClick={() => this.handleUpdateStatus(booking.id, 'S3')}
                     >
                         <i className="fa-solid fa-check-double"></i> {language === LANGUAGES.VI ? 'Hoàn thành' : 'Complete'}
                     </button>
@@ -191,8 +191,8 @@ class ManageBooking extends Component {
             total: this.state.bookings.length,
             pending: this.state.bookings.filter(b => b.statusId === 'S1').length,
             confirmed: this.state.bookings.filter(b => b.statusId === 'S2').length,
-            cancelled: this.state.bookings.filter(b => b.statusId === 'S3').length,
-            completed: this.state.bookings.filter(b => b.statusId === 'S4').length
+            completed: this.state.bookings.filter(b => b.statusId === 'S3').length,
+            cancelled: this.state.bookings.filter(b => b.statusId === 'S4').length
         };
 
         return (
@@ -300,14 +300,14 @@ class ManageBooking extends Component {
                                 {language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed'} ({stats.confirmed})
                             </button>
                             <button
-                                className={`filter-btn cancelled ${statusFilter === 'S3' ? 'active' : ''}`}
-                                onClick={() => this.handleStatusFilterChange('S3')}
+                                className={`filter-btn cancelled ${statusFilter === 'S4' ? 'active' : ''}`}
+                                onClick={() => this.handleStatusFilterChange('S4')}
                             >
                                 {language === LANGUAGES.VI ? 'Đã hủy' : 'Cancelled'} ({stats.cancelled})
                             </button>
                             <button
-                                className={`filter-btn completed ${statusFilter === 'S4' ? 'active' : ''}`}
-                                onClick={() => this.handleStatusFilterChange('S4')}
+                                className={`filter-btn completed ${statusFilter === 'S3' ? 'active' : ''}`}
+                                onClick={() => this.handleStatusFilterChange('S3')}
                             >
                                 {language === LANGUAGES.VI ? 'Hoàn thành' : 'Completed'} ({stats.completed})
                             </button>
@@ -356,25 +356,29 @@ class ManageBooking extends Component {
                                                     {booking.patientData.firstName} {booking.patientData.lastName}
                                                 </div>
                                                 <div className="patient-birthday">
-                                                    {language === LANGUAGES.VI ? 'Sinh:' : 'DOB:'} {moment(booking.patientData.birthday).format('DD/MM/YYYY')}
+                                                    {language === LANGUAGES.VI ? 'Sinh:' : 'DOB:'} {booking.patientData?.birthday ? moment(isNaN(booking.patientData.birthday) ? booking.patientData.birthday : +booking.patientData.birthday).format('DD/MM/YYYY') : '—'}
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
                                             <div className="contact-info">
-                                                <div><i className="fa-solid fa-envelope"></i> {booking.patientData.email}</div>
-                                                <div><i className="fa-solid fa-phone"></i> {booking.patientData.phonenumber}</div>
+                                                <div><i className="fa-solid fa-envelope"></i> {booking.patientData?.email}</div>
+                                                <div><i className="fa-solid fa-phone"></i> {booking.patientData?.phonenumber}</div>
                                             </div>
                                         </td>
                                         <td>
                                             <div className="doctor-info">
-                                                {booking.doctorName || `${booking.doctorData?.firstName} ${booking.doctorData?.lastName}`}
+                                                {booking.doctorData ? (
+                                                    language === LANGUAGES.VI
+                                                        ? `${booking.doctorData.lastName} ${booking.doctorData.firstName}`
+                                                        : `${booking.doctorData.firstName} ${booking.doctorData.lastName}`
+                                                ) : ''}
                                             </div>
                                         </td>
                                         <td>
                                             <div className="time-info">
-                                                <div><i className="fa-solid fa-calendar"></i> {moment(booking.date).format('DD/MM/YYYY')}</div>
-                                                <div><i className="fa-solid fa-clock"></i> {booking.timeTypeData?.valueVi}</div>
+                                                <div><i className="fa-solid fa-calendar"></i> {booking.date ? moment(isNaN(booking.date) ? booking.date : +booking.date).format('DD/MM/YYYY') : '—'}</div>
+                                                <div><i className="fa-solid fa-clock"></i> {language === LANGUAGES.VI ? booking.timeTypeDataPatient?.valueVi : booking.timeTypeDataPatient?.valueEn}</div>
                                             </div>
                                         </td>
                                         <td>

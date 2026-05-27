@@ -158,6 +158,14 @@ const savePatientHistory = (data) => {
     return axios.post('/api/save-patient-history', data);
 }
 
+const getNotifications = () => {
+    return axios.get('/api/get-notifications');
+}
+
+const getNotificationsDoctor = (doctorId) => {
+    return axios.get(`/api/get-notifications-doctor?doctorId=${doctorId}`);
+}
+
 export {
     handleLoginApi, getAllUsers, createNewUserService,
     deleteUserService, editUserService, getALLCodeService,
@@ -171,5 +179,6 @@ export {
     postCancelBooking, deleteScheduleDoctor, getAllScheduleDoctor,
     updateSpecialty, deleteSpecialty,
     getAllBookings, updateBookingStatus,
-    getPatientHistory, savePatientHistory
+    getPatientHistory, savePatientHistory,
+    getNotifications, getNotificationsDoctor
 }

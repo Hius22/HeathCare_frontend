@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { NavLink, withRouter } from 'react-router-dom';
 import * as actions from "../../../store/actions";
 import { LANGUAGES } from '../../../utils';
+import NotificationDropdown from '../NotificationDropdown';
 import './DoctorLayout.scss';
 
 class DoctorLayout extends Component {
@@ -121,7 +122,7 @@ class DoctorLayout extends Component {
                                 </span>
                             </div>
                             <div className="notification-icon">
-                                <i className="far fa-bell"></i>
+                                <NotificationDropdown role="doctor" />
                             </div>
                         </div>
                     </header>

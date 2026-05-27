@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { NavLink, withRouter } from 'react-router-dom';
 import * as actions from "../../../store/actions";
 import { LANGUAGES } from '../../../utils';
+import NotificationDropdown from '../NotificationDropdown';
 import './AdminLayout.scss';
 
 class AdminLayout extends Component {
@@ -139,7 +140,7 @@ class AdminLayout extends Component {
                                 </span>
                             </div>
                             <div className="notification-icon">
-                                <i className="far fa-bell"></i>
+                                <NotificationDropdown role="admin" />
                             </div>
                             <div className="topbar-user">
                                 <div
