@@ -83,9 +83,25 @@
       .btn-primary {
         display: none;
         text-decoration: none;
+        background-color: #006591;
+        color: #ffffff !important;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s ease-in-out;
+        align-items: center;
+        justify-content: center;
 
         @media (min-width: 768px) {
           display: inline-flex;
+        }
+
+        &:hover {
+          background-color: #004d70;
+          color: #ffffff !important;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          transform: translateY(-1px);
         }
       }
 

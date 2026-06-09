@@ -109,8 +109,8 @@ class BookingModal extends Component {
             // Xử lý giờ
             let time =
                 language === LANGUAGES.VI
-                    ? dataTime.timeTypeData.valueVi
-                    : dataTime.timeTypeData.valueEn;
+                    ? dataTime.timeTypeData?.valueVi || ''
+                    : dataTime.timeTypeData?.valueEn || '';
 
             return `${time} - ${date}`
         }
@@ -122,11 +122,11 @@ class BookingModal extends Component {
 
         if (dataTime && !_.isEmpty(dataTime)) {
             let name = language === LANGUAGES.VI ?
-                `${dataTime.doctorData.lastName} ${dataTime.doctorData.firstName}`
+                `${dataTime.doctorData?.lastName || ''} ${dataTime.doctorData?.firstName || ''}`
                 :
-                `${dataTime.doctorData.firstName} ${dataTime.doctorData.lastName}`
+                `${dataTime.doctorData?.firstName || ''} ${dataTime.doctorData?.lastName || ''}`
 
-            return name;
+            return name.trim();
         }
         return ''
     }
@@ -141,15 +141,57 @@ class BookingModal extends Component {
         if (!this.state.fullName || !this.state.phoneNumber || !this.state.email
             || !this.state.address || !this.state.reason || !date
             || !this.state.selectedGender) {
-            toast.error('Please fill in all required fields!');
+            toast.error('Vui lòng điền đầy đủ tất cả thông tin bắt buộc!');
             return;
         }
 
         // Validate email format
         let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(this.state.email)) {
-            toast.error('Invalid email format!');
+            toast.error('Định dạng email không hợp lệ!');
             return;
+        }
+
+        // Validate phone number format
+        let phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+        if (!phoneRegex.test(this.state.phoneNumber)) {
+            toast.error('Số điện thoại không hợp lệ! Vui lòng nhập số điện thoại Việt Nam (10 số, bắt đầu bằng 0 hoặc +84).');
+            return;
+        }
+
+        // Validate if the appointment date/time is in the past
+        if (this.props.dataTime) {
+            let selectedDate = moment(+this.props.dataTime.date).startOf('day');
+            let today = moment().startOf('day');
+            let isPast = false;
+
+            if (selectedDate.isBefore(today)) {
+                isPast = true;
+            } else if (selectedDate.isSame(today, 'day')) {
+                let timeStr = this.props.language === LANGUAGES.VI 
+                    ? this.props.dataTime.timeTypeData?.valueVi 
+                    : this.props.dataTime.timeTypeData?.valueEn;
+                if (timeStr) {
+                    let parts = timeStr.split('-');
+                    if (parts.length > 0) {
+                        let startPart = parts[0].trim();
+                        let timeParts = startPart.split(':');
+                        if (timeParts.length === 2) {
+                            let hour = parseInt(timeParts[0], 10);
+                            let minute = parseInt(timeParts[1], 10);
+                            let slotTime = moment().hour(hour).minute(minute).second(0).millisecond(0);
+                            if (moment().isAfter(slotTime)) {
+                                isPast = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (isPast) {
+                toast.error("Không thể đặt lịch khám cho khung giờ đã qua!");
+                return;
+            }
         }
 
         let res = await postPatientBookingAppointment({
@@ -169,14 +211,14 @@ class BookingModal extends Component {
         })
 
         if (res && res.errCode === 0) {
-            toast.success("Successfully booked an appointment!");
+            toast.success("Đặt lịch hẹn khám thành công! Vui lòng kiểm tra email để xác nhận lịch.");
             this.props.closeBookingClose();
         }
         else if (res && res.errCode === 2) {
-            toast.error("This appointment already exists!");
+            toast.error("Lịch hẹn này đã tồn tại!");
         }
         else {
-            toast.error("Failed to make an appointment!");
+            toast.error(res && res.errMessage ? res.errMessage : "Đặt lịch hẹn thất bại!");
         }
     }
 

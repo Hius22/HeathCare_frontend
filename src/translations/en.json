@@ -75,7 +75,7 @@
     "patient": {
         "detail-doctor": {
             "schedule": "Schedule",
-            "no-schedule": "There are no appointments available during this time, please choose another time!",
+            "no-schedule": "There is no schedule information available for this time, please select another time!",
             "choose": "Choose ",
             "book-free": " and book free"
         },
@@ -115,6 +115,7 @@
             "nameClinic": "Clinic name",
             "addressClinic": "Clinic address",
             "note": "Note",
+            "payment": "Payment method",
             "select-specialty": "Select a specialty",
             "select-clinic": "Select a clinic"
         }

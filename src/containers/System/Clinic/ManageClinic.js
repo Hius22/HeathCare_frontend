@@ -4,12 +4,13 @@ import { FormattedMessage } from 'react-intl';
 import './ManageClinic.scss';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
-import { CommonUtils } from '../../../utils';
+import CommonUtils from '../../../utils/CommonUtils';
 import 'react-image-lightbox/style.css';
 import Lightbox from 'react-image-lightbox';
-import { getClinicInfo, updateClinicInfo, createClinicInfo } from '../../../services/userService';
+import { getAllClinic, updateClinicInfo, createClinicInfo, deleteClinic, getALLCodeService } from '../../../services/userService';
 import { toast } from 'react-toastify';
 
+import { LANGUAGES } from '../../../utils';
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
 class ManageClinic extends Component {
@@ -26,32 +27,81 @@ class ManageClinic extends Component {
             previewImgURL: '',
             isOpen: false,
             isEditMode: false, // true = update, false = create new
+            listClinics: [],
+            listAddresses: []
         }
     }
 
     async componentDidMount() {
-        let res = await getClinicInfo();
-        if (res && res.errCode === 0 && res.data) {
-            // Clinic exists - load data for editing
-            let data = res.data;
-            this.setState({
-                id: data.id,
-                name: data.name || '',
-                address: data.address || '',
-                descriptionHTML: data.descriptionHTML || '',
-                descriptionMarkdown: data.descriptionMarkdown || '',
-                previewImgURL: data.image || '',
-                isEditMode: true, // Enable update mode
-            })
-            console.log('Loaded clinic data for update:', data);
-        } else {
-            // No clinic exists - enable create mode
-            this.setState({
-                isEditMode: false
-            });
-            toast.info("Chưa có phòng khám. Vui lòng tạo phòng khám mới.");
-            console.log('No clinic found - create mode enabled');
+        try {
+            await this.fetchClinics();
+            let resAddress = await getALLCodeService('CLINIC_ADDRESS');
+            if (resAddress && resAddress.errCode === 0) {
+                this.setState({
+                    listAddresses: resAddress.data || []
+                });
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải dữ liệu ban đầu:', error);
+            toast.error("Lỗi khi tải dữ liệu địa chỉ");
         }
+    }
+
+    fetchClinics = async () => {
+        try {
+            let res = await getAllClinic();
+            if (res && res.errCode === 0) {
+                this.setState({
+                    listClinics: res.data || []
+                });
+            } else {
+                toast.error(res && res.errMessage ? res.errMessage : "Không thể tải danh sách phòng khám");
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải danh sách phòng khám:', error);
+            toast.error("Lỗi kết nối đến server để tải phòng khám");
+        }
+    }
+
+    handleEditClinic = (item) => {
+        this.setState({
+            id: item.id,
+            name: item.name || '',
+            address: item.address || '',
+            descriptionHTML: item.descriptionHTML || '',
+            descriptionMarkdown: item.descriptionMarkdown || '',
+            previewImgURL: item.image || '',
+            imageBase64: '',
+            isEditMode: true
+        });
+    }
+
+    handleDeleteClinic = async (item) => {
+        if (window.confirm(`Bạn có chắc chắn muốn xóa phòng khám ${item.name}?`)) {
+            let res = await deleteClinic({ id: item.id });
+            if (res && res.errCode === 0) {
+                toast.success("Xóa phòng khám thành công!");
+                await this.fetchClinics();
+                if (this.state.id === item.id) {
+                    this.handleClearForm();
+                }
+            } else {
+                toast.error("Xóa phòng khám thất bại!");
+            }
+        }
+    }
+
+    handleClearForm = () => {
+        this.setState({
+            id: '',
+            name: '',
+            address: '',
+            imageBase64: '',
+            descriptionHTML: '',
+            descriptionMarkdown: '',
+            previewImgURL: '',
+            isEditMode: false
+        });
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
@@ -81,7 +131,7 @@ class ManageClinic extends Component {
         let data = event.target.files;
         let file = data[0];
         if (file) {
-            let base64 = await CommonUtils.getBase64(file);
+            let base64 = await CommonUtils.compressImage(file);
             let objectUrl = URL.createObjectURL(file);
 
             this.setState({
@@ -107,17 +157,21 @@ class ManageClinic extends Component {
             }
 
             let updateData = {
-                ...this.state
+                id: this.state.id,
+                name: this.state.name,
+                address: this.state.address,
+                imageBase64: this.state.imageBase64,
+                descriptionHTML: this.state.descriptionHTML,
+                descriptionMarkdown: this.state.descriptionMarkdown
             };
-
-            console.log('Updating clinic with data: ', updateData);
 
             let res = await updateClinicInfo(updateData)
             if (res && res.errCode === 0) {
                 toast.success("Cập nhật phòng khám thành công!");
+                await this.fetchClinics();
+                this.handleClearForm();
             } else {
                 toast.error(res.errMessage || "Cập nhật phòng khám thất bại!");
-                console.log("Update failed: ", res)
             }
         } else {
             // CREATE new clinic
@@ -134,16 +188,13 @@ class ManageClinic extends Component {
                 descriptionMarkdown: this.state.descriptionMarkdown
             };
 
-            console.log('Creating new clinic with data: ', createData);
-
             let res = await createClinicInfo(createData)
             if (res && res.errCode === 0) {
                 toast.success("Tạo phòng khám thành công!");
-                // Reload the page to switch to edit mode
-                window.location.reload();
+                await this.fetchClinics();
+                this.handleClearForm();
             } else {
                 toast.error(res.errMessage || "Tạo phòng khám thất bại!");
-                console.log("Create failed: ", res)
             }
         }
     }
@@ -170,12 +221,21 @@ class ManageClinic extends Component {
 
                         <div className='col-6 form-group'>
                             <label><i className="fas fa-map-marker-alt"></i> Địa chỉ phòng khám</label>
-                            <input className='form-control'
-                                type='text'
-                                placeholder='Nhập địa chỉ phòng khám...'
+                            <select className='form-control'
                                 value={this.state.address}
                                 onChange={(event) => this.handleOnChangeInput(event, 'address')}
-                            />
+                            >
+                                <option value="">Chọn địa chỉ phòng khám...</option>
+                                {this.state.listAddresses && this.state.listAddresses.length > 0 &&
+                                    this.state.listAddresses.map((item, index) => {
+                                        return (
+                                            <option key={index} value={item.valueVi}>
+                                                {this.props.language === LANGUAGES.VI ? item.valueVi : item.valueEn}
+                                            </option>
+                                        )
+                                    })
+                                }
+                            </select>
                         </div>
 
                         <div className='col-6 form-group'>
@@ -221,15 +281,72 @@ class ManageClinic extends Component {
                             </div>
                         </div>
 
-                        <div className='col-12'>
+                        <div className='col-12 btn-actions-container' style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
                             <button className='btn-save-clinic'
                                 onClick={() => this.handleSaveClinic()}
                             >
                                 <i className={`fas ${this.state.isEditMode ? 'fa-save' : 'fa-plus-circle'}`}></i>
                                 {this.state.isEditMode ? ' Cập Nhật Thông Tin' : ' Tạo Phòng Khám'}
                             </button>
+                            {this.state.isEditMode && (
+                                <button className='btn btn-secondary'
+                                    onClick={() => this.handleClearForm()}
+                                    style={{ padding: '10px 20px', borderRadius: '4px' }}
+                                >
+                                    Hủy / Làm mới
+                                </button>
+                            )}
                         </div>
                     </div>
+                </div>
+
+                <div className='clinic-list-table' style={{ marginTop: '45px', padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '15px', color: '#191c1e' }}>
+                        <i className="fas fa-list"></i> Danh Sách Cơ Sở Phòng Khám
+                    </h3>
+                    <table className="table table-hover table-bordered">
+                        <thead className="thead-light">
+                            <tr>
+                                <th>STT</th>
+                                <th>Tên phòng khám</th>
+                                <th>Địa chỉ</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {this.state.listClinics && this.state.listClinics.length > 0 ? (
+                                this.state.listClinics.map((item, index) => (
+                                    <tr key={index}>
+                                        <td>{index + 1}</td>
+                                        <td>{item.name}</td>
+                                        <td>{item.address}</td>
+                                        <td>
+                                            <div className="action-buttons">
+                                                <button
+                                                    className="btn-edit"
+                                                    onClick={() => this.handleEditClinic(item)}
+                                                    title={this.props.language === LANGUAGES.VI ? 'Sửa' : 'Edit'}
+                                                >
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button
+                                                    className="btn-delete"
+                                                    onClick={() => this.handleDeleteClinic(item)}
+                                                    title={this.props.language === LANGUAGES.VI ? 'Xóa' : 'Delete'}
+                                                >
+                                                    <i className="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="4" className="text-center">Không có cơ sở phòng khám nào.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
 
                 {this.state.isOpen === true &&

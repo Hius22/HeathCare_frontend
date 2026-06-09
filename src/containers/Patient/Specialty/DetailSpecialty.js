@@ -81,26 +81,37 @@ class DetailSpecialty extends Component {
             }
         }
     }
-
     render() {
         let { arrDoctorId, dataDetailSpecialty, listProvince } = this.state;
         let { language } = this.props;
 
         return (
-            <div className='detail-specialty-container'>
+            <div className='detail-specialty-container-custom'>
                 <HomeHeader isShowBanner={false} />
 
-                {/* ── Specialty description from DB ── */}
+                {/* ── Specialty hero banner ── */}
                 {dataDetailSpecialty && !_.isEmpty(dataDetailSpecialty) && (
-                    <div className='description-specialty'>
-                        <div className='description-inner'>
-                            <div dangerouslySetInnerHTML={{ __html: dataDetailSpecialty.descriptionHTML }} />
+                    <div className="specialty-hero-banner" style={{ backgroundImage: `url(${dataDetailSpecialty.image || ''})` }}>
+                        <div className="banner-overlay"></div>
+                        <div className="banner-content">
+                            <h1 className="specialty-name-heading">{dataDetailSpecialty.name}</h1>
                         </div>
                     </div>
                 )}
 
-                {/* ── Doctor list ── */}
+                {/* ── Specialty body ── */}
                 <div className='detail-specialty-body'>
+                    {dataDetailSpecialty && !_.isEmpty(dataDetailSpecialty) && (
+                        <div className='description-specialty-card'>
+                            <h2 className="section-title-specialty">
+                                <i className="fas fa-info-circle"></i> Giới thiệu chuyên khoa
+                            </h2>
+                            <div
+                                className="description-content"
+                                dangerouslySetInnerHTML={{ __html: dataDetailSpecialty.descriptionHTML }}
+                            />
+                        </div>
+                    )}
 
                     {/* Province filter */}
                     <div className='search-sp-doctor'>
@@ -108,7 +119,7 @@ class DetailSpecialty extends Component {
                             <i className='fas fa-map-marker-alt'></i>
                             {language === LANGUAGES.VI ? 'Lọc theo tỉnh thành:' : 'Filter by province:'}
                         </span>
-                        <select onChange={this.handleOnChangeSelect}>
+                        <select onChange={this.handleOnChangeSelect} className="filter-select">
                             {listProvince && listProvince.length > 0 &&
                                 listProvince.map((item, index) => (
                                     <option key={index} value={item.keyMap}>
@@ -119,10 +130,17 @@ class DetailSpecialty extends Component {
                         </select>
                     </div>
 
+                    {/* Doctor list heading */}
+                    <div className="doctors-list-section-header">
+                        <h2 className="doctors-section-title">
+                            <i className="fas fa-user-md"></i> Đội ngũ bác sĩ chuyên khoa
+                        </h2>
+                    </div>
+
                     {/* Doctor cards */}
                     {arrDoctorId && arrDoctorId.length > 0
                         ? arrDoctorId.map((item, index) => (
-                            <div className='each-doctor' key={index}>
+                            <div className='each-doctor-card' key={index}>
                                 <div className='dt-content-left'>
                                     <div className='profile-doctor'>
                                         <ProfileDoctor
@@ -144,8 +162,8 @@ class DetailSpecialty extends Component {
                             </div>
                         ))
                         : (
-                            <div className='empty-doctors'>
-                                <i className='fas fa-user-md'></i>
+                            <div className='no-doctors-alert'>
+                                <i className='fas fa-user-md-slash'></i>
                                 <p>
                                     {language === LANGUAGES.VI
                                         ? 'Chưa có bác sĩ trong khu vực này.'
@@ -166,6 +184,6 @@ const mapStateToProps = state => ({
     language: state.app.language
 });
 
-const mapDispatchToProps = dispatch => ({ });
+const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(DetailSpecialty);

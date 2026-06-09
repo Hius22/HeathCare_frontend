@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { getClinicInfo } from "../../../services/userService";
+import { getAllClinic } from "../../../services/userService";
 import { withRouter } from 'react-router';
 import './MedicalFacility.scss';
 
@@ -8,22 +8,22 @@ class MedicalFacility extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            clinicInfo: null,
+            listClinics: [],
         }
     }
 
     async componentDidMount() {
-        let res = await getClinicInfo();
+        let res = await getAllClinic();
         if (res && res.errCode === 0) {
             this.setState({
-                clinicInfo: res.data ? res.data : null
+                listClinics: res.data ? res.data : []
             })
         }
     }
 
-    handleViewDetail = () => {
-        if (this.props.history && this.state.clinicInfo) {
-            this.props.history.push(`/detail-clinic/${this.state.clinicInfo.id}`);
+    handleViewDetail = (id) => {
+        if (this.props.history && id) {
+            this.props.history.push(`/detail-clinic/${id}`);
         }
     }
 
@@ -32,7 +32,7 @@ class MedicalFacility extends Component {
     }
 
     render() {
-        let { clinicInfo } = this.state;
+        let { listClinics } = this.state;
         return (
             <section className="facility-section section-padding">
                 <div className="section-container-main">
@@ -47,61 +47,62 @@ class MedicalFacility extends Component {
                         </p>
                     </div>
 
-                    {clinicInfo && (
-                        <div className="facility-featured" onClick={() => this.handleViewDetail()}>
-                            <div className="facility-image-wrapper">
-                                {clinicInfo.image ? (
-                                    <img
-                                        alt={clinicInfo.name}
-                                        className="facility-image"
-                                        src={clinicInfo.image}
-                                    />
-                                ) : (
-                                    <div className="facility-image-placeholder">
-                                        <i className="fa-solid fa-hospital"></i>
+                    <div className="facility-grid">
+                        {listClinics && listClinics.length > 0 &&
+                            listClinics.map((item, index) => {
+                                return (
+                                    <div className="facility-card-item" key={index} onClick={() => this.handleViewDetail(item.id)}>
+                                        <div className="facility-image-wrapper">
+                                            {item.image ? (
+                                                <img
+                                                    alt={item.name}
+                                                    className="facility-image"
+                                                    src={item.image}
+                                                />
+                                            ) : (
+                                                <div className="facility-image-placeholder">
+                                                    <i className="fa-solid fa-hospital"></i>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="facility-content">
+                                            <div className="facility-header">
+                                                <h3 className="facility-name">{item.name}</h3>
+                                                <div className="facility-location">
+                                                    <i className="fa-solid fa-location-dot"></i>
+                                                    <span>{item.address}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="facility-actions">
+                                                <button
+                                                    className="btn-primary-action"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        this.handleBookAppointment();
+                                                    }}
+                                                >
+                                                    <i className="fa-solid fa-calendar-check"></i>
+                                                    {this.props.language === 'vi' ? 'Đặt lịch' : 'Book'}
+                                                </button>
+                                                <button
+                                                    className="btn-secondary-action"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        this.handleViewDetail(item.id);
+                                                    }}
+                                                >
+                                                    <i className="fa-solid fa-circle-info"></i>
+                                                    {this.props.language === 'vi' ? 'Chi tiết' : 'Details'}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-
-                            <div className="facility-content">
-                                <div className="facility-header">
-                                    <h3 className="facility-name">{clinicInfo.name}</h3>
-                                    <div className="facility-location">
-                                        <i className="fa-solid fa-location-dot"></i>
-                                        <span>{clinicInfo.address}</span>
-                                    </div>
-                                </div>
-
-                                <div
-                                    className="facility-description"
-                                    dangerouslySetInnerHTML={{ __html: clinicInfo.descriptionHTML }}
-                                />
-
-                                <div className="facility-actions">
-                                    <button
-                                        className="btn-primary-action"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            this.handleBookAppointment();
-                                        }}
-                                    >
-                                        <i className="fa-solid fa-calendar-check"></i>
-                                        {this.props.language === 'vi' ? 'Đặt lịch khám ngay' : 'Book appointment'}
-                                    </button>
-                                    <button
-                                        className="btn-secondary-action"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            this.handleViewDetail();
-                                        }}
-                                    >
-                                        <i className="fa-solid fa-circle-info"></i>
-                                        {this.props.language === 'vi' ? 'Xem chi tiết' : 'View details'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                                );
+                            })
+                        }
+                    </div>
                 </div>
             </section>
         );

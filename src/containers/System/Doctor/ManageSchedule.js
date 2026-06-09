@@ -80,19 +80,21 @@ class ManageSchedule extends Component {
 
     handleChangeSelect = async (selectedDoctor) => {
         await this.setState({ selectedDoctors: selectedDoctor });
+        this.resetRangeTimeSelection();
         this.fetchDoctorSchedule();
-
     };
 
     handleOnchangeDatePicker = (date) => {
         this.setState({
             currentDate: date[0]
         });
+        this.resetRangeTimeSelection();
         this.fetchDoctorSchedule();
     }
 
     handleClickBtnTime = (time) => {
         let { rangeTime } = this.state;
+        if (this.isTimeSlotInPast(time)) return; // Skip if slot has passed
         //console.log('check rangetime before: ', rangeTime)
         if (rangeTime && rangeTime.length > 0) {
             rangeTime = rangeTime.map(item => {
@@ -106,16 +108,61 @@ class ManageSchedule extends Component {
         }
     }
 
+    isTimeSlotInPast = (item) => {
+        if (!this.state.currentDate) return false;
+
+        let selectedDate = moment(this.state.currentDate).startOf('day');
+        let today = moment().startOf('day');
+
+        // If selected date is before today, all slots are in the past
+        if (selectedDate.isBefore(today)) {
+            return true;
+        }
+
+        // If selected date is after today, no slots are in the past
+        if (selectedDate.isAfter(today)) {
+            return false;
+        }
+
+        // If selected date is today, parse start time of the slot and compare with now
+        let timeStr = item.valueVi;
+        if (!timeStr) return false;
+
+        let parts = timeStr.split('-');
+        if (parts.length > 0) {
+            let startPart = parts[0].trim();
+            let timeParts = startPart.split(':');
+            if (timeParts.length === 2) {
+                let hour = parseInt(timeParts[0], 10);
+                let minute = parseInt(timeParts[1], 10);
+
+                let slotTime = moment().hour(hour).minute(minute).second(0).millisecond(0);
+                return moment().isAfter(slotTime);
+            }
+        }
+        return false;
+    }
+
+    resetRangeTimeSelection = () => {
+        let { rangeTime } = this.state;
+        if (rangeTime && rangeTime.length > 0) {
+            let clearedRangeTime = rangeTime.map(item => ({ ...item, isSelected: false }));
+            this.setState({
+                rangeTime: clearedRangeTime
+            });
+        }
+    }
+
     handleSaveSchedule = async () => {
         let { rangeTime, selectedDoctors, currentDate } = this.state;
         let result = [];
 
         if (!currentDate) {
-            toast.error("Invalid date! ");
+            toast.error("Ngày chọn không hợp lệ!");
             return;
         }
         if (selectedDoctors && _.isEmpty(selectedDoctors)) {
-            toast.error("Invalid selected doctor! ");
+            toast.error("Vui lòng chọn bác sĩ!");
             return;
         }
 
@@ -124,7 +171,10 @@ class ManageSchedule extends Component {
         let formattedDate = new Date(currentDate).getTime();
 
         if (rangeTime && rangeTime.length > 0) {
-            let selectedTime = rangeTime.filter(item => item.isSelected === true)
+            let selectedTime = rangeTime.filter(item => item.isSelected === true);
+            // Filter out any selected slots that are in the past
+            selectedTime = selectedTime.filter(item => !this.isTimeSlotInPast(item));
+
             if (selectedTime && selectedTime.length > 0) {
                 selectedTime.map((schedule, index) => {
                     // console.log('schedule: ', schedule, index, selectedDoctors)
@@ -136,7 +186,7 @@ class ManageSchedule extends Component {
                 })
 
             } else {
-                toast.error("Invalid selected time! ");
+                toast.error("Vui lòng chọn khung giờ khám!");
                 return;
             }
         }
@@ -146,10 +196,11 @@ class ManageSchedule extends Component {
             formattedDate: formattedDate
         })
         if (res && res.errCode === 0) {
-            toast.success("Information saved as!");
+            toast.success("Lưu thông tin lịch khám thành công!");
+            this.resetRangeTimeSelection();
             await this.fetchDoctorSchedule();
         } else {
-            toast.error("error saveBulkScheduleDoctor");
+            toast.error("Lưu thông tin lịch khám thất bại!");
             //console.log('error saveBulkScheduleDoctor >>> res: ', res)
         }
     }
@@ -247,6 +298,7 @@ class ManageSchedule extends Component {
                                             <button className={item.isSelected === true ? 'btn btn-schedule active' : 'btn btn-schedule'}
                                                 key={index}
                                                 onClick={() => this.handleClickBtnTime(item)}
+                                                disabled={this.isTimeSlotInPast(item)}
                                             >
                                                 {language === LANGUAGES.VI ? item.valueVi : item.valueEn}
                                             </button>
@@ -301,8 +353,8 @@ class ManageSchedule extends Component {
                                             </td>
                                             <td className="time-cell">
                                                 {language === LANGUAGES.VI
-                                                    ? item.timeTypeData.valueVi
-                                                    : item.timeTypeData.valueEn}
+                                                    ? item.timeTypeData?.valueVi || ''
+                                                    : item.timeTypeData?.valueEn || ''}
                                             </td>
                                             <td>
                                                 <div className="action-buttons">

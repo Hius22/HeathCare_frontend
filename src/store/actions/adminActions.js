@@ -100,14 +100,16 @@ export const createNewUser = (data) => {
             let res = await createNewUserService(data);
             //console.log('check create: ', res);
             if (res && res.errCode === 0) {
-                toast.success("Created a new user successfully!");
+                toast.success("Tạo người dùng mới thành công!");
                 dispatch(saveUserSuccess());
                 dispatch(fetchAllUsersStart());
             }
             else {
+                toast.error(res.errMessage || "Tạo người dùng mới thất bại!");
                 dispatch(saveUserFailed());
             }
         } catch (e) {
+            toast.error("Tạo người dùng mới thất bại!");
             dispatch(saveUserFailed());
             console.log('saveUserFailed error: ', e);
         }
@@ -130,11 +132,11 @@ export const fetchAllUsersStart = () => {
                 dispatch(fetchAllUsersSuccess(res.users.reverse()));
             }
             else {
-                toast.error("Could not get all user!");
+                toast.error("Không thể lấy danh sách người dùng!");
                 dispatch(fetchAllUsersFailed());
             }
         } catch (e) {
-            toast.error("Could not get all user!");
+            toast.error("Không thể lấy danh sách người dùng!");
             dispatch(fetchAllUsersFailed());
             console.log('fetchAllUsersFailed error: ', e);
         }
@@ -156,16 +158,16 @@ export const deleteAUser = (userId) => {
         try {
             let res = await deleteUserService(userId);
             if (res && res.errCode === 0) {
-                toast.success("Deleted a user successfully!");
+                toast.success("Xóa người dùng thành công!");
                 dispatch(deleteUserSuccess());
                 dispatch(fetchAllUsersStart());
             }
             else {
-                toast.error("Delete an unsuccessful user!");
+                toast.error("Xóa người dùng thất bại!");
                 dispatch(deleteUserFailed());
             }
         } catch (e) {
-            toast.error("Delete an unsuccessful user!");
+            toast.error("Xóa người dùng thất bại!");
             dispatch(deleteUserFailed());
             console.log('deleteUserFailed error: ', e);
         }
@@ -184,16 +186,16 @@ export const editAUser = (data) => {
         try {
             let res = await editUserService(data);
             if (res && res.errCode === 0) {
-                toast.success("Updated a user successfully!");
+                toast.success("Cập nhật thông tin người dùng thành công!");
                 dispatch(editUserSuccess());
                 dispatch(fetchAllUsersStart());
             }
             else {
-                toast.error("Updated an unsuccessful user!");
+                toast.error("Cập nhật thông tin người dùng thất bại!");
                 dispatch(editUserFailed());
             }
         } catch (e) {
-            toast.error("Updated an unsuccessful user!");
+            toast.error("Cập nhật thông tin người dùng thất bại!");
             dispatch(editUserFailed());
             console.log('editUserFailed error: ', e);
         }
@@ -258,18 +260,18 @@ export const saveDetailDoctor = (data) => {
         try {
             let res = await saveDetailDoctorService(data)
             if (res && res.errCode === 0) {
-                toast.success("Saved detail doctor successfully!");
+                toast.success("Lưu thông tin chi tiết bác sĩ thành công!");
                 dispatch({
                     type: actionTypes.SAVE_DETAIL_DOCTOR_SUCCESS
                 })
             } else {
-                toast.error("Saving doctor details failed!");
+                toast.error("Lưu thông tin chi tiết bác sĩ thất bại!");
                 dispatch({
                     type: actionTypes.SAVE_DETAIL_DOCTOR_FAILED
                 })
             }
         } catch (e) {
-            toast.error("Saving doctor details failed!");
+            toast.error("Lưu thông tin chi tiết bác sĩ thất bại!");
             console.log('SAVE_DETAIL_DOCTOR_FAILED: ', e)
             dispatch({
                 type: actionTypes.SAVE_DETAIL_DOCTOR_FAILED

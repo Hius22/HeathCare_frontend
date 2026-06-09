@@ -49,7 +49,7 @@ class BookingFlow extends Component {
     applyQueryParams = async () => {
         if (!this.props.location || !this.props.location.search) return;
         const params = new URLSearchParams(this.props.location.search);
-        const specialtyId = params.get('specialtyId');
+        let specialtyId = params.get('specialtyId');
         const doctorId    = params.get('doctorId');
         const date        = params.get('date');
 
@@ -57,6 +57,20 @@ class BookingFlow extends Component {
 
         const { doctors } = this.state;
         let updates = {};
+
+        if (doctorId) {
+            const found = doctors.find(d => String(d.id) === String(doctorId));
+            if (found) {
+                updates.selectedDoctor = found;
+                if (!specialtyId) {
+                    if (found.doctorSpecialties && found.doctorSpecialties.length > 0) {
+                        specialtyId = String(found.doctorSpecialties[0].specialtyId);
+                    } else if (found.Doctor_Infor && found.Doctor_Infor.specialtyId) {
+                        specialtyId = String(found.Doctor_Infor.specialtyId);
+                    }
+                }
+            }
+        }
 
         if (specialtyId) {
             updates.selectedSpecialty = specialtyId;
@@ -75,15 +89,16 @@ class BookingFlow extends Component {
             }
         }
 
-        if (doctorId) {
-            const found = doctors.find(d => String(d.id) === String(doctorId));
-            if (found) updates.selectedDoctor = found;
-        }
-
         if (date) updates.selectedDate = date;
 
         if (Object.keys(updates).length > 0) {
-            this.setState(updates);
+            this.setState(updates, () => {
+                const { selectedDoctor, selectedDate } = this.state;
+                if (selectedDoctor && selectedDate) {
+                    this.loadAvailableTimeSlots(selectedDoctor.id, selectedDate);
+                    this.setState({ currentStep: 2 });
+                }
+            });
         }
     }
 
@@ -149,44 +164,45 @@ class BookingFlow extends Component {
 
     validateStep = () => {
         const { currentStep, selectedSpecialty, selectedDoctor, selectedDate, selectedTime, patientInfo } = this.state;
+        const isVi = this.props.language === LANGUAGES.VI;
 
         if (currentStep === 1) {
             if (!selectedSpecialty) {
-                toast.error('Vui lòng chọn chuyên khoa');
+                toast.error(isVi ? 'Vui lòng chọn chuyên khoa' : 'Please select a specialty');
                 return false;
             }
             if (!selectedDoctor) {
-                toast.error('Vui lòng chọn bác sĩ');
+                toast.error(isVi ? 'Vui lòng chọn bác sĩ' : 'Please select a doctor');
                 return false;
             }
         }
 
         if (currentStep === 2) {
             if (!selectedDate) {
-                toast.error('Vui lòng chọn ngày khám');
+                toast.error(isVi ? 'Vui lòng chọn ngày khám' : 'Please select an appointment date');
                 return false;
             }
             if (!selectedTime) {
-                toast.error('Vui lòng chọn giờ khám');
+                toast.error(isVi ? 'Vui lòng chọn giờ khám' : 'Please select an appointment time');
                 return false;
             }
         }
 
         if (currentStep === 3) {
             if (!patientInfo.fullName.trim()) {
-                toast.error('Vui lòng nhập họ tên');
+                toast.error(isVi ? 'Vui lòng nhập họ tên' : 'Please enter full name');
                 return false;
             }
             if (!patientInfo.phoneNumber.trim()) {
-                toast.error('Vui lòng nhập số điện thoại');
+                toast.error(isVi ? 'Vui lòng nhập số điện thoại' : 'Please enter phone number');
                 return false;
             }
             if (!patientInfo.address.trim()) {
-                toast.error('Vui lòng nhập địa chỉ');
+                toast.error(isVi ? 'Vui lòng nhập địa chỉ' : 'Please enter address');
                 return false;
             }
             if (!patientInfo.gender) {
-                toast.error('Vui lòng chọn giới tính');
+                toast.error(isVi ? 'Vui lòng chọn giới tính' : 'Please select gender');
                 return false;
             }
         }
@@ -263,8 +279,12 @@ class BookingFlow extends Component {
                     const currentHour = moment().hour();
                     const currentMinute = moment().minute();
 
-                    const timeStr = item.timeTypeData.valueVi;
-                    const [startHour, startMinute] = timeStr.split(':').map(Number);
+                    const timeStr = item.timeTypeData?.valueVi;
+                    if (!timeStr) return false;
+                    
+                    // Extract start time part (e.g., "08:00" from "08:00 - 09:00")
+                    const startStr = timeStr.split(' - ')[0];
+                    const [startHour, startMinute] = startStr.split(':').map(Number);
 
                     // Keep only future time slots
                     return (startHour > currentHour) || (startHour === currentHour && startMinute > currentMinute);
@@ -324,10 +344,25 @@ class BookingFlow extends Component {
 
     handleConfirmBooking = async () => {
         const { selectedDoctor, selectedDate, selectedTimeSlot, appointmentType, patientInfo } = this.state;
+        const isVi = this.props.language === LANGUAGES.VI;
 
         // Validate required fields
         if (!patientInfo.fullName || !patientInfo.phoneNumber || !patientInfo.email) {
-            toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
+            toast.error(isVi ? 'Vui lòng điền đầy đủ thông tin bắt buộc' : 'Please fill in all required fields');
+            return;
+        }
+
+        // Validate email format
+        let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(patientInfo.email)) {
+            toast.error(isVi ? 'Định dạng email không hợp lệ!' : 'Invalid email format!');
+            return;
+        }
+
+        // Validate phone number format
+        let phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+        if (!phoneRegex.test(patientInfo.phoneNumber)) {
+            toast.error(isVi ? 'Số điện thoại không hợp lệ! Vui lòng nhập số điện thoại Việt Nam (10 số, bắt đầu bằng 0 hoặc +84).' : 'Invalid phone number! Please enter a valid Vietnamese phone number.');
             return;
         }
 
@@ -339,7 +374,7 @@ class BookingFlow extends Component {
             let birthdayTimestamp = patientInfo.birthday ? new Date(patientInfo.birthday).getTime() : '';
 
             let timeDisplay = this.props.language === LANGUAGES.VI ?
-                selectedTimeSlot.timeTypeData.valueVi : selectedTimeSlot.timeTypeData.valueEn;
+                selectedTimeSlot.timeTypeData?.valueVi || '' : selectedTimeSlot.timeTypeData?.valueEn || '';
             
             let dateDisplay = this.props.language === LANGUAGES.VI ?
                 moment(+dateTimestamp).locale('vi').format('dddd - DD/MM/YYYY') :
@@ -347,8 +382,9 @@ class BookingFlow extends Component {
 
             let timeString = `${timeDisplay} - ${dateDisplay}`;
 
-            let doctorName = this.props.language === LANGUAGES.VI ?
-                `${selectedDoctor.lastName} ${selectedDoctor.firstName}` : `${selectedDoctor.firstName} ${selectedDoctor.lastName}`;
+            let doctorName = selectedDoctor ? (this.props.language === LANGUAGES.VI ?
+                `${selectedDoctor.lastName || ''} ${selectedDoctor.firstName || ''}` : `${selectedDoctor.firstName || ''} ${selectedDoctor.lastName || ''}`) : '';
+            doctorName = doctorName.trim();
 
             let res = await postPatientBookingAppointment({
                 fullName: patientInfo.fullName,
@@ -367,26 +403,27 @@ class BookingFlow extends Component {
             });
 
             if (res && res.errCode === 0) {
-                toast.success('Đặt lịch khám thành công!');
+                toast.success(isVi ? 'Đặt lịch khám thành công!' : 'Appointment booked successfully!');
                 setTimeout(() => {
                     this.props.history.push('/home');
                 }, 1500);
             } else {
-                toast.error(res.errMessage || 'Đặt lịch thất bại');
+                toast.error(res.errMessage || (isVi ? 'Đặt lịch thất bại' : 'Booking failed'));
             }
         } catch (error) {
             console.error('Error booking appointment:', error);
-            toast.error('Đặt lịch thất bại');
+            toast.error(isVi ? 'Đặt lịch thất bại' : 'Booking failed');
         }
     }
 
     renderStepIndicator = () => {
         const { currentStep } = this.state;
+        const isVi = this.props.language === LANGUAGES.VI;
         const steps = [
-            { number: 1, label: 'Chuyên khoa' },
-            { number: 2, label: 'Ngày giờ' },
-            { number: 3, label: 'Thông tin' },
-            { number: 4, label: 'Xác nhận' }
+            { number: 1, label: isVi ? 'Chuyên khoa' : 'Specialty' },
+            { number: 2, label: isVi ? 'Ngày giờ' : 'Date & Time' },
+            { number: 3, label: isVi ? 'Thông tin' : 'Information' },
+            { number: 4, label: isVi ? 'Xác nhận' : 'Confirmation' }
         ];
 
         return (
@@ -396,7 +433,7 @@ class BookingFlow extends Component {
                         <Fragment key={step.number}>
                             <div className='step-item'>
                                 <div className={`step-dot ${currentStep >= step.number ? 'active' : ''}`}>
-                                    {step.number}
+                                     {step.number}
                                 </div>
                                 <span className='step-label'>{step.label}</span>
                             </div>
@@ -412,21 +449,22 @@ class BookingFlow extends Component {
 
     renderStep1 = () => {
         const { specialties, filteredDoctors, selectedSpecialty, selectedDoctor } = this.state;
+        const isVi = this.props.language === LANGUAGES.VI;
 
         return (
             <div className='booking-step'>
-                <h2 className='step-title'>Chọn chuyên khoa và bác sĩ</h2>
+                <h2 className='step-title'>{isVi ? 'Chọn chuyên khoa và bác sĩ' : 'Select Specialty and Doctor'}</h2>
                 <div className='step-content'>
                     <div className='form-field'>
                         <label className='form-label'>
-                            Chuyên khoa <span className='required'>*</span>
+                            {isVi ? 'Chuyên khoa' : 'Specialty'} <span className='required'>*</span>
                         </label>
                         <select
                             className='form-select'
                             value={selectedSpecialty}
                             onChange={(e) => this.handleSpecialtyChange(e.target.value)}
                         >
-                            <option value="">Chọn chuyên khoa</option>
+                            <option value="">{isVi ? 'Chọn chuyên khoa' : 'Select specialty'}</option>
                             {specialties.map(specialty => (
                                 <option key={specialty.id} value={specialty.id}>
                                     {specialty.name}
@@ -436,11 +474,11 @@ class BookingFlow extends Component {
                     </div>
 
                     <div className='form-field'>
-                        <label className='form-label'>Chọn bác sĩ</label>
+                        <label className='form-label'>{isVi ? 'Chọn bác sĩ' : 'Select Doctor'}</label>
                         {filteredDoctors.length === 0 ? (
                             <div className='no-doctors-message'>
                                 <i className='fa-regular fa-folder-open'></i>
-                                <p>Không có bác sĩ nào cho chuyên khoa này</p>
+                                <p>{isVi ? 'Không có bác sĩ nào cho chuyên khoa này' : 'No doctors available for this specialty'}</p>
                             </div>
                         ) : (
                             <div className='doctor-grid'>
@@ -453,7 +491,7 @@ class BookingFlow extends Component {
                                             type='radio'
                                             name='doctor'
                                             value={doctor.id}
-                                            checked={selectedDoctor && selectedDoctor.id === doctor.id}
+                                            checked={selectedDoctor ? selectedDoctor.id === doctor.id : false}
                                             onChange={() => this.handleDoctorSelect(doctor)}
                                             className='sr-only'
                                         />
@@ -468,7 +506,9 @@ class BookingFlow extends Component {
                                                 )}
                                             </div>
                                             <div className='doctor-info'>
-                                                <p className='doctor-name'>{doctor.lastName} {doctor.firstName}</p>
+                                                <p className='doctor-name'>
+                                                    {isVi ? `${doctor.lastName} ${doctor.firstName}` : `${doctor.firstName} ${doctor.lastName}`}
+                                                </p>
                                                 <p className='doctor-specialty'>{this.getSpecialtyName(doctor)}</p>
                                                 <p className='doctor-price'>{this.getDoctorPrice(doctor)}</p>
                                             </div>
@@ -481,7 +521,7 @@ class BookingFlow extends Component {
                 </div>
                 <div className='step-actions'>
                     <button className='btn-primary' onClick={this.nextStep}>
-                        Tiếp theo
+                        {isVi ? 'Tiếp theo' : 'Next'}
                         <i className='fa-solid fa-arrow-right'></i>
                     </button>
                 </div>
@@ -491,14 +531,15 @@ class BookingFlow extends Component {
 
     renderStep2 = () => {
         const { selectedDate, selectedTime, appointmentType, availableTimeSlots, selectedDoctor } = this.state;
+        const isVi = this.props.language === LANGUAGES.VI;
 
         return (
             <div className='booking-step'>
-                <h2 className='step-title'>Chọn ngày, giờ và hình thức khám</h2>
+                <h2 className='step-title'>{isVi ? 'Chọn ngày, giờ và hình thức khám' : 'Select Date, Time, and Appointment Type'}</h2>
                 <div className='step-content'>
                     <div className='form-field'>
                         <label className='form-label'>
-                            Ngày khám <span className='required'>*</span>
+                            {isVi ? 'Ngày khám' : 'Appointment date'} <span className='required'>*</span>
                         </label>
                         <input
                             type='date'
@@ -510,21 +551,21 @@ class BookingFlow extends Component {
                     </div>
 
                     <div className='form-field'>
-                        <label className='form-label'>Khung giờ</label>
+                        <label className='form-label'>{isVi ? 'Khung giờ' : 'Time slot'}</label>
                         {!selectedDoctor ? (
                             <div className='no-time-message'>
                                 <i className='fa-solid fa-user-doctor'></i>
-                                <p>Vui lòng chọn bác sĩ ở bước 1 để xem khung giờ</p>
+                                <p>{isVi ? 'Vui lòng chọn bác sĩ ở bước 1 để xem khung giờ' : 'Please select a doctor in step 1 to view time slots'}</p>
                             </div>
                         ) : availableTimeSlots.length === 0 ? (
                             <div className='no-time-message'>
                                 <i className='fa-regular fa-calendar-xmark'></i>
-                                <p>Không có lịch khám trong ngày này. Vui lòng chọn ngày khác</p>
+                                <p>{isVi ? 'Không có thông tin về lịch khám trong ngày này. Vui lòng chọn ngày khác!' : 'No schedule information available for this day. Please select another date!'}</p>
                             </div>
                         ) : (
                             <div className='time-grid'>
                                 {availableTimeSlots.map((timeSlot, index) => {
-                                    let timeDisplay = timeSlot.timeTypeData.valueVi;
+                                    let timeDisplay = isVi ? (timeSlot.timeTypeData?.valueVi || '') : (timeSlot.timeTypeData?.valueEn || '');
                                     return (
                                         <button
                                             key={index}
@@ -541,7 +582,7 @@ class BookingFlow extends Component {
                     </div>
 
                     <div className='form-field'>
-                        <label className='form-label'>Hình thức khám</label>
+                        <label className='form-label'>{isVi ? 'Hình thức khám' : 'Appointment type'}</label>
                         <div className='type-grid'>
                             <label className={`type-card ${appointmentType === 'offline' ? 'selected' : ''}`}>
                                 <input
@@ -554,8 +595,8 @@ class BookingFlow extends Component {
                                 />
                                 <div className='type-card-content'>
                                     <i className='fa-solid fa-location-dot type-icon'></i>
-                                    <span className='type-title'>Khám trực tiếp</span>
-                                    <p className='type-desc'>Đến cơ sở y tế để gặp bác sĩ</p>
+                                    <span className='type-title'>{isVi ? 'Khám trực tiếp' : 'In-person checkup'}</span>
+                                    <p className='type-desc'>{isVi ? 'Đến cơ sở y tế để gặp bác sĩ' : 'Go to the medical facility to meet the doctor'}</p>
                                 </div>
                             </label>
                             <label className={`type-card ${appointmentType === 'online' ? 'selected' : ''}`}>
@@ -569,8 +610,8 @@ class BookingFlow extends Component {
                                 />
                                 <div className='type-card-content'>
                                     <i className='fa-solid fa-video type-icon'></i>
-                                    <span className='type-title'>Tư vấn trực tuyến</span>
-                                    <p className='type-desc'>Gặp bác sĩ qua video call</p>
+                                    <span className='type-title'>{isVi ? 'Tư vấn trực tuyến' : 'Online consultation'}</span>
+                                    <p className='type-desc'>{isVi ? 'Gặp bác sĩ qua video call' : 'Meet the doctor via video call'}</p>
                                 </div>
                             </label>
                         </div>
@@ -579,10 +620,10 @@ class BookingFlow extends Component {
                 <div className='step-actions'>
                     <button className='btn-secondary' onClick={this.prevStep}>
                         <i className='fa-solid fa-arrow-left'></i>
-                        Quay lại
+                        {isVi ? 'Quay lại' : 'Back'}
                     </button>
                     <button className='btn-primary' onClick={this.nextStep}>
-                        Tiếp theo
+                        {isVi ? 'Tiếp theo' : 'Next'}
                         <i className='fa-solid fa-arrow-right'></i>
                     </button>
                 </div>
@@ -592,20 +633,21 @@ class BookingFlow extends Component {
 
     renderStep3 = () => {
         const { patientInfo } = this.state;
+        const isVi = this.props.language === LANGUAGES.VI;
 
         return (
             <div className='booking-step'>
-                <h2 className='step-title'>Thông tin bệnh nhân</h2>
+                <h2 className='step-title'>{isVi ? 'Thông tin bệnh nhân' : 'Patient Information'}</h2>
                 <div className='step-content'>
                     <div className='form-row'>
                         <div className='form-field'>
                             <label className='form-label'>
-                                Họ và tên <span className='required'>*</span>
+                                {isVi ? 'Họ và tên' : 'Full name'} <span className='required'>*</span>
                             </label>
                             <input
                                 type='text'
                                 className='form-input'
-                                placeholder='Nguyễn Văn A'
+                                placeholder={isVi ? 'Nguyễn Văn A' : 'John Doe'}
                                 value={patientInfo.fullName}
                                 onChange={(e) => this.setState({
                                     patientInfo: { ...patientInfo, fullName: e.target.value }
@@ -614,7 +656,7 @@ class BookingFlow extends Component {
                         </div>
                         <div className='form-field'>
                             <label className='form-label'>
-                                Số điện thoại <span className='required'>*</span>
+                                {isVi ? 'Số điện thoại' : 'Phone number'} <span className='required'>*</span>
                             </label>
                             <input
                                 type='tel'
@@ -642,7 +684,7 @@ class BookingFlow extends Component {
                             />
                         </div>
                         <div className='form-field'>
-                            <label className='form-label'>Ngày sinh</label>
+                            <label className='form-label'>{isVi ? 'Ngày sinh' : 'Date of birth'}</label>
                             <input
                                 type='date'
                                 className='form-input'
@@ -657,12 +699,12 @@ class BookingFlow extends Component {
                     <div className='form-row'>
                         <div className='form-field'>
                             <label className='form-label'>
-                                Địa chỉ <span className='required'>*</span>
+                                {isVi ? 'Địa chỉ' : 'Address'} <span className='required'>*</span>
                             </label>
                             <input
                                 type='text'
                                 className='form-input'
-                                placeholder='Nhập địa chỉ liên hệ'
+                                placeholder={isVi ? 'Nhập địa chỉ liên hệ' : 'Enter contact address'}
                                 value={patientInfo.address}
                                 onChange={(e) => this.setState({
                                     patientInfo: { ...patientInfo, address: e.target.value }
@@ -672,7 +714,7 @@ class BookingFlow extends Component {
                     </div>
 
                     <div className='form-field'>
-                        <label className='form-label'>Giới tính</label>
+                        <label className='form-label'>{isVi ? 'Giới tính' : 'Gender'}</label>
                         <div className='gender-options'>
                             {this.props.genders && this.props.genders.length > 0 &&
                                 this.props.genders.map((item, index) => {
@@ -696,14 +738,14 @@ class BookingFlow extends Component {
                     </div>
 
                     <div className='form-field'>
-                        <label className='form-label'>Triệu chứng / Lý do khám</label>
+                        <label className='form-label'>{isVi ? 'Triệu chứng / Lý do khám' : 'Symptoms / Reason for visit'}</label>
                         <textarea
                             className='form-input form-textarea'
                             rows='3'
-                            placeholder='Mô tả ngắn gọn tình trạng sức khỏe...'
+                            placeholder={isVi ? 'Mô tả ngắn gọn tình trạng sức khỏe...' : 'Briefly describe your health condition...'}
                             value={patientInfo.reason}
                             onChange={(e) => this.setState({
-                                patientInfo: { ...patientInfo, reason: e.target.value }
+                                    patientInfo: { ...patientInfo, reason: e.target.value }
                             })}
                         />
                     </div>
@@ -711,10 +753,10 @@ class BookingFlow extends Component {
                 <div className='step-actions'>
                     <button className='btn-secondary' onClick={this.prevStep}>
                         <i className='fa-solid fa-arrow-left'></i>
-                        Quay lại
+                        {isVi ? 'Quay lại' : 'Back'}
                     </button>
                     <button className='btn-primary' onClick={this.nextStep}>
-                        Tiếp theo
+                        {isVi ? 'Tiếp theo' : 'Next'}
                         <i className='fa-solid fa-arrow-right'></i>
                     </button>
                 </div>
@@ -724,10 +766,11 @@ class BookingFlow extends Component {
 
     renderStep4 = () => {
         const { selectedDoctor, selectedDate, selectedTime, appointmentType, patientInfo } = this.state;
+        const isVi = this.props.language === LANGUAGES.VI;
 
         return (
             <div className='booking-step'>
-                <h2 className='step-title'>Xác nhận thông tin</h2>
+                <h2 className='step-title'>{isVi ? 'Xác nhận thông tin' : 'Confirm Information'}</h2>
                 <div className='review-card'>
                     <div className='review-header'>
                         <div className='review-doctor-avatar'>
@@ -740,7 +783,9 @@ class BookingFlow extends Component {
                             )}
                         </div>
                         <div className='review-doctor-info'>
-                            <h3 className='doctor-name'>{selectedDoctor && `${selectedDoctor.lastName} ${selectedDoctor.firstName}`}</h3>
+                            <h3 className='doctor-name'>
+                                {selectedDoctor && (isVi ? `${selectedDoctor.lastName} ${selectedDoctor.firstName}` : `${selectedDoctor.firstName} ${selectedDoctor.lastName}`)}
+                            </h3>
                             <p className='doctor-specialty'>{selectedDoctor && this.getSpecialtyName(selectedDoctor)}</p>
                         </div>
                     </div>
@@ -749,48 +794,50 @@ class BookingFlow extends Component {
                         <div className='detail-item'>
                             <i className='fa-regular fa-calendar'></i>
                             <div>
-                                <p className='detail-label'>Ngày khám</p>
+                                <p className='detail-label'>{isVi ? 'Ngày khám' : 'Appointment date'}</p>
                                 <p className='detail-value'>
-                                    {selectedDate ? moment(selectedDate).format('dddd, DD/MM/YYYY') : 'Chưa chọn'}
+                                    {selectedDate ? moment(selectedDate).format('dddd, DD/MM/YYYY') : (isVi ? 'Chưa chọn' : 'Not selected')}
                                 </p>
                             </div>
                         </div>
                         <div className='detail-item'>
                             <i className='fa-regular fa-clock'></i>
                             <div>
-                                <p className='detail-label'>Giờ khám</p>
-                                <p className='detail-value'>{selectedTime || 'Chưa chọn'}</p>
+                                <p className='detail-label'>{isVi ? 'Giờ khám' : 'Appointment time'}</p>
+                                <p className='detail-value'>{selectedTime || (isVi ? 'Chưa chọn' : 'Not selected')}</p>
                             </div>
                         </div>
                         <div className='detail-item'>
                             <i className='fa-solid fa-location-dot'></i>
                             <div>
-                                <p className='detail-label'>Hình thức</p>
+                                <p className='detail-label'>{isVi ? 'Hình thức' : 'Appointment type'}</p>
                                 <p className='detail-value'>
-                                    {appointmentType === 'offline' ? 'Khám trực tiếp' : 'Tư vấn trực tuyến'}
+                                    {appointmentType === 'offline' 
+                                        ? (isVi ? 'Khám trực tiếp' : 'In-person checkup') 
+                                        : (isVi ? 'Tư vấn trực tuyến' : 'Online consultation')}
                                 </p>
                             </div>
                         </div>
                         <div className='detail-item'>
                             <i className='fa-regular fa-user'></i>
                             <div>
-                                <p className='detail-label'>Bệnh nhân</p>
-                                <p className='detail-value'>{patientInfo.fullName || 'Chưa nhập'}</p>
+                                <p className='detail-label'>{isVi ? 'Bệnh nhân' : 'Patient'}</p>
+                                <p className='detail-value'>{patientInfo.fullName || (isVi ? 'Chưa nhập' : 'Not entered')}</p>
                             </div>
                         </div>
                     </div>
 
                     <div className='review-pricing'>
                         <div className='price-row'>
-                            <span>Phí khám</span>
+                            <span>{isVi ? 'Phí khám' : 'Examination fee'}</span>
                             <span>{selectedDoctor ? this.getDoctorPrice(selectedDoctor) : '350.000 VND'}</span>
                         </div>
                         <div className='price-row'>
-                            <span>Phí đặt lịch</span>
-                            <span>Miễn phí</span>
+                            <span>{isVi ? 'Phí đặt lịch' : 'Booking fee'}</span>
+                            <span>{isVi ? 'Miễn phí' : 'Free'}</span>
                         </div>
                         <div className='price-row total'>
-                            <span>Tổng cộng</span>
+                            <span>{isVi ? 'Tổng cộng' : 'Total'}</span>
                             <span>{selectedDoctor ? this.getDoctorPrice(selectedDoctor) : '350.000 VND'}</span>
                         </div>
                     </div>
@@ -798,17 +845,21 @@ class BookingFlow extends Component {
 
                 <div className='info-alert'>
                     <i className='fa-solid fa-circle-info'></i>
-                    <p>Vui lòng kiểm tra kỹ thông tin trước khi xác nhận. Lịch hẹn sẽ được gửi qua SMS và Email sau khi đặt thành công.</p>
+                    <p>
+                        {isVi 
+                            ? 'Vui lòng kiểm tra kỹ thông tin trước khi xác nhận. Lịch hẹn sẽ được gửi qua SMS và Email sau khi đặt thành công.' 
+                            : 'Please double check your information before confirming. The appointment details will be sent via SMS and Email upon successful booking.'}
+                    </p>
                 </div>
 
                 <div className='step-actions'>
                     <button className='btn-secondary' onClick={this.prevStep}>
                         <i className='fa-solid fa-arrow-left'></i>
-                        Quay lại
+                        {isVi ? 'Quay lại' : 'Back'}
                     </button>
                     <button className='btn-primary' onClick={this.handleConfirmBooking}>
                         <i className='fa-solid fa-check'></i>
-                        Xác nhận đặt lịch
+                        {isVi ? 'Xác nhận đặt lịch' : 'Confirm Booking'}
                     </button>
                 </div>
             </div>
@@ -817,6 +868,7 @@ class BookingFlow extends Component {
 
     render() {
         const { currentStep } = this.state;
+        const isVi = this.props.language === LANGUAGES.VI;
 
         return (
             <Fragment>
@@ -824,14 +876,18 @@ class BookingFlow extends Component {
                 <main className='booking-flow-page'>
                     <div className='booking-container'>
                         <nav className='breadcrumb' aria-label='Breadcrumb'>
-                            <a href='/home'>Trang chủ</a>
+                            <a href='/home'>{isVi ? 'Trang chủ' : 'Home'}</a>
                             <i className='fa-solid fa-chevron-right'></i>
-                            <span className='current'>Đặt lịch khám</span>
+                            <span className='current'>{isVi ? 'Đặt lịch khám' : 'Book Appointment'}</span>
                         </nav>
 
                         <div className='page-header'>
-                            <h1 className='page-title'>Đặt lịch khám</h1>
-                            <p className='page-subtitle'>Hoàn thành 4 bước đơn giản để đặt lịch hẹn với bác sĩ.</p>
+                            <h1 className='page-title'>{isVi ? 'Đặt lịch khám' : 'Book Appointment'}</h1>
+                            <p className='page-subtitle'>
+                                {isVi 
+                                    ? 'Hoàn thành 4 bước đơn giản để đặt lịch hẹn với bác sĩ.' 
+                                    : 'Complete 4 simple steps to book an appointment with a doctor.'}
+                            </p>
                         </div>
 
                         {this.renderStepIndicator()}

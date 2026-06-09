@@ -2,12 +2,14 @@ import React, { Component } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { connect } from 'react-redux';
 import { getALLCodeService } from '../../../services/userService';
-import { LANGUAGES, CRUD_ACTIONS, CommonUtils } from "../../../utils";
+import { LANGUAGES, CRUD_ACTIONS } from "../../../utils";
+import CommonUtils from "../../../utils/CommonUtils";
 import * as actions from "../../../store/actions";
 import './UserRedux.scss';
 import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css';
 import TableManageUser from './TableManageUser';
+import { toast } from 'react-toastify';
 
 class UserRedux extends Component {
     constructor(props) {
@@ -104,7 +106,7 @@ class UserRedux extends Component {
         let data = event.target.files;
         let file = data[0];
         if (file) {
-            let base64 = await CommonUtils.getBase64(file);
+            let base64 = await CommonUtils.compressImage(file);
             let objectUrl = URL.createObjectURL(file);
             this.setState({
                 previewImgURL: objectUrl,
@@ -137,7 +139,7 @@ class UserRedux extends Component {
                 gender: this.state.gender,
                 phonenumber: this.state.phoneNumber,
                 roleId: this.state.role,
-                positionId: this.state.position,
+                positionId: this.state.role === 'R2' ? this.state.position : '',
                 avatar: this.state.avatar
             })
         }
@@ -153,7 +155,7 @@ class UserRedux extends Component {
                 gender: this.state.gender,
                 phonenumber: this.state.phoneNumber,
                 roleId: this.state.role,
-                positionId: this.state.position,
+                positionId: this.state.role === 'R2' ? this.state.position : '',
                 avatar: this.state.avatar
             })
         }
@@ -161,11 +163,32 @@ class UserRedux extends Component {
 
     checkValidateInput = () => {
         let isValid = true;
-        let arrCheck = ['email', 'password', 'firstName', 'lastName', 'phoneNumber', 'address']
+        let arrCheck = [];
+        if (this.state.action === CRUD_ACTIONS.CREATE) {
+            arrCheck = ['email', 'password', 'firstName', 'phoneNumber', 'address'];
+            if (this.state.role !== 'R3') {
+                arrCheck.push('lastName');
+            }
+        } else { // EDIT
+            arrCheck = ['email', 'firstName', 'phoneNumber', 'address'];
+            if (this.state.role !== 'R3') {
+                arrCheck.push('lastName');
+            }
+        }
         for (let i = 0; i < arrCheck.length; i++) {
             if (!this.state[arrCheck[i]]) {
                 isValid = false;
-                alert('This input is required: ' + arrCheck[i])
+                let fieldNameVi = '';
+                switch (arrCheck[i]) {
+                    case 'email': fieldNameVi = 'Email'; break;
+                    case 'password': fieldNameVi = 'Mật khẩu'; break;
+                    case 'firstName': fieldNameVi = 'Tên'; break;
+                    case 'lastName': fieldNameVi = 'Họ'; break;
+                    case 'phoneNumber': fieldNameVi = 'Số điện thoại'; break;
+                    case 'address': fieldNameVi = 'Địa chỉ'; break;
+                    default: fieldNameVi = arrCheck[i];
+                }
+                toast.error(`Vui lòng điền trường bắt buộc: ${fieldNameVi}`);
                 break;
             }
         }
@@ -175,6 +198,9 @@ class UserRedux extends Component {
     onChangeInput = (event, id) => {
         let copyState = { ...this.state }
         copyState[id] = event.target.value;
+        if (id === 'role' && event.target.value !== 'R2') {
+            copyState['position'] = '';
+        }
         this.setState({
             ...copyState
         })
@@ -191,13 +217,13 @@ class UserRedux extends Component {
         this.setState({
             email: user.email,
             password: 'HARDCODE',
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phoneNumber: user.phonenumber,
-            address: user.address,
-            gender: user.gender,
-            position: user.positionId,
-            role: user.roleId,
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            phoneNumber: user.phonenumber || '',
+            address: user.address || '',
+            gender: user.gender || '',
+            position: user.positionId || '',
+            role: user.roleId || '',
             avatar: '',
             previewImgURL: imageBase64,
             action: CRUD_ACTIONS.EDIT,
@@ -292,6 +318,7 @@ class UserRedux extends Component {
                                 <select className='form-control'
                                     value={position}
                                     onChange={(event) => { this.onChangeInput(event, 'position') }}
+                                    disabled={role !== 'R2'}
                                 >
                                     {positions && positions.length > 0 &&
                                         positions.map((item, index) => {

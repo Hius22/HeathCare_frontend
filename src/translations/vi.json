@@ -76,7 +76,7 @@
     "patient": {
         "detail-doctor": {
             "schedule": "Lịch khám",
-            "no-schedule": "Không có lịch hẹn trong thời gian này, vui lòng chọn thời gian khác!",
+            "no-schedule": "Không có thông tin về lịch khám trong thời gian này, vui lòng chọn thời gian khác!",
             "choose": "Chọn ",
             "book-free": " và đặt miễn phí"
         },
@@ -119,6 +119,7 @@
             "nameClinic": "Tên phòng khám",
             "addressClinic": "Địa chỉ phòng khám",
             "note": "Ghi chú",
+            "payment": "Phương thức thanh toán",
             "select-specialty": "Chọn chuyên khoa",
             "select-clinic": "Chọn phòng khám"
         }

@@ -63,7 +63,7 @@ class BookingHistory extends Component {
             if (res && res.errCode === 0) {
                 this.setState({ bookings: res.data || [], hasSearched: true, activeTab: 'all' });
                 if (!res.data || res.data.length === 0) {
-                    toast.info("Không tìm thấy lịch hẹn nào với email này.");
+                    toast.info("Không có thông tin về lịch khám với email này.");
                 } else {
                     toast.success(`Tìm thấy ${res.data.length} lịch hẹn!`);
                 }
@@ -79,8 +79,9 @@ class BookingHistory extends Component {
     };
 
     handleCancelBooking = async (item) => {
+        const doctorName = item.doctorData ? `${item.doctorData.lastName || ''} ${item.doctorData.firstName || ''}`.trim() : '';
         let isConfirm = window.confirm(
-            `Bạn có chắc chắn muốn hủy lịch hẹn với bác sĩ ${item.doctorData?.lastName} ${item.doctorData?.firstName} vào ngày ${this.formatDate(item.date)} không?`
+            `Bạn có chắc chắn muốn hủy lịch hẹn với bác sĩ ${doctorName || 'này'} vào ngày ${this.formatDate(item.date)} không?`
         );
         if (isConfirm) {
             try {
@@ -291,7 +292,7 @@ class BookingHistory extends Component {
                                                         <div className="info-header">
                                                             <div>
                                                                 <h3 className="doctor-name">
-                                                                    BS. {item.doctorData?.lastName} {item.doctorData?.firstName}
+                                                                    BS. {item.doctorData ? `${item.doctorData.lastName || ''} ${item.doctorData.firstName || ''}`.trim() : '—'}
                                                                 </h3>
                                                                 <p className="doctor-specialty">
                                                                     {item.doctorData?.specialtyData?.name || 'Chuyên khoa'}
@@ -354,7 +355,7 @@ class BookingHistory extends Component {
                                             <i className="fa-solid fa-calendar-xmark"></i>
                                         </div>
                                         <h3 className="empty-title">
-                                            {activeTab === 'all' && 'Không có lịch hẹn nào'}
+                                            {activeTab === 'all' && 'Không có thông tin về lịch khám'}
                                             {activeTab === 'upcoming' && 'Không có lịch hẹn sắp tới'}
                                             {activeTab === 'past' && 'Chưa có lịch sử khám bệnh'}
                                             {activeTab === 'cancelled' && 'Không có lịch hẹn đã hủy'}
@@ -363,7 +364,7 @@ class BookingHistory extends Component {
                                             {activeTab === 'upcoming' && 'Bạn chưa có lịch hẹn nào sắp tới.'}
                                             {activeTab === 'past' && 'Bạn chưa có lịch sử khám bệnh nào.'}
                                             {activeTab === 'cancelled' && 'Không có lịch hẹn nào đã bị hủy.'}
-                                            {activeTab === 'all' && 'Không tìm thấy lịch hẹn nào.'}
+                                            {activeTab === 'all' && 'Không tìm thấy thông tin về lịch khám nào.'}
                                         </p>
                                         <button
                                             className="btn-book-now"

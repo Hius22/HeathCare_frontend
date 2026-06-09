@@ -59,8 +59,8 @@ class ProfileDoctor extends Component {
             // Xử lý giờ
             let time =
                 language === LANGUAGES.VI
-                    ? dataTime.timeTypeData.valueVi
-                    : dataTime.timeTypeData.valueEn;
+                    ? dataTime.timeTypeData?.valueVi || ''
+                    : dataTime.timeTypeData?.valueEn || '';
 
             return (
                 <>
@@ -126,7 +126,7 @@ class ProfileDoctor extends Component {
                     <div className='price'>
                         <FormattedMessage id="patient.booking-modal.price" />
                         {
-                            dataProfile && dataProfile.Doctor_Infor && language === LANGUAGES.VI &&
+                            dataProfile && dataProfile.Doctor_Infor && dataProfile.Doctor_Infor.priceTypeData && language === LANGUAGES.VI &&
                             <NumberFormat
                                 className='currency'
                                 value={Number(dataProfile.Doctor_Infor.priceTypeData.valueVi)}
@@ -136,7 +136,7 @@ class ProfileDoctor extends Component {
                             />
                         }
                         {
-                            dataProfile && dataProfile.Doctor_Infor && language === LANGUAGES.EN &&
+                            dataProfile && dataProfile.Doctor_Infor && dataProfile.Doctor_Infor.priceTypeData && language === LANGUAGES.EN &&
                             <NumberFormat
                                 className='currency'
                                 value={Number(dataProfile.Doctor_Infor.priceTypeData.valueEn)}

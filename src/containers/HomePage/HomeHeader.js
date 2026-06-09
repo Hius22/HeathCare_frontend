@@ -13,6 +13,12 @@ class HomeHeader extends Component {
 
     render() {
         let language = this.props.language;
+        let pathname = this.props.location && this.props.location.pathname ? this.props.location.pathname : '';
+        let isHomeActive = pathname === '/' || pathname === '/home';
+        let isDoctorActive = pathname.startsWith('/doctors') || pathname.startsWith('/detail-doctor');
+        let isClinicActive = pathname.startsWith('/facilities') || pathname.startsWith('/detail-clinic');
+        let isAppointmentActive = pathname.startsWith('/appointments');
+
         return (
             <React.Fragment>
                 <header className="home-header-container">
@@ -27,25 +33,34 @@ class HomeHeader extends Component {
 
                         <nav className="header-nav">
                             <a
-                                className="nav-link active"
+                                className={`nav-link ${isHomeActive ? 'active' : ''}`}
                                 href="/home"
                                 onClick={(e) => { e.preventDefault(); this.returnToHome(); }}
                             >
                                 Trang chủ
                             </a>
-                            <a className="nav-link" href="/doctors"
-                                onClick={(e) => { e.preventDefault(); this.props.history.push(path.ALL_DOCTORS); }}>
+                            <a 
+                                className={`nav-link ${isDoctorActive ? 'active' : ''}`}
+                                href="/doctors"
+                                onClick={(e) => { e.preventDefault(); this.props.history.push(path.ALL_DOCTORS); }}
+                            >
                                 Bác sĩ
                             </a>
-                            <a className="nav-link" href="/facilities"
+                            <a 
+                                className={`nav-link ${isClinicActive ? 'active' : ''}`}
+                                href="/facilities"
                                 onClick={(e) => {
                                     e.preventDefault();
                                     this.props.history.push(path.ALL_CLINICS);
-                                }}>
+                                }}
+                            >
                                 Cơ sở y tế
                             </a>
-                            <a className="nav-link" href="/appointments"
-                                onClick={(e) => { e.preventDefault(); this.props.history.push(path.APPOINTMENTS); }}>
+                            <a 
+                                className={`nav-link ${isAppointmentActive ? 'active' : ''}`}
+                                href="/appointments"
+                                onClick={(e) => { e.preventDefault(); this.props.history.push(path.APPOINTMENTS); }}
+                            >
                                 Lịch hẹn
                             </a>
                         </nav>

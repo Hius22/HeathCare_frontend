@@ -55,6 +55,20 @@
                     padding: 15px;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
                     border-left: 4px solid #1a73e8;
+                    transition: all 0.2s ease;
+
+                    &.clickable {
+                        cursor: pointer;
+                        &:hover {
+                            background-color: #f1f3f4;
+                            transform: translateY(-1px);
+                        }
+                    }
+
+                    &.active {
+                        border-left-color: #28a745;
+                        background-color: #e8f5e9;
+                    }
 
                     .history-date {
                         color: #555;

@@ -4,7 +4,8 @@ import { FormattedMessage } from 'react-intl';
 import './ManageSpecialty.scss';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
-import { CommonUtils, LANGUAGES } from '../../../utils';
+import { LANGUAGES } from '../../../utils';
+import CommonUtils from '../../../utils/CommonUtils';
 import 'react-image-lightbox/style.css';
 import Lightbox from 'react-image-lightbox';
 import { createNewSpecialty, getAllSpecialty, updateSpecialty, deleteSpecialty } from '../../../services/userService';
@@ -46,7 +47,7 @@ class ManageSpecialty extends Component {
             }
         } catch (error) {
             console.error('Error loading specialties:', error);
-            toast.error('Failed to load specialties');
+            toast.error('Không thể tải danh sách chuyên khoa');
         }
         this.setState({ isLoading: false });
     }
@@ -78,7 +79,7 @@ class ManageSpecialty extends Component {
         let data = event.target.files;
         let file = data[0];
         if (file) {
-            let base64 = await CommonUtils.getBase64(file);
+            let base64 = await CommonUtils.compressImage(file);
             let objectUrl = URL.createObjectURL(file);
 
             this.setState({
@@ -99,7 +100,7 @@ class ManageSpecialty extends Component {
         let { editingId } = this.state;
 
         if (!this.state.name) {
-            toast.error('Please enter specialty name');
+            toast.error('Vui lòng nhập tên chuyên khoa');
             return;
         }
 
@@ -112,21 +113,21 @@ class ManageSpecialty extends Component {
             });
 
             if (res && res.errCode === 0) {
-                toast.success("Specialty updated successfully!");
+                toast.success("Cập nhật chuyên khoa thành công!");
                 this.resetForm();
                 await this.loadSpecialties();
             } else {
-                toast.error("Failed to update specialty!");
+                toast.error("Cập nhật chuyên khoa thất bại!");
             }
         } else {
             // Create new specialty
             res = await createNewSpecialty(this.state);
             if (res && res.errCode === 0) {
-                toast.success("Specialty created successfully!");
+                toast.success("Tạo chuyên khoa thành công!");
                 this.resetForm();
                 await this.loadSpecialties();
             } else {
-                toast.error("Failed to create specialty!");
+                toast.error("Tạo chuyên khoa thất bại!");
             }
         }
     }
@@ -169,14 +170,14 @@ class ManageSpecialty extends Component {
         try {
             let res = await deleteSpecialty({ id: specialtyId });
             if (res && res.errCode === 0) {
-                toast.success("Specialty deleted successfully!");
+                toast.success("Xóa chuyên khoa thành công!");
                 await this.loadSpecialties();
             } else {
-                toast.error("Failed to delete specialty!");
+                toast.error("Xóa chuyên khoa thất bại!");
             }
         } catch (error) {
             console.error('Error deleting specialty:', error);
-            toast.error('Failed to delete specialty');
+            toast.error('Xóa chuyên khoa thất bại!');
         }
     }
 
@@ -352,18 +353,18 @@ class ManageSpecialty extends Component {
                                             <td>
                                                 <div className='action-buttons'>
                                                     <button
-                                                        className='btn btn-edit'
+                                                        className='btn-edit'
                                                         onClick={() => this.handleEditSpecialty(specialty)}
+                                                        title={language === LANGUAGES.VI ? 'Sửa' : 'Edit'}
                                                     >
                                                         <i className="fa-solid fa-edit"></i>
-                                                        {language === LANGUAGES.VI ? 'Sửa' : 'Edit'}
                                                     </button>
                                                     <button
-                                                        className='btn btn-delete'
+                                                        className='btn-delete'
                                                         onClick={() => this.handleDeleteSpecialty(specialty.id)}
+                                                        title={language === LANGUAGES.VI ? 'Xóa' : 'Delete'}
                                                     >
                                                         <i className="fa-solid fa-trash"></i>
-                                                        {language === LANGUAGES.VI ? 'Xóa' : 'Delete'}
                                                     </button>
                                                 </div>
                                             </td>

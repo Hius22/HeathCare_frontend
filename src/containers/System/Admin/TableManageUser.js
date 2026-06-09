@@ -53,7 +53,6 @@ class TableManageUser extends Component {
                             <thead>
                                 <tr>
                                     <th>STT</th>
-                                    <th>Avatar</th>
                                     <th>Email</th>
                                     <th>Họ tên</th>
                                     <th>Số điện thoại</th>
@@ -67,7 +66,7 @@ class TableManageUser extends Component {
                             <tbody>
                                 {arrUsers && arrUsers.length > 0 &&
                                     arrUsers.map((item, index) => {
-                                        let fullName = `${item.lastName} ${item.firstName}`;
+                                        let fullName = item.lastName ? `${item.lastName} ${item.firstName}` : item.firstName;
                                         let genderDisplay = item.genderData ?
                                             (language === 'vi' ? item.genderData.valueVi : item.genderData.valueEn)
                                             : item.gender;
@@ -79,7 +78,7 @@ class TableManageUser extends Component {
 
                                         // Handle image display
                                         let avatarDisplay = 'https://ui-avatars.com/api/?name=' +
-                                            encodeURIComponent(item.firstName + ' ' + item.lastName) +
+                                            encodeURIComponent((item.lastName ? item.lastName + ' ' : '') + item.firstName) +
                                             '&background=667eea&color=fff&size=100';
 
                                         if (item.image) {
@@ -93,13 +92,6 @@ class TableManageUser extends Component {
                                         return (
                                             <tr key={item.id || index}>
                                                 <td>{index + 1}</td>
-                                                <td>
-                                                    <img
-                                                        src={avatarDisplay}
-                                                        alt="Avatar"
-                                                        className="user-avatar"
-                                                    />
-                                                </td>
                                                 <td className="email-cell">{item.email}</td>
                                                 <td className="name-cell">{fullName}</td>
                                                 <td>{item.phonenumber || '-'}</td>

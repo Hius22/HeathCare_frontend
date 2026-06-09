@@ -90,11 +90,16 @@
     }
   }
 
-  /* Clinics Content */
-  .clinics-content {
-    display: flex;
-    flex-direction: column;
+  /* Clinics Grid */
+  .clinic-grid {
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 32px;
+    margin-bottom: 32px;
+
+    @media (min-width: 992px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   /* Clinic Card */
@@ -107,6 +112,8 @@
       0 2px 4px rgba(0, 0, 0, 0.05);
     border: 1px solid #bec8d2;
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
 
     &:hover {
       box-shadow:
@@ -117,11 +124,11 @@
     .clinic-image-section {
       position: relative;
       width: 100%;
-      height: 256px;
+      height: 200px;
       overflow: hidden;
 
       @media (min-width: 768px) {
-        height: 384px;
+        height: 250px;
       }
 
       img {
@@ -144,7 +151,7 @@
         justify-content: center;
 
         i {
-          font-size: 80px;
+          font-size: 60px;
           color: #6e7881;
         }
       }
@@ -165,23 +172,25 @@
 
     .clinic-info-section {
       padding: 24px;
-
-      @media (min-width: 768px) {
-        padding: 32px;
-      }
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: space-between;
 
       .clinic-header {
         margin-bottom: 20px;
 
         .clinic-name {
-          font-size: 24px;
+          font-size: 20px;
           font-weight: 700;
           color: #191c1e;
           margin: 0 0 12px 0;
-
-          @media (min-width: 768px) {
-            font-size: 30px;
-          }
+          line-height: 1.4;
+          height: 56px;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
         }
 
         .clinic-location {
@@ -191,59 +200,49 @@
           color: #3e4850;
 
           i {
-            font-size: 20px;
+            font-size: 18px;
             color: #006591;
+            flex-shrink: 0;
           }
 
           p {
-            font-size: 16px;
+            font-size: 14px;
             margin: 0;
-          }
-        }
-      }
-
-      .clinic-description {
-        margin-bottom: 24px;
-
-        .description-content {
-          font-size: 15px;
-          line-height: 1.7;
-          color: #3e4850;
-
-          p {
-            margin: 0 0 12px 0;
-          }
-
-          ul,
-          ol {
-            margin: 12px 0;
-            padding-left: 24px;
-          }
-
-          li {
-            margin-bottom: 8px;
+            line-height: 1.4;
+            height: 38px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
           }
         }
       }
 
       .clinic-actions {
         display: flex;
-        gap: 12px;
+        gap: 10px;
         flex-wrap: wrap;
+        margin-top: 15px;
 
-        .btn-view-detail {
+        button {
           flex: 1;
-          min-width: 150px;
-          padding: 12px 24px;
-          background-color: #006591;
-          color: #ffffff;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
+          min-width: 110px;
+          padding: 10px 12px;
+          border-radius: 6px;
+          font-size: 13px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s ease;
-          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+
+        .btn-primary {
+          background-color: #006591;
+          color: #ffffff;
+          border: none;
 
           &:hover {
             background-color: #004c6e;
@@ -255,29 +254,23 @@
           }
         }
 
-        .btn-directions {
-          flex: 1;
-          min-width: 150px;
-          padding: 12px 24px;
+        .btn-secondary {
           background-color: transparent;
           color: #006591;
           border: 2px solid #006591;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-
-          i {
-            font-size: 14px;
-          }
 
           &:hover {
             background-color: #c9e6ff;
+          }
+        }
+
+        .btn-directions {
+          background-color: transparent;
+          color: #28a745;
+          border: 2px solid #28a745;
+
+          &:hover {
+            background-color: #e2f9e6;
           }
         }
       }

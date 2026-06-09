@@ -5,7 +5,7 @@ import './RemedyModal.scss';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { toast } from "react-toastify";
 import moment from 'moment';
-import { CommonUtils } from '../../../utils';
+import CommonUtils from '../../../utils/CommonUtils';
 
 
 class RemedyModal extends Component {
@@ -47,7 +47,7 @@ class RemedyModal extends Component {
         let data = event.target.files;
         let file = data[0];
         if (file) {
-            let base64 = await CommonUtils.getBase64(file);
+            let base64 = await CommonUtils.compressImage(file);
             this.setState({
                 imgBase64: base64
             })

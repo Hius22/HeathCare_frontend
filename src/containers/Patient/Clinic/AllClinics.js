@@ -3,14 +3,14 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import HomeHeader from '../../HomePage/HomeHeader';
 import HomeFooter from '../../HomePage/HomeFooter';
-import { getClinicInfo } from '../../../services/userService';
+import { getAllClinic } from '../../../services/userService';
 import './AllClinics.scss';
 
 class AllClinics extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            clinicInfo: null,
+            listClinics: [],
             isLoading: true
         };
     }
@@ -21,10 +21,10 @@ class AllClinics extends Component {
 
     loadClinic = async () => {
         this.setState({ isLoading: true });
-        let res = await getClinicInfo();
+        let res = await getAllClinic();
         if (res && res.errCode === 0) {
             this.setState({
-                clinicInfo: res.data || null,
+                listClinics: res.data || [],
                 isLoading: false
             });
         } else {
@@ -32,9 +32,9 @@ class AllClinics extends Component {
         }
     }
 
-    handleViewDetail = () => {
-        if (this.state.clinicInfo) {
-            this.props.history.push(`/detail-clinic/${this.state.clinicInfo.id}`);
+    handleViewDetail = (id) => {
+        if (id) {
+            this.props.history.push(`/detail-clinic/${id}`);
         }
     }
 
@@ -42,14 +42,14 @@ class AllClinics extends Component {
         this.props.history.push('/booking-flow');
     }
 
-    handleGetDirections = () => {
-        if (this.state.clinicInfo && this.state.clinicInfo.address) {
-            window.open(`https://maps.google.com/?q=${encodeURIComponent(this.state.clinicInfo.address)}`, '_blank');
+    handleGetDirections = (address) => {
+        if (address) {
+            window.open(`https://maps.google.com/?q=${encodeURIComponent(address)}`, '_blank');
         }
     }
 
     render() {
-        const { clinicInfo, isLoading } = this.state;
+        const { listClinics, isLoading } = this.state;
 
         return (
             <React.Fragment>
@@ -67,7 +67,7 @@ class AllClinics extends Component {
                     <section className="page-header">
                         <h1 className="page-title">Cơ sở y tế</h1>
                         <p className="page-description">
-                            Thông tin chi tiết về cơ sở y tế của chúng tôi
+                            Thông tin chi tiết về các cơ sở y tế của chúng tôi
                         </p>
                     </section>
 
@@ -77,60 +77,55 @@ class AllClinics extends Component {
                             <i className="fa-solid fa-spinner fa-spin"></i>
                             <p>Đang tải thông tin cơ sở y tế...</p>
                         </div>
-                    ) : clinicInfo ? (
-                        <div className="clinic-content">
-                            <div className="clinic-card">
-                                <div className="clinic-image-section">
-                                    {clinicInfo.image ? (
-                                        <img src={clinicInfo.image} alt={clinicInfo.name} />
-                                    ) : (
-                                        <div className="clinic-image-placeholder">
-                                            <i className="fa-solid fa-hospital"></i>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="clinic-info-section">
-                                    <div className="clinic-header">
-                                        <h2 className="clinic-name">{clinicInfo.name}</h2>
-                                        <div className="clinic-location">
-                                            <i className="fa-solid fa-location-dot"></i>
-                                            <p>{clinicInfo.address}</p>
-                                        </div>
+                    ) : listClinics && listClinics.length > 0 ? (
+                        <div className="clinic-grid">
+                            {listClinics.map((item, index) => (
+                                <div className="clinic-card" key={index}>
+                                    <div className="clinic-image-section">
+                                        {item.image ? (
+                                            <img src={item.image} alt={item.name} />
+                                        ) : (
+                                            <div className="clinic-image-placeholder">
+                                                <i className="fa-solid fa-hospital"></i>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    <div className="clinic-description">
-                                        <div
-                                            dangerouslySetInnerHTML={{ __html: clinicInfo.descriptionHTML }}
-                                            className="description-content"
-                                        />
-                                    </div>
+                                    <div className="clinic-info-section">
+                                        <div className="clinic-header">
+                                            <h2 className="clinic-name">{item.name}</h2>
+                                            <div className="clinic-location">
+                                                <i className="fa-solid fa-location-dot"></i>
+                                                <p>{item.address}</p>
+                                            </div>
+                                        </div>
 
-                                    <div className="clinic-actions">
-                                        <button
-                                            className="btn-primary"
-                                            onClick={() => this.handleBookAppointment()}
-                                        >
-                                            <i className="fa-solid fa-calendar-check"></i>
-                                            Đặt lịch khám
-                                        </button>
-                                        <button
-                                            className="btn-secondary"
-                                            onClick={() => this.handleViewDetail()}
-                                        >
-                                            <i className="fa-solid fa-circle-info"></i>
-                                            Xem chi tiết
-                                        </button>
-                                        <button
-                                            className="btn-directions"
-                                            onClick={() => this.handleGetDirections()}
-                                        >
-                                            <i className="fa-solid fa-directions"></i>
-                                            Chỉ đường
-                                        </button>
+                                        <div className="clinic-actions">
+                                            <button
+                                                className="btn-primary"
+                                                onClick={() => this.handleBookAppointment()}
+                                            >
+                                                <i className="fa-solid fa-calendar-check"></i>
+                                                Đặt lịch khám
+                                            </button>
+                                            <button
+                                                className="btn-secondary"
+                                                onClick={() => this.handleViewDetail(item.id)}
+                                            >
+                                                <i className="fa-solid fa-circle-info"></i>
+                                                Xem chi tiết
+                                            </button>
+                                            <button
+                                                className="btn-directions"
+                                                onClick={() => this.handleGetDirections(item.address)}
+                                            >
+                                                <i className="fa-solid fa-directions"></i>
+                                                Chỉ đường
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            ))}
                         </div>
                     ) : (
                         <div className="empty-state">

@@ -130,6 +130,12 @@ const updateClinicInfo = (data) => {
     return axios.put('/api/update-clinic-info', data)
 }
 
+const deleteClinic = (data) => {
+    return axios.delete('/api/delete-clinic', {
+        data: { id: data.id }
+    })
+}
+
 const getAllPatientForDoctor = (data) => {
     return axios.get(`/api/get-list-patient-for-doctor?doctorId=${data.doctorId}&date=${data.date}`)
 }
@@ -174,7 +180,7 @@ export {
     getExtraInforDoctorById, getProfileDoctorById, postPatientBookingAppointment,
     postVerifyBookingAppointment, createNewSpecialty, getAllSpecialty,
     getDetailSpecialtyById, getAllClinic,
-    getDetailClinicById, getClinicInfo, createClinicInfo, updateClinicInfo,
+    getDetailClinicById, getClinicInfo, createClinicInfo, updateClinicInfo, deleteClinic,
     getAllPatientForDoctor, postSendRemedy,
     postCancelBooking, deleteScheduleDoctor, getAllScheduleDoctor,
     updateSpecialty, deleteSpecialty,

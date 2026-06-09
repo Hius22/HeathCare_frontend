@@ -21,6 +21,12 @@ class ManageScheduleForDoctor extends Component {
         this.fetchDoctorSchedule();
     }
 
+    async componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevProps.userInfo !== this.props.userInfo) {
+            this.fetchDoctorSchedule();
+        }
+    }
+
     fetchDoctorSchedule = async () => {
         this.setState({ isLoading: true });
         try {

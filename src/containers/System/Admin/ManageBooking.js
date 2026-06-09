@@ -6,6 +6,8 @@ import { LANGUAGES } from '../../../utils';
 import { getAllBookings, updateBookingStatus } from '../../../services/userService';
 import { toast } from 'react-toastify';
 import DatePicker from '../../../components/Input/DatePicker';
+import ViewHistoryModal from '../Doctor/ViewHistoryModal';
+import ConfirmPaymentModal from './ConfirmPaymentModal';
 
 class ManageBooking extends Component {
     constructor(props) {
@@ -16,7 +18,12 @@ class ManageBooking extends Component {
             filteredBookings: [],
             statusFilter: 'all', // all, pending, confirmed, cancelled, completed
             searchKeyword: '',
-            isLoading: false
+            isLoading: false,
+            isOpenHistoryModal: false,
+            selectedPatientId: null,
+            selectedPatientName: '',
+            isOpenConfirmModal: false,
+            selectedBooking: null
         }
     }
 
@@ -40,11 +47,11 @@ class ManageBooking extends Component {
                     filteredBookings: res.data
                 }, () => this.applyFilters()); // Apply any existing filters
             } else {
-                toast.error('Failed to load bookings');
+                toast.error('Không thể tải danh sách lịch đặt!');
             }
         } catch (error) {
             console.error('Error loading bookings:', error);
-            toast.error('Failed to load bookings');
+            toast.error('Không thể tải danh sách lịch đặt!');
         }
         this.setState({ isLoading: false });
     }
@@ -119,32 +126,86 @@ class ManageBooking extends Component {
             });
 
             if (res && res.errCode === 0) {
-                toast.success('Booking status updated successfully');
+                toast.success('Cập nhật trạng thái lịch hẹn thành công!');
                 await this.loadBookings();
             } else {
-                toast.error('Failed to update booking status');
+                toast.error('Cập nhật trạng thái lịch hẹn thất bại!');
             }
         } catch (error) {
             console.error('Error updating status:', error);
-            toast.error('Failed to update booking status');
+            toast.error('Cập nhật trạng thái lịch hẹn thất bại!');
         }
     }
 
     getStatusBadge = (statusId) => {
         let { language } = this.props;
         let statusConfig = {
-            'S1': { label: language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending', color: '#ff9800', icon: 'fa-clock' },
-            'S2': { label: language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed', color: '#2196f3', icon: 'fa-check-circle' },
-            'S3': { label: language === LANGUAGES.VI ? 'Hoàn thành' : 'Completed', color: '#4caf50', icon: 'fa-check-double' },
-            'S4': { label: language === LANGUAGES.VI ? 'Đã hủy' : 'Cancelled', color: '#f44336', icon: 'fa-times-circle' }
+            'S1': { label: language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending', bg: '#fff3e0', color: '#e65100', border: '#ffe0b2', icon: 'fa-clock' },
+            'S2': { label: language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed', bg: '#e3f2fd', color: '#0d47a1', border: '#bbdefb', icon: 'fa-check-circle' },
+            'S3': { label: language === LANGUAGES.VI ? 'Hoàn thành' : 'Completed', bg: '#e8f5e9', color: '#1b5e20', border: '#c8e6c9', icon: 'fa-check-double' },
+            'S4': { label: language === LANGUAGES.VI ? 'Đã hủy' : 'Cancelled', bg: '#ffebee', color: '#c62828', border: '#ffcdd2', icon: 'fa-times-circle' }
         };
 
         let config = statusConfig[statusId] || statusConfig['S1'];
         return (
-            <span className="status-badge" style={{ backgroundColor: config.color }}>
+            <span className="status-badge" style={{ backgroundColor: config.bg, color: config.color, border: `1px solid ${config.border}`, padding: '4px 10px', borderRadius: '15px', fontSize: '11px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
                 <i className={`fa-solid ${config.icon}`}></i> {config.label}
             </span>
         );
+    }
+
+    handleOpenHistoryModal = (booking) => {
+        this.setState({
+            isOpenHistoryModal: true,
+            selectedPatientId: booking.patientId,
+            selectedPatientName: booking.patientData ? `${booking.patientData.firstName || ''} ${booking.patientData.lastName || ''}` : ''
+        });
+    }
+
+    handleCloseHistoryModal = () => {
+        this.setState({
+            isOpenHistoryModal: false,
+            selectedPatientId: null,
+            selectedPatientName: ''
+        });
+    }
+
+    handleOpenConfirmModal = (booking) => {
+        this.setState({
+            isOpenConfirmModal: true,
+            selectedBooking: booking
+        });
+    }
+
+    handleCloseConfirmModal = () => {
+        this.setState({
+            isOpenConfirmModal: false,
+            selectedBooking: null
+        });
+    }
+
+    handleConfirmPayment = async (bookingId, price, paymentMethod) => {
+        try {
+            this.setState({ isLoading: true });
+            let res = await updateBookingStatus({
+                bookingId: bookingId,
+                statusId: 'S3',
+                price: price,
+                paymentMethod: paymentMethod
+            });
+
+            if (res && res.errCode === 0) {
+                toast.success(this.props.language === LANGUAGES.VI ? 'Thanh toán và hoàn thành lịch hẹn thành công!' : 'Payment confirmed and appointment completed!');
+                this.handleCloseConfirmModal();
+                await this.loadBookings();
+            } else {
+                toast.error(this.props.language === LANGUAGES.VI ? 'Hoàn tất thanh toán thất bại!' : 'Failed to complete checkout!');
+            }
+        } catch (error) {
+            console.error('Error confirming payment:', error);
+            toast.error(this.props.language === LANGUAGES.VI ? 'Lỗi hệ thống khi thanh toán!' : 'System error during checkout!');
+        }
+        this.setState({ isLoading: false });
     }
 
     getActionButtons = (booking) => {
@@ -172,10 +233,31 @@ class ManageBooking extends Component {
                 <div className="action-buttons">
                     <button
                         className="btn btn-complete"
-                        onClick={() => this.handleUpdateStatus(booking.id, 'S3')}
+                        onClick={() => this.handleOpenConfirmModal(booking)}
                     >
                         <i className="fa-solid fa-check-double"></i> {language === LANGUAGES.VI ? 'Hoàn thành' : 'Complete'}
                     </button>
+                </div>
+            );
+        } else if (booking.statusId === 'S3') {
+            return (
+                <div className="action-buttons" style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                        className="btn"
+                        onClick={() => this.handleOpenHistoryModal(booking)}
+                        style={{ backgroundColor: '#28a745', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    >
+                        <i className="fa-solid fa-file-medical"></i> {language === LANGUAGES.VI ? 'Xem bệnh án' : 'View record'}
+                    </button>
+                    {booking.isPaid !== 1 && booking.isPaid !== '1' && (
+                        <button
+                            className="btn btn-complete"
+                            onClick={() => this.handleOpenConfirmModal(booking)}
+                            style={{ padding: '6px 12px', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#e0a800', borderColor: '#d39e00' }}
+                        >
+                            <i className="fa-solid fa-file-invoice-dollar"></i> {language === LANGUAGES.VI ? 'Thanh toán' : 'Checkout'}
+                        </button>
+                    )}
                 </div>
             );
         }
@@ -342,6 +424,8 @@ class ManageBooking extends Component {
                                     <th>{language === LANGUAGES.VI ? 'Bác sĩ' : 'Doctor'}</th>
                                     <th>{language === LANGUAGES.VI ? 'Thời gian' : 'Time'}</th>
                                     <th>{language === LANGUAGES.VI ? 'Lý do khám' : 'Reason'}</th>
+                                    <th>{language === LANGUAGES.VI ? 'Giá khám' : 'Fee'}</th>
+                                    <th>{language === LANGUAGES.VI ? 'Thanh toán' : 'Payment'}</th>
                                     <th>{language === LANGUAGES.VI ? 'Trạng thái' : 'Status'}</th>
                                     <th>{language === LANGUAGES.VI ? 'Thao tác' : 'Actions'}</th>
                                 </tr>
@@ -353,17 +437,14 @@ class ManageBooking extends Component {
                                         <td>
                                             <div className="patient-info">
                                                 <div className="patient-name">
-                                                    {booking.patientData.firstName} {booking.patientData.lastName}
-                                                </div>
-                                                <div className="patient-birthday">
-                                                    {language === LANGUAGES.VI ? 'Sinh:' : 'DOB:'} {booking.patientData?.birthday ? moment(isNaN(booking.patientData.birthday) ? booking.patientData.birthday : +booking.patientData.birthday).format('DD/MM/YYYY') : '—'}
+                                                    {booking.patientData ? `${booking.patientData.firstName || ''} ${booking.patientData.lastName || ''}` : '—'}
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
                                             <div className="contact-info">
-                                                <div><i className="fa-solid fa-envelope"></i> {booking.patientData?.email}</div>
-                                                <div><i className="fa-solid fa-phone"></i> {booking.patientData?.phonenumber}</div>
+                                                <div><i className="fa-solid fa-envelope"></i> {booking.patientData?.email || '—'}</div>
+                                                <div><i className="fa-solid fa-phone"></i> {booking.patientData?.phonenumber || '—'}</div>
                                             </div>
                                         </td>
                                         <td>
@@ -385,6 +466,37 @@ class ManageBooking extends Component {
                                             <div className="reason-text">{booking.reason || '—'}</div>
                                         </td>
                                         <td>
+                                            {/* Price / Fee */}
+                                            {booking.doctorData?.Doctor_Infor?.priceTypeData ? (
+                                                language === LANGUAGES.VI
+                                                    ? (isNaN(booking.doctorData.Doctor_Infor.priceTypeData.valueVi) 
+                                                        ? `${booking.doctorData.Doctor_Infor.priceTypeData.valueVi} VNĐ`
+                                                        : `${Number(booking.doctorData.Doctor_Infor.priceTypeData.valueVi).toLocaleString('vi-VN')} VNĐ`)
+                                                    : `${booking.doctorData.Doctor_Infor.priceTypeData.valueEn} USD`
+                                            ) : '—'}
+                                        </td>
+                                        <td>
+                                            {/* Payment Method */}
+                                            <div className="payment-cell">
+                                                <div style={{ fontWeight: '500' }}>
+                                                    {booking.doctorData?.Doctor_Infor?.paymentTypeData ? (
+                                                        language === LANGUAGES.VI
+                                                            ? booking.doctorData.Doctor_Infor.paymentTypeData.valueVi
+                                                            : booking.doctorData.Doctor_Infor.paymentTypeData.valueEn
+                                                    ) : '—'}
+                                                </div>
+                                                {(booking.isPaid === 1 || booking.isPaid === '1') ? (
+                                                    <span className="badge-paid" style={{ backgroundColor: '#e2fbe8', color: '#1a7f37', border: '1px solid #acf2bd', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', display: 'inline-block', marginTop: '4px', fontWeight: 'bold' }}>
+                                                        <i className="fa-solid fa-circle-check"></i> {language === LANGUAGES.VI ? 'Đã thu tiền' : 'Paid'}
+                                                    </span>
+                                                ) : (
+                                                    <span className="badge-unpaid" style={{ backgroundColor: '#fff8e6', color: '#b27b00', border: '1px solid #ffe8b3', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', display: 'inline-block', marginTop: '4px', fontWeight: 'bold' }}>
+                                                        <i className="fa-solid fa-circle-info"></i> {language === LANGUAGES.VI ? 'Chưa thu tiền' : 'Unpaid'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td>
                                             {this.getStatusBadge(booking.statusId)}
                                         </td>
                                         <td>
@@ -396,6 +508,20 @@ class ManageBooking extends Component {
                         </table>
                     )}
                 </div>
+
+                <ViewHistoryModal
+                    isOpen={this.state.isOpenHistoryModal}
+                    closeModal={this.handleCloseHistoryModal}
+                    patientId={this.state.selectedPatientId}
+                    patientName={this.state.selectedPatientName}
+                />
+
+                <ConfirmPaymentModal
+                    isOpenModal={this.state.isOpenConfirmModal}
+                    closeConfirmModal={this.handleCloseConfirmModal}
+                    bookingData={this.state.selectedBooking}
+                    handleConfirmPayment={this.handleConfirmPayment}
+                />
             </div>
         );
     }

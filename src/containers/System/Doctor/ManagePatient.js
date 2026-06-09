@@ -33,9 +33,12 @@ class ManagePatient extends Component {
     }
 
     getDataPatient = async () => {
+        let { user } = this.props;
+        if (!user || !user.id) {
+            return;
+        }
         this.setState({ isLoading: true });
         try {
-            let { user } = this.props;
             let { currentDate } = this.state;
             let formattedDate = currentDate ? new Date(currentDate).getTime() : '';
 
@@ -52,7 +55,7 @@ class ManagePatient extends Component {
             }
         } catch (error) {
             console.error('Error loading patients:', error);
-            toast.error('Failed to load patients');
+            toast.error('Không thể tải danh sách bệnh nhân');
         }
         this.setState({ isLoading: false });
     }
@@ -60,6 +63,9 @@ class ManagePatient extends Component {
     async componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props.language !== prevProps.language) {
             this.applyFilters();
+        }
+        if (prevProps.user !== this.props.user) {
+            this.getDataPatient();
         }
     }
 
@@ -117,13 +123,16 @@ class ManagePatient extends Component {
         });
     }
 
-    handleBtnConfirm = (item) => {
+    handleBtnConfirm = (item, isReadOnly = false) => {
         let data = {
             doctorId: item.doctorId,
             patientId: item.patientId,
-            email: item.patientData.email,
+            email: item.patientData ? item.patientData.email : '',
             timeType: item.timeType,
-            patientName: item.patientData.firstName
+            date: item.date,
+            patientName: item.patientData ? item.patientData.firstName : '',
+            reason: item.reason || '',
+            isReadOnly: isReadOnly
         }
         this.setState({
             isOpenRemedyModal: true,
@@ -134,7 +143,7 @@ class ManagePatient extends Component {
     handleBtnViewInfo = (item) => {
         this.setState({
             isOpenPatientInfoModal: true,
-            patientInfoData: item.patientData
+            patientInfoData: item || {}
         });
     }
 
@@ -158,24 +167,31 @@ class ManagePatient extends Component {
             email: dataChild.email,
             imgBase64: dataChild.imgBase64,
             followUpDate: dataChild.followUpDate,
+            diagnosis: dataChild.diagnosis,
+            prescription: dataChild.prescription,
+            services: dataChild.services,
             doctorId: dataModal.doctorId,
             patientId: dataModal.patientId,
             timeType: dataModal.timeType,
+            date: dataModal.date,
             language: this.props.language,
-            patientName: dataModal.patientName
+            patientName: dataModal.patientName,
+            paymentMethod: dataChild.paymentMethod
         })
         if (res && res.errCode === 0) {
-            toast.success('Sent successfully');
+            toast.success(this.props.language === LANGUAGES.VI ? 'Gửi hóa đơn và bệnh án thành công!' : 'Remedy and medical record sent successfully!');
             this.closeRemedyModal();
             await this.getDataPatient();
+            return true;
         }
         else {
-            toast.error('Send failed');
+            toast.error(this.props.language === LANGUAGES.VI ? 'Gửi hóa đơn và bệnh án thất bại!' : 'Failed to send remedy and medical record!');
+            return false;
         }
     }
 
     handleBtnCancel = (item) => {
-        let date = moment(this.state.currentDate).startOf('day').valueOf();
+        let date = item.date;
         this.setState({
             isOpenCancelModal: true,
             dataModal: {
@@ -183,8 +199,8 @@ class ManagePatient extends Component {
                 patientId: item.patientId,
                 timeType: item.timeType,
                 date,
-                email: item.patientData.email,
-                patientName: item.patientData.firstName
+                email: item.patientData ? item.patientData.email : '',
+                patientName: item.patientData ? item.patientData.firstName : ''
             }
         })
     }
@@ -196,11 +212,11 @@ class ManagePatient extends Component {
         });
 
         if (res && res.errCode === 0) {
-            toast.success('Cancelled successfully');
+            toast.success('Hủy lịch hẹn thành công!');
             this.setState({ isOpenCancelModal: false });
             await this.getDataPatient();
         } else {
-            toast.error('Cancel failed');
+            toast.error('Hủy lịch hẹn thất bại!');
         }
     }
 
@@ -238,8 +254,19 @@ class ManagePatient extends Component {
                     <button
                         className='btn btn-complete'
                         onClick={() => this.handleBtnConfirm(item)}
+                        style={{ marginRight: '8px' }}
                     >
                         <i className="fas fa-stethoscope"></i> {language === LANGUAGES.VI ? 'Khám bệnh' : 'Examine'}
+                    </button>
+                )}
+
+                {item.statusId === 'S3' && (
+                    <button
+                        className='btn btn-success btn-view-record'
+                        onClick={() => this.handleBtnConfirm(item, true)}
+                        style={{ marginRight: '8px', color: 'white', backgroundColor: '#28a745', borderColor: '#28a745' }}
+                    >
+                        <i className="fas fa-file-medical"></i> {language === LANGUAGES.VI ? 'Xem bệnh án' : 'View record'}
                     </button>
                 )}
 
@@ -439,14 +466,14 @@ class ManagePatient extends Component {
                                                 <td>
                                                     <div className="patient-info">
                                                         <div className="patient-name">
-                                                            {item.patientData.firstName} {item.patientData.lastName || ''}
+                                                            {item.patientData ? `${item.patientData.firstName || ''} ${item.patientData.lastName || ''}` : '—'}
                                                         </div>
                                                         <div className="patient-contact">
-                                                            <i className="fa-solid fa-phone"></i> {item.patientData.phonenumber || '—'}
+                                                            <i className="fa-solid fa-phone"></i> {item.patientData?.phonenumber || '—'}
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td>{item.patientData.address || '—'}</td>
+                                                <td>{item.patientData?.address || '—'}</td>
                                                 <td>{gender || '—'}</td>
                                                 <td>
                                                     {this.getStatusBadge(item.statusId)}

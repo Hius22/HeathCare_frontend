@@ -270,37 +270,33 @@
                 gap: 8px;
                 justify-content: center;
 
-                .btn {
-                  padding: 10px 1px;
+                button {
+                  width: 35px;
+                  height: 35px;
                   border: none;
-                  border-radius: 5px;
+                  border-radius: 8px;
                   cursor: pointer;
-                  font-size: 12px;
-                  font-weight: 600;
+                  transition: opacity 0.2s ease;
                   display: flex;
                   align-items: center;
-                  gap: 5px;
-                  transition: all 0.2s;
-
-                  i {
-                    font-size: 13px;
-                  }
+                  justify-content: center;
+                  font-size: 14px;
 
                   &.btn-edit {
-                    background: #ff9800;
-                    color: white;
+                    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+                    color: #f57c00;
 
                     &:hover {
-                      background: #f57c00;
+                      opacity: 0.85;
                     }
                   }
 
                   &.btn-delete {
-                    background: #f44336;
-                    color: white;
+                    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+                    color: #d32f2f;
 
                     &:hover {
-                      background: #d32f2f;
+                      opacity: 0.85;
                     }
                   }
                 }

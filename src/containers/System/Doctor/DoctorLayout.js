@@ -4,9 +4,56 @@ import { NavLink, withRouter } from 'react-router-dom';
 import * as actions from "../../../store/actions";
 import { LANGUAGES } from '../../../utils';
 import NotificationDropdown from '../NotificationDropdown';
+import { getDetailInforDoctor } from '../../../services/userService';
 import './DoctorLayout.scss';
 
 class DoctorLayout extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            specialtyName: ''
+        };
+    }
+
+    async componentDidMount() {
+        await this.fetchSpecialtyInfo();
+    }
+
+    async componentDidUpdate(prevProps, prevState) {
+        if (prevProps.userInfo !== this.props.userInfo) {
+            await this.fetchSpecialtyInfo();
+        }
+    }
+
+    fetchSpecialtyInfo = async () => {
+        let { userInfo } = this.props;
+        if (userInfo && userInfo.id) {
+            try {
+                let res = await getDetailInforDoctor(userInfo.id);
+                if (res && res.errCode === 0 && res.data) {
+                    let doctorInfo = res.data;
+                    let specialtyName = '';
+                    
+                    // Try to get specialty from many-to-many junction list
+                    if (doctorInfo.doctorSpecialties && doctorInfo.doctorSpecialties.length > 0) {
+                        specialtyName = doctorInfo.doctorSpecialties
+                            .map(ds => ds.specialtyData?.name)
+                            .filter(Boolean)
+                            .join(', ');
+                    }
+                    
+                    // Fallback to legacy single specialty relation
+                    if (!specialtyName && doctorInfo.Doctor_Infor?.specialtyData?.name) {
+                        specialtyName = doctorInfo.Doctor_Infor.specialtyData.name;
+                    }
+                    
+                    this.setState({ specialtyName });
+                }
+            } catch (error) {
+                console.error("Failed to fetch specialty info", error);
+            }
+        }
+    }
 
     handleChangeLanguages = (language) => {
         this.props.changeLanguageAppRedux(language);
@@ -25,6 +72,7 @@ class DoctorLayout extends Component {
 
     render() {
         const { processLogout, language, userInfo, children } = this.props;
+        const { specialtyName } = this.state;
         
         let imageUrl = '';
         if (userInfo && userInfo.image) {
@@ -61,11 +109,13 @@ class DoctorLayout extends Component {
                             style={{ backgroundImage: `url(${imageUrl || 'https://via.placeholder.com/150'})` }}
                         ></div>
                         <div className="doctor-name">
-                            {language === LANGUAGES.VI ? `Bs. ${userInfo?.firstName} ${userInfo?.lastName}` : `Dr. ${userInfo?.firstName} ${userInfo?.lastName}`}
+                            {language === LANGUAGES.VI 
+                                ? `Bs. ${userInfo?.lastName || ''} ${userInfo?.firstName || ''}` 
+                                : `Dr. ${userInfo?.lastName || ''} ${userInfo?.firstName || ''}`}
                         </div>
-                        <div className="doctor-role">
+                        <div className="doctor-role" title={specialtyName}>
                             <i className="fas fa-stethoscope"></i>
-                            {language === LANGUAGES.VI ? 'Bác sĩ chuyên khoa' : 'Specialist Doctor'}
+                            {specialtyName || (language === LANGUAGES.VI ? 'Bác sĩ chuyên khoa' : 'Specialist Doctor')}
                         </div>
                     </div>
 
