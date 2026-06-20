@@ -249,3 +249,133 @@
     background: transparent !important;
   }
 }
+
+.suggested-profiles-container {
+  margin-top: 8px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  grid-column: span 2;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-column: 1 / -1;
+  }
+
+  .suggested-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    i {
+      color: #006591;
+    }
+  }
+
+  .suggested-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+
+    .suggested-card {
+      background-color: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      &:hover {
+        border-color: #006591;
+        box-shadow: 0 4px 10px rgba(0, 101, 145, 0.08);
+        transform: translateY(-1px);
+      }
+
+      &.active {
+        border-color: #006591;
+        background-color: rgba(0, 101, 145, 0.03);
+        box-shadow: 0 0 0 3px rgba(0, 101, 145, 0.1);
+      }
+
+      .card-header-info {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+
+        .profile-name {
+          font-weight: 700;
+          font-size: 14px;
+          color: #1e293b;
+        }
+
+        .profile-gender-badge {
+          background-color: #f1f5f9;
+          color: #475569;
+          font-size: 11px;
+          font-weight: 600;
+          padding: 2px 8px;
+          border-radius: 9999px;
+        }
+      }
+
+      .profile-details {
+        font-size: 12px;
+        color: #64748b;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        p {
+          margin: 0;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          i {
+            color: #94a3b8;
+            font-size: 11px;
+            width: 12px;
+            text-align: center;
+          }
+        }
+      }
+
+      &.new-profile-card {
+        border-style: dashed;
+        background-color: #f8fafc;
+
+        .profile-name {
+          color: #006591 !important;
+          font-weight: 600;
+        }
+
+        .profile-details {
+          color: #64748b;
+        }
+
+        &:hover {
+          background-color: #f1f5f9;
+        }
+
+        &.active {
+          background-color: rgba(0, 101, 145, 0.03);
+        }
+      }
+    }
+  }
+}
+

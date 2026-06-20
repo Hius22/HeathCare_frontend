@@ -166,13 +166,20 @@ class DoctorSchedule extends Component {
                                                     ? item.timeTypeData?.valueVi
                                                     : item.timeTypeData?.valueEn;
 
+                                            let isFull = item.currentNumber >= 5;
+                                            let displayLabel = timeDisplay;
+                                            if (isFull) {
+                                                displayLabel += language === LANGUAGES.VI ? ' (Hết chỗ)' : ' (Full)';
+                                            }
+
                                             return (
                                                 <button
                                                     key={index}
-                                                    className={language === LANGUAGES.VI ? 'btn-vie' : 'btn-en'}
-                                                    onClick={() => this.handleClickScheduleTime(item)}
+                                                    className={isFull ? 'btn-full' : (language === LANGUAGES.VI ? 'btn-vie' : 'btn-en')}
+                                                    disabled={isFull}
+                                                    onClick={() => !isFull && this.handleClickScheduleTime(item)}
                                                 >
-                                                    {timeDisplay}
+                                                    {displayLabel}
                                                 </button>
                                             )
                                         })}

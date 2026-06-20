@@ -96,8 +96,17 @@ class VerifyEmail extends Component {
                                     <div className='icon-error'>
                                         <i className='fa-solid fa-circle-xmark'></i>
                                     </div>
-                                    <h2>Lịch hẹn không tồn tại hoặc đã được xác nhận!</h2>
-                                    <p>Link xác nhận có thể đã hết hạn hoặc lịch hẹn đã được xác nhận trước đó.</p>
+                                    {+errCode === 3 ? (
+                                        <>
+                                            <h2>Liên kết xác nhận đã hết hạn!</h2>
+                                            <p>Thời gian giữ chỗ quá 5 phút đã trôi qua. Lịch hẹn của bạn đã bị hủy tự động để giải phóng chỗ cho người khác. Vui lòng đặt lại lịch hẹn mới!</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <h2>Lịch hẹn không tồn tại hoặc đã được xác nhận!</h2>
+                                            <p>Link xác nhận có thể đã hết hạn hoặc lịch hẹn đã được xác nhận trước đó.</p>
+                                        </>
+                                    )}
                                     <div className='booking-actions'>
                                         <button
                                             className='btn-primary'

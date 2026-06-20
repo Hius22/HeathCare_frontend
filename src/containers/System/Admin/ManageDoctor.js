@@ -349,142 +349,160 @@ class ManageDoctor extends Component {
 
     render() {
         let { hasOldData, listSpecialty } = this.state;
-        //console.log('state: ', this.state)
+        let { language } = this.props;
+
         return (
-            <div className='manage-doctor-container'>
-                <div className='manage-doctor-title'>
-                    <FormattedMessage id="admin.manage-doctor.title" />
-                </div>
-                <div className='more-infor'>
-                    <div className='content-left form-group'>
-                        <label><FormattedMessage id="admin.manage-doctor.select-doctor" /></label>
-                        <Select
-                            value={this.state.selectedDoctor}
-                            onChange={this.handleChangeSelect}
-                            options={this.state.listDoctors}
-                            placeholder={<FormattedMessage id="admin.manage-doctor.select-doctor" />}
+            <div className="manage-doctor-container container-fluid">
+                <div className="card shadow-sm border-0 rounded-3 mb-4">
+                    <div className="card-body p-4">
+                        {/* Header */}
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-6">
+                                <h4 className="text-admin font-weight-bold mb-0">
+                                    <i className="fa-solid fa-user-doctor me-2"></i>
+                                    <FormattedMessage id="admin.manage-doctor.title" />
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    {language === LANGUAGES.VI ? 'Thiết lập thông tin giới thiệu, giá khám, phòng khám và chuyên khoa của bác sĩ' : 'Configure introduction, prices, clinics and specialties for doctors'}
+                                </p>
+                            </div>
+                        </div>
 
-                        />
-                    </div>
-                    <div className='content-right'>
-                        <label><FormattedMessage id="admin.manage-doctor.information" /></label>
-                        <textarea
-                            className='form-control'
-                            onChange={(event) => this.handleOnChangeText(event, 'description')}
-                            value={this.state.description}
-                        >
-                        </textarea>
+                        {/* Form Body */}
+                        <div className="row g-3 border-top pt-4">
+                            <div className='col-md-4 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id="admin.manage-doctor.select-doctor" /></label>
+                                <Select
+                                    value={this.state.selectedDoctor}
+                                    onChange={this.handleChangeSelect}
+                                    options={this.state.listDoctors}
+                                    placeholder={<FormattedMessage id="admin.manage-doctor.select-doctor" />}
+                                    isClearable
+                                />
+                            </div>
+                            <div className='col-md-8 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id="admin.manage-doctor.information" /></label>
+                                <textarea
+                                    className='form-control'
+                                    onChange={(event) => this.handleOnChangeText(event, 'description')}
+                                    value={this.state.description}
+                                    rows="1"
+                                    style={{ minHeight: '38px', paddingTop: '6px' }}
+                                >
+                                </textarea>
+                            </div>
+
+                            <div className='col-md-4 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id="admin.manage-doctor.price" /></label>
+                                <Select
+                                    value={this.state.selectedPrice}
+                                    onChange={this.handleChangeSelectDoctorInfor}
+                                    options={this.state.listPrice}
+                                    placeholder={<FormattedMessage id="admin.manage-doctor.price" />}
+                                    name="selectedPrice"
+                                />
+                            </div>
+                            <div className='col-md-4 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id="admin.manage-doctor.payment" /></label>
+                                <Select
+                                    value={this.state.selectedPayment}
+                                    onChange={this.handleChangeSelectDoctorInfor}
+                                    options={this.state.listPayment}
+                                    placeholder={<FormattedMessage id="admin.manage-doctor.payment" />}
+                                    name="selectedPayment"
+                                />
+                            </div>
+                            <div className='col-md-4 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id="admin.manage-doctor.province" /></label>
+                                <Select
+                                    value={this.state.selectedProvince}
+                                    onChange={this.handleChangeSelectDoctorInfor}
+                                    options={this.state.listProvince}
+                                    placeholder={<FormattedMessage id="admin.manage-doctor.province" />}
+                                    name="selectedProvince"
+                                />
+                            </div>
+
+                            <div className='col-md-6 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id="admin.manage-doctor.nameClinic" /></label>
+                                <Select
+                                    value={this.state.selectedClinicName}
+                                    onChange={this.handleChangeSelectDoctorInfor}
+                                    options={this.state.listClinicName}
+                                    placeholder={<FormattedMessage id="admin.manage-doctor.nameClinic" />}
+                                    name="selectedClinicName"
+                                    isClearable
+                                />
+                            </div>
+                            <div className='col-md-6 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id="admin.manage-doctor.addressClinic" /></label>
+                                <Select
+                                    value={this.state.selectedClinicAddress}
+                                    onChange={this.handleChangeSelectDoctorInfor}
+                                    options={this.state.listClinicAddress}
+                                    placeholder={<FormattedMessage id="admin.manage-doctor.addressClinic" />}
+                                    name="selectedClinicAddress"
+                                    isClearable
+                                />
+                            </div>
+
+                            <div className='col-12'>
+                                <label className="form-label fw-bold small text-secondary mb-2">
+                                    <FormattedMessage id="admin.manage-doctor.select-specialty" />
+                                    <span className="text-muted ms-2 fw-normal small">
+                                        (Có thể chọn nhiều chuyên khoa)
+                                    </span>
+                                </label>
+                                <Select
+                                    isMulti
+                                    value={this.state.selectedSpecialty}
+                                    onChange={(selectedOptions) => {
+                                        this.setState({ selectedSpecialty: selectedOptions || [] });
+                                    }}
+                                    options={this.state.listSpecialty}
+                                    placeholder={<FormattedMessage id="admin.manage-doctor.select-specialty" />}
+                                    name="selectedSpecialty"
+                                    closeMenuOnSelect={false}
+                                />
+                            </div>
+
+                            <div className='col-12'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id="admin.manage-doctor.note" /></label>
+                                <input className='form-control'
+                                    onChange={(event) => this.handleOnChangeText(event, 'note')}
+                                    value={this.state.note}
+                                  />
+                            </div>
+
+                            <div className='col-12 mt-4'>
+                                <label className="form-label fw-bold small text-secondary mb-2">Bài viết giới thiệu chi tiết</label>
+                                <div className="border rounded-3 overflow-hidden">
+                                    <MdEditor
+                                        style={{ height: '300px' }}
+                                        renderHTML={text => mdParser.render(text)}
+                                        onChange={this.handleEditorChange}
+                                        value={this.state.contentMarkdown}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className='col-12 mt-4'>
+                                <button
+                                    onClick={() => this.handleSaveContentMarkdown()}
+                                    className={`btn btn-sm rounded-pill px-4 ${
+                                        hasOldData === true ? 'btn-warning text-white' : 'btn-admin'
+                                    }`}>
+                                    {hasOldData === true ?
+                                        <FormattedMessage id="admin.manage-doctor.save" />
+                                        :
+                                        <FormattedMessage id="admin.manage-doctor.create" />
+                                    }
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div className='more-infor-extra row'>
-                    <div className='col-4 form-group'>
-                        <label><FormattedMessage id="admin.manage-doctor.price" /></label>
-                        <Select
-                            value={this.state.selectedPrice}
-                            onChange={this.handleChangeSelectDoctorInfor}
-                            options={this.state.listPrice}
-                            placeholder={<FormattedMessage id="admin.manage-doctor.price" />}
-                            name="selectedPrice"
-                        />
-                    </div>
-                    <div className='col-4 form-group'>
-                        <label><FormattedMessage id="admin.manage-doctor.payment" /></label>
-                        <Select
-                            value={this.state.selectedPayment}
-                            onChange={this.handleChangeSelectDoctorInfor}
-                            options={this.state.listPayment}
-                            placeholder={<FormattedMessage id="admin.manage-doctor.payment" />}
-                            name="selectedPayment"
-                        />
-                    </div>
-                    <div className='col-4 form-group'>
-                        <label><FormattedMessage id="admin.manage-doctor.province" /></label>
-                        <Select
-                            value={this.state.selectedProvince}
-                            onChange={this.handleChangeSelectDoctorInfor}
-                            options={this.state.listProvince}
-                            placeholder={<FormattedMessage id="admin.manage-doctor.province" />}
-                            name="selectedProvince"
-                        />
-                    </div>
-                    <div className='col-6 form-group'>
-                        <label><FormattedMessage id="admin.manage-doctor.nameClinic" /></label>
-                        <Select
-                            value={this.state.selectedClinicName}
-                            onChange={this.handleChangeSelectDoctorInfor}
-                            options={this.state.listClinicName}
-                            placeholder={<FormattedMessage id="admin.manage-doctor.nameClinic" />}
-                            name="selectedClinicName"
-                            isClearable
-                        />
-                    </div>
-                    <div className='col-6 form-group'>
-                        <label><FormattedMessage id="admin.manage-doctor.addressClinic" /></label>
-                        <Select
-                            value={this.state.selectedClinicAddress}
-                            onChange={this.handleChangeSelectDoctorInfor}
-                            options={this.state.listClinicAddress}
-                            placeholder={<FormattedMessage id="admin.manage-doctor.addressClinic" />}
-                            name="selectedClinicAddress"
-                            isClearable
-                        />
-                    </div>
-                    <div className='col-12 form-group'>
-                        <label><FormattedMessage id="admin.manage-doctor.note" /></label>
-                        <input className='form-control'
-                            onChange={(event) => this.handleOnChangeText(event, 'note')}
-                            value={this.state.note}
-                        />
-                    </div>
-                </div>
-
-                <div className='row'>
-                    <div className='col-12 form-group'>
-                        <label>
-                            <FormattedMessage id="admin.manage-doctor.select-specialty" />
-                            <span style={{ color: '#006ea8', marginLeft: 8, fontSize: 13 }}>
-                                (Có thể chọn nhiều chuyên khoa)
-                            </span>
-                        </label>
-                        <Select
-                            isMulti
-                            value={this.state.selectedSpecialty}
-                            onChange={(selectedOptions) => {
-                                this.setState({ selectedSpecialty: selectedOptions || [] });
-                            }}
-                            options={this.state.listSpecialty}
-                            placeholder={<FormattedMessage id="admin.manage-doctor.select-specialty" />}
-                            name="selectedSpecialty"
-                            closeMenuOnSelect={false}
-                        />
-                    </div>
-                </div>
-
-                <div className='manage-doctor-editor'>
-                    <MdEditor
-                        style={{ height: '300px' }}
-                        renderHTML={text => mdParser.render(text)}
-                        onChange={this.handleEditorChange}
-                        value={this.state.contentMarkdown}
-                    />
-                </div>
-
-                <button
-                    onClick={() => this.handleSaveContentMarkdown()}
-                    className={hasOldData === true ? 'save-content-doctor' : 'create-content-doctor'}>
-                    {hasOldData === true ?
-                        <span>
-                            <FormattedMessage id="admin.manage-doctor.save" />
-                        </span>
-                        :
-                        <span>
-                            <FormattedMessage id="admin.manage-doctor.create" />
-                        </span>
-                    }
-                </button>
             </div>
-
         );
     }
 

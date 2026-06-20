@@ -4,7 +4,7 @@ import { withRouter } from 'react-router';
 import HomeHeader from '../HomePage/HomeHeader';
 import HomeFooter from '../HomePage/HomeFooter';
 import './BookingFlow.scss';
-import { getAllSpecialty, getAllDoctors, postPatientBookingAppointment, getDetailSpecialtyById, getDetailInforDoctor, getScheduleDoctorByDate, getDoctorsBySpecialty } from '../../services/userService';
+import { getAllSpecialty, getAllDoctors, postPatientBookingAppointment, getDetailSpecialtyById, getDetailInforDoctor, getScheduleDoctorByDate, getDoctorsBySpecialty, getPatientByEmail, getAllClinic } from '../../services/userService';
 import { toast } from 'react-toastify';
 import moment from 'moment';
 import * as actions from '../../store/actions';
@@ -16,6 +16,8 @@ class BookingFlow extends Component {
         this.state = {
             currentStep: 1,
             specialties: [],
+            clinics: [],
+            selectedClinicId: '',
             doctors: [],
             filteredDoctors: [],
             selectedSpecialty: '',
@@ -34,12 +36,15 @@ class BookingFlow extends Component {
                 birthday: '',
                 gender: '',
                 reason: ''
-            }
+            },
+            suggestedProfiles: [],
+            selectedProfileIndex: -1
         };
     }
 
     async componentDidMount() {
         this.props.getGenders();
+        await this.loadClinics();
         await this.loadSpecialties();
         await this.loadDoctors();
         // Pre-fill from Hero search query params
@@ -52,11 +57,16 @@ class BookingFlow extends Component {
         let specialtyId = params.get('specialtyId');
         const doctorId    = params.get('doctorId');
         const date        = params.get('date');
+        const clinicId    = params.get('clinicId');
 
-        if (!specialtyId && !doctorId && !date) return;
+        if (!specialtyId && !doctorId && !date && !clinicId) return;
 
         const { doctors } = this.state;
         let updates = {};
+
+        if (clinicId) {
+            updates.selectedClinicId = clinicId;
+        }
 
         if (doctorId) {
             const found = doctors.find(d => String(d.id) === String(doctorId));
@@ -74,31 +84,30 @@ class BookingFlow extends Component {
 
         if (specialtyId) {
             updates.selectedSpecialty = specialtyId;
-            try {
-                let res = await getDoctorsBySpecialty(specialtyId);
-                if (res && res.errCode === 0) {
-                    updates.filteredDoctors = res.data || [];
-                }
-            } catch (e) {
-                // fallback: filter local
-                updates.filteredDoctors = doctors.filter(d =>
-                    d.doctorSpecialties && d.doctorSpecialties.some(ds =>
-                        String(ds.specialtyId) === String(specialtyId)
-                    )
-                );
-            }
         }
 
         if (date) updates.selectedDate = date;
 
         if (Object.keys(updates).length > 0) {
-            this.setState(updates, () => {
+            this.setState(updates, async () => {
+                await this.filterDoctors(this.state.selectedSpecialty, this.state.selectedClinicId);
                 const { selectedDoctor, selectedDate } = this.state;
                 if (selectedDoctor && selectedDate) {
                     this.loadAvailableTimeSlots(selectedDoctor.id, selectedDate);
                     this.setState({ currentStep: 2 });
                 }
             });
+        }
+    }
+
+    loadClinics = async () => {
+        try {
+            let res = await getAllClinic();
+            if (res && res.errCode === 0) {
+                this.setState({ clinics: res.data || [] });
+            }
+        } catch (error) {
+            console.error('Error loading clinics:', error);
         }
     }
 
@@ -300,21 +309,24 @@ class BookingFlow extends Component {
         }
     }
 
-    handleSpecialtyChange = async (specialtyId) => {
+    filterDoctors = async (specialtyId, clinicId) => {
         const { doctors } = this.state;
+        let filteredDocs = doctors;
 
-        // Filter doctors by selected specialty
-        let filteredDocs = [];
+        // 1. Filter by Clinic if clinicId is selected
+        if (clinicId) {
+            filteredDocs = filteredDocs.filter(doc => doc.Doctor_Infor && String(doc.Doctor_Infor.clinicId) === String(clinicId));
+        }
+
+        // 2. Filter by Specialty if specialtyId is selected
         if (specialtyId) {
             try {
-                // Get doctors for this specialty using the correct API
                 let res = await getDetailSpecialtyById({
                     id: specialtyId,
                     location: 'ALL'
                 });
 
                 if (res && res.errCode === 0 && res.data) {
-                    // Get doctor IDs from doctorSpecialty table
                     let doctorIds = [];
                     if (res.data.doctorSpecialty && res.data.doctorSpecialty.length > 0) {
                         res.data.doctorSpecialty.forEach(item => {
@@ -323,23 +335,106 @@ class BookingFlow extends Component {
                             }
                         });
                     }
-
-                    // Filter doctors array by these IDs
-                    filteredDocs = doctors.filter(doctor => doctorIds.includes(doctor.id));
+                    filteredDocs = filteredDocs.filter(doctor => doctorIds.includes(doctor.id));
+                } else {
+                    filteredDocs = [];
                 }
             } catch (error) {
                 console.error('Error loading doctors for specialty:', error);
                 filteredDocs = [];
             }
-        } else {
-            filteredDocs = doctors;
         }
 
         this.setState({
-            selectedSpecialty: specialtyId,
-            selectedDoctor: null, // Reset selected doctor when changing specialty
             filteredDoctors: filteredDocs
         });
+    }
+
+    handleSpecialtyChange = async (specialtyId) => {
+        this.setState({
+            selectedSpecialty: specialtyId,
+            selectedDoctor: null // Reset selected doctor when changing specialty
+        }, async () => {
+            await this.filterDoctors(this.state.selectedSpecialty, this.state.selectedClinicId);
+        });
+    }
+
+    handleClinicChange = async (clinicId) => {
+        this.setState({
+            selectedClinicId: clinicId,
+            selectedDoctor: null // Reset selected doctor when changing clinic
+        }, async () => {
+            await this.filterDoctors(this.state.selectedSpecialty, this.state.selectedClinicId);
+        });
+    }
+
+    handleEmailChange = async (event) => {
+        let email = event.target.value;
+        this.setState(prevState => ({
+            patientInfo: {
+                ...prevState.patientInfo,
+                email: email
+            },
+            suggestedProfiles: [],
+            selectedProfileIndex: -1
+        }), async () => {
+            let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (emailRegex.test(email)) {
+                try {
+                    let res = await getPatientByEmail(email);
+                    if (res && res.errCode === 0 && res.data && res.data.length > 0) {
+                        this.setState({
+                            suggestedProfiles: res.data,
+                            selectedProfileIndex: 0
+                        }, () => {
+                            this.handleSelectProfile(0);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error fetching patient by email:', error);
+                }
+            }
+        });
+    }
+
+    handleSelectProfile = (index) => {
+        const { suggestedProfiles, patientInfo } = this.state;
+        const isVi = this.props.language === LANGUAGES.VI;
+
+        if (index === -1) {
+            this.setState({
+                selectedProfileIndex: -1,
+                patientInfo: {
+                    ...patientInfo,
+                    fullName: '',
+                    phoneNumber: '',
+                    address: '',
+                    gender: '',
+                    birthday: ''
+                }
+            });
+            toast.info(isVi ? 
+                'Vui lòng nhập thông tin mới cho người khám!' : 
+                'Please enter new information for the patient!'
+            );
+        } else {
+            let patient = suggestedProfiles[index];
+            this.setState({
+                selectedProfileIndex: index,
+                patientInfo: {
+                    ...patientInfo,
+                    fullName: patient.fullName || '',
+                    phoneNumber: patient.phoneNumber || '',
+                    address: patient.address || '',
+                    gender: patient.selectedGender || '',
+                    birthday: patient.birthday ? moment(Number(patient.birthday)).format('YYYY-MM-DD') : ''
+                }
+            });
+            toast.success(isVi ? 
+                `Đã áp dụng hồ sơ: ${patient.fullName}` : 
+                `Applied profile: ${patient.fullName}`
+            );
+        }
     }
 
     handleConfirmBooking = async () => {
@@ -457,6 +552,24 @@ class BookingFlow extends Component {
                 <div className='step-content'>
                     <div className='form-field'>
                         <label className='form-label'>
+                            {isVi ? 'Cơ sở y tế (Phòng khám)' : 'Medical Facility (Clinic)'}
+                        </label>
+                        <select
+                            className='form-select'
+                            value={this.state.selectedClinicId}
+                            onChange={(e) => this.handleClinicChange(e.target.value)}
+                        >
+                            <option value="">{isVi ? 'Tất cả cơ sở y tế' : 'All medical facilities'}</option>
+                            {this.state.clinics && this.state.clinics.map(clinic => (
+                                <option key={clinic.id} value={clinic.id}>
+                                    {clinic.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className='form-field'>
+                        <label className='form-label'>
                             {isVi ? 'Chuyên khoa' : 'Specialty'} <span className='required'>*</span>
                         </label>
                         <select
@@ -478,7 +591,7 @@ class BookingFlow extends Component {
                         {filteredDoctors.length === 0 ? (
                             <div className='no-doctors-message'>
                                 <i className='fa-regular fa-folder-open'></i>
-                                <p>{isVi ? 'Không có bác sĩ nào cho chuyên khoa này' : 'No doctors available for this specialty'}</p>
+                                <p>{isVi ? 'Không có bác sĩ nào phù hợp với bộ lọc hiện tại' : 'No doctors available for the current filters'}</p>
                             </div>
                         ) : (
                             <div className='doctor-grid'>
@@ -535,7 +648,7 @@ class BookingFlow extends Component {
 
         return (
             <div className='booking-step'>
-                <h2 className='step-title'>{isVi ? 'Chọn ngày, giờ và hình thức khám' : 'Select Date, Time, and Appointment Type'}</h2>
+                <h2 className='step-title'>{isVi ? 'Chọn ngày và giờ khám' : 'Select Date and Time'}</h2>
                 <div className='step-content'>
                     <div className='form-field'>
                         <label className='form-label'>
@@ -581,41 +694,6 @@ class BookingFlow extends Component {
                         )}
                     </div>
 
-                    <div className='form-field'>
-                        <label className='form-label'>{isVi ? 'Hình thức khám' : 'Appointment type'}</label>
-                        <div className='type-grid'>
-                            <label className={`type-card ${appointmentType === 'offline' ? 'selected' : ''}`}>
-                                <input
-                                    type='radio'
-                                    name='type'
-                                    value='offline'
-                                    checked={appointmentType === 'offline'}
-                                    onChange={() => this.setState({ appointmentType: 'offline' })}
-                                    className='sr-only'
-                                />
-                                <div className='type-card-content'>
-                                    <i className='fa-solid fa-location-dot type-icon'></i>
-                                    <span className='type-title'>{isVi ? 'Khám trực tiếp' : 'In-person checkup'}</span>
-                                    <p className='type-desc'>{isVi ? 'Đến cơ sở y tế để gặp bác sĩ' : 'Go to the medical facility to meet the doctor'}</p>
-                                </div>
-                            </label>
-                            <label className={`type-card ${appointmentType === 'online' ? 'selected' : ''}`}>
-                                <input
-                                    type='radio'
-                                    name='type'
-                                    value='online'
-                                    checked={appointmentType === 'online'}
-                                    onChange={() => this.setState({ appointmentType: 'online' })}
-                                    className='sr-only'
-                                />
-                                <div className='type-card-content'>
-                                    <i className='fa-solid fa-video type-icon'></i>
-                                    <span className='type-title'>{isVi ? 'Tư vấn trực tuyến' : 'Online consultation'}</span>
-                                    <p className='type-desc'>{isVi ? 'Gặp bác sĩ qua video call' : 'Meet the doctor via video call'}</p>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
                 </div>
                 <div className='step-actions'>
                     <button className='btn-secondary' onClick={this.prevStep}>
@@ -678,9 +756,7 @@ class BookingFlow extends Component {
                                 className='form-input'
                                 placeholder='example@email.com'
                                 value={patientInfo.email}
-                                onChange={(e) => this.setState({
-                                    patientInfo: { ...patientInfo, email: e.target.value }
-                                })}
+                                onChange={(e) => this.handleEmailChange(e)}
                             />
                         </div>
                         <div className='form-field'>
@@ -695,6 +771,50 @@ class BookingFlow extends Component {
                             />
                         </div>
                     </div>
+
+                    {this.state.suggestedProfiles && this.state.suggestedProfiles.length > 0 && (
+                        <div className='suggested-profiles-container'>
+                            <p className='suggested-title'>
+                                <i className="fa-solid fa-users-viewfinder"></i>{' '}
+                                {isVi ? 'Chọn hồ sơ bệnh nhân đã lưu:' : 'Select saved patient profile:'}
+                            </p>
+                            <div className='suggested-grid'>
+                                {this.state.suggestedProfiles.map((profile, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`suggested-card ${this.state.selectedProfileIndex === idx ? 'active' : ''}`}
+                                        onClick={() => this.handleSelectProfile(idx)}
+                                    >
+                                        <div className='card-header-info'>
+                                            <span className='profile-name'>{profile.fullName}</span>
+                                            {profile.selectedGender && (
+                                                <span className='profile-gender-badge'>
+                                                    {this.props.genders && this.props.genders.find(g => g.keyMap === profile.selectedGender)
+                                                        ? (isVi ? this.props.genders.find(g => g.keyMap === profile.selectedGender).valueVi : this.props.genders.find(g => g.keyMap === profile.selectedGender).valueEn)
+                                                        : profile.selectedGender}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className='profile-details'>
+                                            <p><i className="fa-solid fa-phone"></i> {profile.phoneNumber}</p>
+                                            <p><i className="fa-solid fa-location-dot"></i> {profile.address}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                                <div
+                                    className={`suggested-card new-profile-card ${this.state.selectedProfileIndex === -1 ? 'active' : ''}`}
+                                    onClick={() => this.handleSelectProfile(-1)}
+                                >
+                                    <div className='card-header-info'>
+                                        <span className='profile-name'>{isVi ? 'Đặt cho người thân / Hồ sơ khác' : 'Book for relative / Other profile'}</span>
+                                    </div>
+                                    <div className='profile-details'>
+                                        <p>{isVi ? 'Nhập thông tin mới của người khám' : 'Enter new information for the patient'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className='form-row'>
                         <div className='form-field'>
@@ -765,7 +885,7 @@ class BookingFlow extends Component {
     }
 
     renderStep4 = () => {
-        const { selectedDoctor, selectedDate, selectedTime, appointmentType, patientInfo } = this.state;
+        const { selectedDoctor, selectedDate, selectedTime, selectedTimeSlot, appointmentType, patientInfo } = this.state;
         const isVi = this.props.language === LANGUAGES.VI;
 
         return (
@@ -804,20 +924,14 @@ class BookingFlow extends Component {
                             <i className='fa-regular fa-clock'></i>
                             <div>
                                 <p className='detail-label'>{isVi ? 'Giờ khám' : 'Appointment time'}</p>
-                                <p className='detail-value'>{selectedTime || (isVi ? 'Chưa chọn' : 'Not selected')}</p>
-                            </div>
-                        </div>
-                        <div className='detail-item'>
-                            <i className='fa-solid fa-location-dot'></i>
-                            <div>
-                                <p className='detail-label'>{isVi ? 'Hình thức' : 'Appointment type'}</p>
                                 <p className='detail-value'>
-                                    {appointmentType === 'offline' 
-                                        ? (isVi ? 'Khám trực tiếp' : 'In-person checkup') 
-                                        : (isVi ? 'Tư vấn trực tuyến' : 'Online consultation')}
+                                    {selectedTimeSlot 
+                                        ? (isVi ? selectedTimeSlot.timeTypeData?.valueVi : selectedTimeSlot.timeTypeData?.valueEn) 
+                                        : (selectedTime || (isVi ? 'Chưa chọn' : 'Not selected'))}
                                 </p>
                             </div>
                         </div>
+
                         <div className='detail-item'>
                             <i className='fa-regular fa-user'></i>
                             <div>

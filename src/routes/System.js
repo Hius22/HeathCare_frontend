@@ -7,6 +7,7 @@ import ManageSpecialty from '../containers/System/Specialty/ManageSpecialty';
 import ManageClinic from '../containers/System/Clinic/ManageClinic';
 import ManageSchedule from '../containers/System/Doctor/ManageSchedule';
 import ManageBooking from '../containers/System/Admin/ManageBooking';
+import RevenueReport from '../containers/System/Admin/RevenueReport';
 import AdminLayout from '../containers/System/Admin/AdminLayout';
 
 class System extends Component {
@@ -23,6 +24,7 @@ class System extends Component {
                             <Route path="/system/manage-clinic" component={ManageClinic} />
                             <Route path="/system/manage-schedule" component={ManageSchedule} />
                             <Route path="/system/manage-booking" component={ManageBooking} />
+                            <Route path="/system/revenue-report" component={RevenueReport} />
                             <Redirect to="/system/manage-booking" />
                         </Switch>
                     </AdminLayout>

@@ -242,62 +242,75 @@ class UserRedux extends Component {
 
 
         return (
-            <div className="user-redux-container" >
-                <div className='title'>
-                    <FormattedMessage id='manage-user.user-manage' />
-                </div>
+            <div className="user-redux-container container-fluid" >
+                <div className="card shadow-sm border-0 rounded-3 mb-4">
+                    <div className="card-body p-4">
+                        {/* Header */}
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-6">
+                                <h4 className="text-admin font-weight-bold mb-0">
+                                    <i className="fa-solid fa-users-gear me-2"></i>
+                                    <FormattedMessage id='manage-user.user-manage' />
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    {language === LANGUAGES.VI ? 'Quản lý, thêm mới và cập nhật thông tin người dùng trong hệ thống' : 'Manage, create and update system users'}
+                                </p>
+                            </div>
+                        </div>
 
-                <div className='user-redux-body' >
-                    <div className='container'>
-                        <div className='row'>
-                            <div className='col-12 my-3'><FormattedMessage id='manage-user.add' /></div>
-                            <div className='col-12'> {isGetGender === true ? 'Loading genders' : ' '} </div>
-                            <div className='col-3'>
-                                <label><FormattedMessage id='manage-user.email' /></label>
+                        {/* Form Body */}
+                        <div className="row g-3 border-top pt-4">
+                            <div className='col-12 mb-2 fw-bold text-dark fs-6'>
+                                <FormattedMessage id='manage-user.add' />
+                                {isGetGender === true ? ' (Loading genders...)' : ''}
+                            </div>
+                            
+                            <div className='col-md-3 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id='manage-user.email' /></label>
                                 <input className='form-control' type='email'
                                     value={email}
                                     onChange={(event) => { this.onChangeInput(event, 'email') }}
                                     disabled={this.state.action === CRUD_ACTIONS.EDIT ? true : false}
                                 />
                             </div>
-                            <div className='col-3'>
-                                <label><FormattedMessage id='manage-user.password' /></label>
+                            <div className='col-md-3 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id='manage-user.password' /></label>
                                 <input className='form-control' type='password'
                                     value={password}
                                     onChange={(event) => { this.onChangeInput(event, 'password') }}
                                     disabled={this.state.action === CRUD_ACTIONS.EDIT ? true : false}
                                 />
                             </div>
-                            <div className='col-3'>
-                                <label><FormattedMessage id='manage-user.first-name' /></label>
+                            <div className='col-md-3 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id='manage-user.first-name' /></label>
                                 <input className='form-control' type='text'
                                     value={firstName}
                                     onChange={(event) => { this.onChangeInput(event, 'firstName') }}
                                 />
                             </div>
-                            <div className='col-3'>
-                                <label><FormattedMessage id='manage-user.last-name' /></label>
+                            <div className='col-md-3 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id='manage-user.last-name' /></label>
                                 <input className='form-control' type='text'
                                     value={lastName}
                                     onChange={(event) => { this.onChangeInput(event, 'lastName') }}
                                 />
                             </div>
-                            <div className='col-3'>
-                                <label><FormattedMessage id='manage-user.phone-number' /></label>
+                            <div className='col-md-3 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id='manage-user.phone-number' /></label>
                                 <input className='form-control' type='text'
                                     value={phoneNumber}
                                     onChange={(event) => { this.onChangeInput(event, 'phoneNumber') }}
                                 />
                             </div>
-                            <div className='col-9'>
-                                <label><FormattedMessage id='manage-user.address' /></label>
+                            <div className='col-md-9 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id='manage-user.address' /></label>
                                 <input className='form-control' type='text'
                                     value={address}
                                     onChange={(event) => { this.onChangeInput(event, 'address') }}
                                 />
                             </div>
-                            <div className='col-3'>
-                                <label><FormattedMessage id='manage-user.gender' /></label>
+                            <div className='col-md-3 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id='manage-user.gender' /></label>
                                 <select className='form-control'
                                     value={gender}
                                     onChange={(event) => { this.onChangeInput(event, 'gender') }}
@@ -313,8 +326,8 @@ class UserRedux extends Component {
                                     }
                                 </select>
                             </div>
-                            <div className='col-3'>
-                                <label><FormattedMessage id='manage-user.position' /></label>
+                            <div className='col-md-3 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id='manage-user.position' /></label>
                                 <select className='form-control'
                                     value={position}
                                     onChange={(event) => { this.onChangeInput(event, 'position') }}
@@ -331,8 +344,8 @@ class UserRedux extends Component {
                                     }
                                 </select>
                             </div>
-                            <div className='col-3'>
-                                <label><FormattedMessage id='manage-user.role' /></label>
+                            <div className='col-md-3 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id='manage-user.role' /></label>
                                 <select className='form-control'
                                     value={role}
                                     onChange={(event) => { this.onChangeInput(event, 'role') }}
@@ -348,43 +361,51 @@ class UserRedux extends Component {
                                     }
                                 </select>
                             </div>
-                            <div className='col-3'>
-                                <label><FormattedMessage id='manage-user.image' /></label>
-                                <div className='preview-img-container'>
+                            <div className='col-md-3 col-sm-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id='manage-user.image' /></label>
+                                <div className='preview-img-container d-flex align-items-center gap-3'>
                                     <input id="previewImg" type='file' hidden
                                         onChange={(event) => this.handleOnChangeImage(event)}
-
-
                                     />
-                                    <label className='label-upload' htmlFor='previewImg'>Tải ảnh <i className="fa-solid fa-upload"></i></label>
-                                    <div className='preview-image'
-                                        style={{ backgroundImage: `url(${this.state.previewImgURL})` }}
-                                        onClick={() => this.openPreviewImage()}
-                                    >
-                                    </div>
+                                    <label className='btn btn-outline-admin btn-sm rounded-pill px-3 mb-0' htmlFor='previewImg'>
+                                        Tải ảnh <i className="fa-solid fa-upload ms-1"></i>
+                                    </label>
+                                    {this.state.previewImgURL && (
+                                        <div className='preview-image rounded-circle border'
+                                            style={{ 
+                                                backgroundImage: `url(${this.state.previewImgURL})`,
+                                                width: '45px',
+                                                height: '45px',
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
+                                                cursor: 'pointer'
+                                             }}
+                                            onClick={() => this.openPreviewImage()}
+                                        >
+                                        </div>
+                                    )}
                                 </div>
-
                             </div>
-                            <div className='col-12 my-3'>
-                                <button className=
-                                    {this.state.action === CRUD_ACTIONS.EDIT ? 'btn btn-warning' : 'btn btn-primary'}
+                            
+                            <div className='col-12 mt-4'>
+                                <button className={`btn btn-sm rounded-pill px-4 ${
+                                    this.state.action === CRUD_ACTIONS.EDIT ? 'btn-warning text-white' : 'btn-admin'
+                                }`}
                                     onClick={() => this.handleSaveUser()}
-
                                 >
                                     {this.state.action === CRUD_ACTIONS.EDIT ? <FormattedMessage id='manage-user.edit' /> : <FormattedMessage id='manage-user.save' />}
                                 </button>
-                            </div>
-                            <div className='col-12 mb-5'>
-                                <TableManageUser
-                                    handleEditUserFromParent={this.handleEditUserFromParent}
-                                    action={this.state.action}
-                                />
                             </div>
                         </div>
                     </div>
                 </div>
 
-
+                <div className='mb-5'>
+                    <TableManageUser
+                        handleEditUserFromParent={this.handleEditUserFromParent}
+                        action={this.state.action}
+                    />
+                </div>
 
                 {this.state.isOpen === true &&
                     <Lightbox

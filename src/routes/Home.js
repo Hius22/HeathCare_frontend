@@ -14,6 +14,8 @@ class Home extends Component {
                 linkToRedirect = '/system/user-manage';
             } else if (userInfo.roleId === USER_ROLE.DOCTOR) {
                 linkToRedirect = '/doctor/manage-schedule-doctor';
+            } else if (userInfo.roleId === USER_ROLE.RECEPTIONIST) {
+                linkToRedirect = '/receptionist/check-in';
             }
         }
 

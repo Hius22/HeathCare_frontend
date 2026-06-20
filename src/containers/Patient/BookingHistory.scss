@@ -410,3 +410,502 @@
     }
   }
 }
+
+/* ===== MODAL & FORMS STYLING ===== */
+
+// 1. Edit Patient Modal
+.edit-patient-modal {
+  .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 18px 24px;
+    
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+
+      .header-icon {
+        color: #1a73e8;
+        font-size: 20px;
+      }
+    }
+
+    .close, .btn-close {
+      color: #000000 !important;
+      filter: brightness(0) !important;
+      opacity: 0.7;
+      text-shadow: none;
+      font-weight: 300;
+      font-size: 24px;
+      outline: none;
+      
+      &:hover {
+        opacity: 1;
+        color: #000000 !important;
+        filter: brightness(0) !important;
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 24px;
+    background-color: #ffffff;
+
+    .form-group {
+      margin-bottom: 20px;
+
+      .form-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 6px;
+        display: block;
+      }
+
+      .text-input, .select-input {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 14px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        background-color: #f8fafc;
+        color: #1e293b;
+        transition: all 0.2s ease-in-out;
+
+        &:focus {
+          border-color: #1a73e8;
+          background-color: #ffffff;
+          box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
+          outline: none;
+        }
+
+        &:hover {
+          border-color: #94a3b8;
+        }
+      }
+    }
+  }
+
+  .modal-footer {
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    .btn-cancel {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      color: #475569;
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #f1f5f9;
+        color: #1e293b;
+        border-color: #94a3b8;
+      }
+    }
+
+    .btn-save {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      color: #ffffff;
+      background-color: #1a73e8;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 6px rgba(26, 115, 232, 0.15);
+
+      &:hover {
+        background-color: #1557b0;
+        box-shadow: 0 6px 12px rgba(26, 115, 232, 0.25);
+      }
+    }
+  }
+}
+
+// 2. Reschedule Booking Modal
+.reschedule-modal {
+  .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    background-color: #006591;
+    color: #ffffff;
+    padding: 18px 24px;
+    border-bottom: none;
+
+    .modal-title {
+      width: 100%;
+    }
+    
+    .modal-title-custom {
+      font-weight: 700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .header-icon {
+        font-size: 20px;
+      }
+    }
+    
+    .close, .btn-close {
+      color: #000000 !important;
+      filter: brightness(0) !important;
+      opacity: 0.7;
+      text-shadow: none;
+      font-weight: 300;
+      font-size: 24px;
+      outline: none;
+      
+      &:hover {
+        opacity: 1;
+        color: #000000 !important;
+        filter: brightness(0) !important;
+      }
+    }
+  }
+
+  .reschedule-modal-body {
+    padding: 24px;
+    
+    .doctor-info-summary {
+      background-color: #f8fafc;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 8px;
+
+        &:last-of-type {
+          border-bottom: none;
+          padding-bottom: 0;
+        }
+
+        .summary-label {
+          font-weight: 600;
+          color: #64748b;
+        }
+
+        .summary-val {
+          font-weight: 500;
+          color: #1e293b;
+
+          &.text-primary-dark {
+            color: #006591;
+            font-weight: 700;
+          }
+        }
+      }
+
+      .current-schedule-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 6px;
+        padding-top: 10px;
+        border-top: 1px dashed #cbd5e1;
+
+        .summary-label {
+          font-weight: 600;
+          color: #64748b;
+          font-size: 14px;
+        }
+
+        .current-badge {
+          background-color: #fef3c7;
+          color: #b45309;
+          font-weight: 700;
+          font-size: 13px;
+          padding: 6px 12px;
+          border-radius: 6px;
+          border: 1px solid #fde68a;
+          display: inline-block;
+        }
+      }
+    }
+
+    .reschedule-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+
+      .form-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .reschedule-date-picker {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        font-size: 14px;
+        background-color: #f8fafc;
+        color: #1e293b;
+        transition: all 0.2s ease-in-out;
+        
+        &:focus {
+          border-color: #006591;
+          background-color: #ffffff;
+          box-shadow: 0 0 0 4px rgba(0, 101, 145, 0.15);
+          outline: none;
+        }
+
+        &:hover {
+          border-color: #94a3b8;
+        }
+      }
+
+      .reschedule-slots-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+
+        .btn-slot-select {
+          padding: 12px 8px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          background-color: #ffffff;
+          font-weight: 600;
+          color: #475569;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 13px;
+          text-align: center;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+          &:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+            color: #1e293b;
+          }
+
+          &.selected {
+            background-color: #006591;
+            color: #ffffff;
+            border-color: #006591;
+            box-shadow: 0 4px 10px rgba(0, 101, 145, 0.25);
+          }
+        }
+      }
+
+      .no-slots-alert {
+        padding: 14px;
+        background-color: #fffbeb;
+        border: 1px solid #fef3c7;
+        border-radius: 8px;
+        color: #b45309;
+        font-size: 14px;
+        line-height: 1.5;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+    }
+  }
+
+  .modal-footer {
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    .btn-cancel {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      color: #475569;
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #f1f5f9;
+        color: #1e293b;
+        border-color: #94a3b8;
+      }
+    }
+
+    .btn-confirm-reschedule {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      color: #ffffff;
+      background-color: #006591;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 6px rgba(0, 101, 145, 0.15);
+      
+      &:hover:not(:disabled) {
+        background-color: #004c6e;
+        box-shadow: 0 6px 12px rgba(0, 101, 145, 0.25);
+      }
+      
+      &:disabled {
+        background-color: #cbd5e1;
+        color: #94a3b8;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+    }
+  }
+}
+
+// 3. Cancel Booking Confirmation Modal
+.cancel-booking-modal {
+  .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    background-color: #fef2f2;
+    border-bottom: 1px solid #fee2e2;
+    padding: 16px 20px;
+
+    .modal-title {
+      width: 100%;
+    }
+
+    .modal-title-custom {
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #dc2626;
+
+      .header-icon {
+        font-size: 18px;
+      }
+    }
+    
+    .close, .btn-close {
+      color: #000000 !important;
+      filter: brightness(0) !important;
+      opacity: 0.7;
+      text-shadow: none;
+      font-weight: 300;
+      font-size: 24px;
+      outline: none;
+      
+      &:hover {
+        opacity: 1;
+        color: #000000 !important;
+        filter: brightness(0) !important;
+      }
+    }
+  }
+
+  .cancel-modal-body {
+    padding: 20px;
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.5;
+
+    .booking-summary-box {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 12px;
+      text-align: left;
+
+      p {
+        margin-bottom: 6px;
+        font-size: 13px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        strong {
+          color: #1e293b;
+        }
+      }
+    }
+  }
+
+  .modal-footer {
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+
+    .btn-secondary {
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      font-weight: 600;
+      
+      &:hover {
+        background-color: #f1f5f9;
+        color: #1e293b;
+      }
+    }
+
+    .btn-danger {
+      background-color: #dc2626;
+      border: none;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 6px rgba(220, 38, 38, 0.15);
+
+      &:hover {
+        background-color: #b91c1c;
+        box-shadow: 0 6px 12px rgba(220, 38, 38, 0.25);
+      }
+    }
+  }
+}
+

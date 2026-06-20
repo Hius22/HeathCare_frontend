@@ -9,7 +9,7 @@ import DatePicker from '../../../../components/Input/DatePicker';
 import * as actions from '../../../../store/actions';
 import { LANGUAGES } from '../../../../utils';
 import Select from 'react-select';
-import { postPatientBookingAppointment } from '../../../../services/userService';
+import { postPatientBookingAppointment, getPatientByEmail } from '../../../../services/userService';
 import { toast } from "react-toastify";
 import moment from 'moment';
 
@@ -28,6 +28,8 @@ class BookingModal extends Component {
             doctorId: '',
             timeType: '',
             genders: '',
+            suggestedProfiles: [],
+            selectedProfileIndex: -1,
         }
     }
 
@@ -79,11 +81,70 @@ class BookingModal extends Component {
 
     handleOnChangeInput = (event, id) => {
         let valueInput = event.target.value;
-        let stateCopy = { ...this.state };
-        stateCopy[id] = valueInput;
-        this.setState({
-            ...stateCopy
-        })
+        let updateObj = { [id]: valueInput };
+        if (id === 'email') {
+            updateObj.suggestedProfiles = [];
+            updateObj.selectedProfileIndex = -1;
+        }
+        this.setState(updateObj, async () => {
+            if (id === 'email') {
+                let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailRegex.test(valueInput)) {
+                    try {
+                        let res = await getPatientByEmail(valueInput);
+                        if (res && res.errCode === 0 && res.data && res.data.length > 0) {
+                            this.setState({
+                                suggestedProfiles: res.data,
+                                selectedProfileIndex: 0
+                            }, () => {
+                                this.handleSelectProfile(0);
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error fetching patient by email:', error);
+                    }
+                }
+            }
+        });
+    }
+
+    handleSelectProfile = (index) => {
+        const { suggestedProfiles } = this.state;
+        const isVi = this.props.language === LANGUAGES.VI;
+
+        if (index === -1) {
+            this.setState({
+                selectedProfileIndex: -1,
+                fullName: '',
+                phoneNumber: '',
+                address: '',
+                selectedGender: '',
+                birthday: ''
+            });
+            toast.info(isVi ? 
+                'Vui lòng nhập thông tin mới cho người khám!' : 
+                'Please enter new information for the patient!'
+            );
+        } else {
+            let patient = suggestedProfiles[index];
+            let genderObj = '';
+            if (this.state.genders && this.state.genders.length > 0) {
+                genderObj = this.state.genders.find(g => g.value === patient.selectedGender) || '';
+            }
+
+            this.setState({
+                selectedProfileIndex: index,
+                fullName: patient.fullName || '',
+                phoneNumber: patient.phoneNumber || '',
+                address: patient.address || '',
+                birthday: patient.birthday ? new Date(Number(patient.birthday)) : '',
+                selectedGender: genderObj || ''
+            });
+            toast.success(isVi ? 
+                `Đã áp dụng hồ sơ: ${patient.fullName}` : 
+                `Applied profile: ${patient.fullName}`
+            );
+        }
     }
 
     handleOnchangeDatePicker = (date) => {
@@ -318,6 +379,50 @@ class BookingModal extends Component {
                                     />
                                 </div>
                             </div>
+
+                            {this.state.suggestedProfiles && this.state.suggestedProfiles.length > 0 && (
+                                <div className='suggested-profiles-container'>
+                                    <p className='suggested-title'>
+                                        <i className="fa-solid fa-users-viewfinder"></i>{' '}
+                                        {this.props.language === LANGUAGES.VI ? 'Chọn hồ sơ bệnh nhân đã lưu:' : 'Select saved patient profile:'}
+                                    </p>
+                                    <div className='suggested-grid'>
+                                        {this.state.suggestedProfiles.map((profile, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`suggested-card ${this.state.selectedProfileIndex === idx ? 'active' : ''}`}
+                                                onClick={() => this.handleSelectProfile(idx)}
+                                            >
+                                                <div className='card-header-info'>
+                                                    <span className='profile-name'>{profile.fullName}</span>
+                                                    {profile.selectedGender && (
+                                                        <span className='profile-gender-badge'>
+                                                            {this.state.genders && this.state.genders.find(g => g.value === profile.selectedGender)
+                                                                ? this.state.genders.find(g => g.value === profile.selectedGender).label
+                                                                : profile.selectedGender}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className='profile-details'>
+                                                    <p><i className="fa-solid fa-phone"></i> {profile.phoneNumber}</p>
+                                                    <p><i className="fa-solid fa-location-dot"></i> {profile.address}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div
+                                            className={`suggested-card new-profile-card ${this.state.selectedProfileIndex === -1 ? 'active' : ''}`}
+                                            onClick={() => this.handleSelectProfile(-1)}
+                                        >
+                                            <div className='card-header-info'>
+                                                <span className='profile-name'>{this.props.language === LANGUAGES.VI ? 'Đặt cho người thân / Hồ sơ khác' : 'Book for relative / Other profile'}</span>
+                                            </div>
+                                            <div className='profile-details'>
+                                                <p>{this.props.language === LANGUAGES.VI ? 'Nhập thông tin mới của người khám' : 'Enter new information for the patient'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className='form-group full-width'>
                                 <label className='form-label'>

@@ -21,6 +21,7 @@ class AdminLayout extends Component {
         if (path.includes('manage-doctor'))    return isVi ? 'Quản Lý Bác Sĩ' : 'Doctor Management';
         if (path.includes('manage-schedule'))  return isVi ? 'Quản Lý Lịch Khám' : 'Schedule Management';
         if (path.includes('manage-booking'))   return isVi ? 'Quản Lý Đặt Lịch' : 'Booking Management';
+        if (path.includes('revenue-report'))   return isVi ? 'Báo Cáo Doanh Thu' : 'Revenue Report';
         if (path.includes('manage-clinic'))    return isVi ? 'Quản Lý Phòng Khám' : 'Clinic Management';
         if (path.includes('manage-specialty')) return isVi ? 'Quản Lý Chuyên Khoa' : 'Specialty Management';
         return isVi ? 'Hệ Thống Quản Trị' : 'Admin Dashboard';
@@ -93,6 +94,11 @@ class AdminLayout extends Component {
                             {isVi ? 'Đặt lịch' : 'Bookings'}
                         </NavLink>
 
+                        <NavLink to="/system/revenue-report" className="menu-item" activeClassName="active">
+                            <i className="fas fa-chart-line"></i>
+                            {isVi ? 'Doanh thu' : 'Revenue'}
+                        </NavLink>
+
                         <div className="menu-section-label" style={{ marginTop: '8px' }}>{isVi ? 'CƠ SỞ Y TẾ' : 'MEDICAL'}</div>
 
                         <NavLink to="/system/manage-clinic" className="menu-item" activeClassName="active">
@@ -141,13 +147,6 @@ class AdminLayout extends Component {
                             </div>
                             <div className="notification-icon">
                                 <NotificationDropdown role="admin" />
-                            </div>
-                            <div className="topbar-user">
-                                <div
-                                    className="topbar-avatar"
-                                    style={{ backgroundImage: `url(${imageUrl || 'https://ui-avatars.com/api/?name=Admin&background=1a56db&color=fff'})` }}
-                                ></div>
-                                <span>{userInfo?.firstName} {userInfo?.lastName}</span>
                             </div>
                         </div>
                     </header>

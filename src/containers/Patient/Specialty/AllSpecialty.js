@@ -26,6 +26,14 @@ class AllSpecialty extends Component {
                 dataSpecialty: res.data || [],
                 filteredSpecialty: res.data || [],
                 isLoading: false
+            }, () => {
+                if (this.props.location && this.props.location.search) {
+                    const params = new URLSearchParams(this.props.location.search);
+                    const searchParam = params.get('search') || '';
+                    if (searchParam) {
+                        this.handleSearch({ target: { value: searchParam } });
+                    }
+                }
             })
         } else {
             this.setState({ isLoading: false });

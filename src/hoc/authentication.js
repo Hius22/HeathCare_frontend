@@ -44,4 +44,16 @@ export const userIsDoctor = connectedRouterRedirect({
     },
     allowRedirectBack: false
 });
+
+// Receptionist only (R4)
+export const userIsReceptionist = connectedRouterRedirect({
+    authenticatedSelector: state =>
+        state.user.isLoggedIn && state.user.userInfo && state.user.userInfo.roleId === 'R4',
+    wrapperDisplayName: 'UserIsReceptionist',
+    redirectPath: (state, ownProps) => {
+        if (!state.user.isLoggedIn) return '/login';
+        return '/home';
+    },
+    allowRedirectBack: false
+});
 

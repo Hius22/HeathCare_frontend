@@ -22,6 +22,14 @@ class AllDoctors extends Component {
     async componentDidMount() {
         await this.loadDoctors();
         await this.loadSpecialties();
+
+        if (this.props.location && this.props.location.search) {
+            const params = new URLSearchParams(this.props.location.search);
+            const searchParam = params.get('search') || '';
+            if (searchParam) {
+                this.handleSearch({ target: { value: searchParam } });
+            }
+        }
     }
 
     loadDoctors = async () => {
@@ -72,7 +80,7 @@ class AllDoctors extends Component {
         } else {
             // Filter doctors by specialty
             let filtered = doctors.filter(doctor => {
-                return doctor.Doctor_Infor && doctor.Doctor_Infor.specialtyId === specialtyId;
+                return this.getSpecialties(doctor).some(sp => sp.id == specialtyId);
             });
 
             this.setState({
@@ -91,16 +99,21 @@ class AllDoctors extends Component {
         // Apply specialty filter first
         if (selectedSpecialty !== 'all') {
             filtered = filtered.filter(doctor => {
-                return doctor.Doctor_Infor && doctor.Doctor_Infor.specialtyId === selectedSpecialty;
+                return this.getSpecialties(doctor).some(sp => sp.id == selectedSpecialty);
             });
         }
 
         // Apply search filter
         if (query) {
             filtered = filtered.filter(doctor => {
-                const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
-                const specialtyName = doctor.Doctor_Infor?.specialtyData?.name?.toLowerCase() || '';
-                return fullName.includes(query) || specialtyName.includes(query);
+                const fullNameVi = `${doctor.lastName || ''} ${doctor.firstName || ''}`.toLowerCase();
+                const fullNameEn = `${doctor.firstName || ''} ${doctor.lastName || ''}`.toLowerCase();
+                
+                // Search in all specialties
+                const specialties = this.getSpecialties(doctor);
+                const hasSpecialtyMatch = specialties.some(sp => sp.name?.toLowerCase().includes(query));
+                
+                return fullNameVi.includes(query) || fullNameEn.includes(query) || hasSpecialtyMatch;
             });
         }
 
@@ -110,9 +123,25 @@ class AllDoctors extends Component {
         });
     }
 
+    getSpecialties = (doctor) => {
+        let list = [];
+        if (doctor && doctor.doctorSpecialties && doctor.doctorSpecialties.length > 0) {
+            doctor.doctorSpecialties.forEach(item => {
+                if (item.specialtyData && item.specialtyData.name) {
+                    list.push(item.specialtyData);
+                }
+            });
+        }
+        if (list.length === 0 && doctor && doctor.Doctor_Infor && doctor.Doctor_Infor.specialtyData) {
+            list.push(doctor.Doctor_Infor.specialtyData);
+        }
+        return list;
+    }
+
     getSpecialtyName = (doctor) => {
-        if (doctor && doctor.Doctor_Infor && doctor.Doctor_Infor.specialtyData) {
-            return doctor.Doctor_Infor.specialtyData.name;
+        let list = this.getSpecialties(doctor);
+        if (list.length > 0) {
+            return list.map(item => item.name).join(', ');
         }
         return 'Chưa cập nhật';
     }
@@ -135,6 +164,7 @@ class AllDoctors extends Component {
 
     render() {
         const { filteredDoctors, specialties, selectedSpecialty, searchQuery, isLoading } = this.state;
+        const { language } = this.props;
 
         return (
             <React.Fragment>
@@ -257,12 +287,23 @@ class AllDoctors extends Component {
                                                     <div className="info-header">
                                                         <div>
                                                             <h2 className="doctor-name">
-                                                                {doctor.positionData?.valueVi || 'Bác sĩ'} {doctor.firstName} {doctor.lastName}
+                                                                {language === 'vi' 
+                                                                    ? `${doctor.positionData?.valueVi || 'Bác sĩ'} ${doctor.lastName || ''} ${doctor.firstName || ''}`
+                                                                    : `${doctor.positionData?.valueEn || 'Doctor'} ${doctor.firstName || ''} ${doctor.lastName || ''}`
+                                                                }
                                                             </h2>
                                                             <div className="doctor-tags">
-                                                                <span className="specialty-tag">
-                                                                    {this.getSpecialtyName(doctor)}
-                                                                </span>
+                                                                {this.getSpecialties(doctor).length > 0 ? (
+                                                                    this.getSpecialties(doctor).map((specialty, idx) => (
+                                                                        <span key={idx} className="specialty-tag">
+                                                                            {specialty.name}
+                                                                        </span>
+                                                                    ))
+                                                                ) : (
+                                                                    <span className="specialty-tag">
+                                                                        Chưa cập nhật
+                                                                    </span>
+                                                                )}
                                                                 {doctor.Doctor_Infor?.clinicData && (
                                                                     <span className="clinic-tag">
                                                                         <i className="fa-solid fa-hospital"></i>

@@ -266,24 +266,36 @@ class ManageSchedule extends Component {
         let yesterday = new Date(new Date().setDate(new Date().getDate() - 1));
 
         return (
-            <div className='manage-schedule-container'>
-                <div className='title'>
-                    <FormattedMessage id="manage-schedule.title" />
-                </div>
-                
-                <div className='manage-schedule-body'>
-                    <div className='container'>
-                        <div className='row'>
-                            <div className='col-6 form-group'>
-                                <label><FormattedMessage id="manage-schedule.choose-doctor" /></label>
+            <div className='manage-schedule-container container-fluid'>
+                {/* Form Card */}
+                <div className="card shadow-sm border-0 rounded-3 mb-4">
+                    <div className="card-body p-4">
+                        {/* Header */}
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-6">
+                                <h4 className="text-admin font-weight-bold mb-0">
+                                    <i className="fa-solid fa-calendar-days me-2"></i>
+                                    <FormattedMessage id="manage-schedule.title" />
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    {language === LANGUAGES.VI ? 'Thiết lập và phân bổ lịch khám bệnh cho các bác sĩ trong hệ thống' : 'Configure and allocate scheduling for system doctors'}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Form Body */}
+                        <div className="row g-3 border-top pt-4">
+                            <div className='col-md-6 col-sm-12'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id="manage-schedule.choose-doctor" /></label>
                                 <Select
                                     value={this.state.selectedDoctors}
                                     onChange={this.handleChangeSelect}
                                     options={this.state.listDoctors}
+                                    isClearable
                                 />
                             </div>
-                            <div className='col-6 form-group'>
-                                <label><FormattedMessage id="manage-schedule.choose-date" /></label>
+                            <div className='col-md-6 col-sm-12'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><FormattedMessage id="manage-schedule.choose-date" /></label>
                                 <DatePicker
                                     onChange={this.handleOnchangeDatePicker}
                                     className='form-control'
@@ -291,11 +303,12 @@ class ManageSchedule extends Component {
                                     minDate={yesterday}
                                 />
                             </div>
-                            <div className='col-12 pick-hour-container'>
+                            
+                            <div className='col-12 pick-hour-container d-flex flex-wrap gap-2 mt-4'>
                                 {rangeTime && rangeTime.length > 0 &&
                                     rangeTime.map((item, index) => {
                                         return (
-                                            <button className={item.isSelected === true ? 'btn btn-schedule active' : 'btn btn-schedule'}
+                                            <button className={`btn btn-sm btn-schedule rounded-pill px-3 py-2 ${item.isSelected === true ? 'active' : ''}`}
                                                 key={index}
                                                 onClick={() => this.handleClickBtnTime(item)}
                                                 disabled={this.isTimeSlotInPast(item)}
@@ -306,79 +319,95 @@ class ManageSchedule extends Component {
                                     })
                                 }
                             </div>
-                            <div className='col-12'>
-                                <button className='btn btn-primary btn-save-schedule'
-                                    onClick={() => this.handleSaveSchedule()}
-                                >
-                                    <FormattedMessage id="manage-schedule.save-information" />
-                                </button>
+                            
+                            <div className='col-12 mt-4'>
+                                <div className='d-flex justify-content-end'>
+                                    <button className='btn btn-sm btn-admin rounded-pill px-4'
+                                        onClick={() => this.handleSaveSchedule()}
+                                    >
+                                        <i className="fa-solid fa-save me-1"></i>
+                                        <FormattedMessage id="manage-schedule.save-information" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="table-container">
-                    <div className="table-header">
-                        <h3><i className="fas fa-calendar-alt"></i> <FormattedMessage id="manage-schedule.created-schedule" defaultMessage="Lịch khám đã tạo" /></h3>
-                        <span className="schedule-count">Tổng: {doctorSchedules ? doctorSchedules.length : 0} lịch</span>
-                    </div>
+                {/* Schedules List Card */}
+                <div className="card shadow-sm border-0 rounded-3">
+                    <div className="card-body p-4">
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-6">
+                                <h4 className="text-admin font-weight-bold mb-0">
+                                    <i className="fa-solid fa-list me-2"></i>
+                                    <FormattedMessage id="manage-schedule.created-schedule" defaultMessage="Lịch khám đã tạo" />
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    Tổng số: {doctorSchedules ? doctorSchedules.length : 0} lịch khám
+                                </p>
+                            </div>
+                        </div>
 
-                    <div className="table-wrapper">
-                        <table id='TableManageSchedule'>
-                            <thead>
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Bác sĩ</th>
-                                    <th>Ngày khám</th>
-                                    <th>Giờ khám</th>
-                                    <th>Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {doctorSchedules && doctorSchedules.length > 0 ? (
-                                    doctorSchedules.map((item, index) => (
-                                        <tr key={item.id || index}>
-                                            <td>{index + 1}</td>
-                                            <td className="doctor-name">
-                                                {item.doctorData
-                                                    ? (language === LANGUAGES.VI
-                                                        ? `${item.doctorData.lastName} ${item.doctorData.firstName}`
-                                                        : `${item.doctorData.firstName} ${item.doctorData.lastName}`)
-                                                    : ''}
-                                            </td>
-                                            <td className="date-cell">
-                                                {item.date
-                                                    ? moment(Number(item.date)).format('DD/MM/YYYY')
-                                                    : '---'}
-                                            </td>
-                                            <td className="time-cell">
-                                                {language === LANGUAGES.VI
-                                                    ? item.timeTypeData?.valueVi || ''
-                                                    : item.timeTypeData?.valueEn || ''}
-                                            </td>
-                                            <td>
-                                                <div className="action-buttons">
-                                                    <button
-                                                        className="btn-delete"
-                                                        onClick={() => this.handleDeleteSchedule(item)}
-                                                        title="Xóa"
-                                                    >
-                                                        <i className="fas fa-trash-alt"></i>
-                                                    </button>
-                                                </div>
+                        <div className="table-responsive">
+                            <table className="table table-hover align-middle">
+                                <thead className="table-light text-secondary">
+                                    <tr>
+                                        <th style={{ width: '80px' }}>STT</th>
+                                        <th>Bác sĩ</th>
+                                        <th>Ngày khám</th>
+                                        <th>Giờ khám</th>
+                                        <th className="text-center" style={{ width: '120px' }}>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {doctorSchedules && doctorSchedules.length > 0 ? (
+                                        doctorSchedules.map((item, index) => (
+                                            <tr key={item.id || index}>
+                                                <td>{index + 1}</td>
+                                                <td className="fw-bold text-dark">
+                                                    {item.doctorData
+                                                        ? (language === LANGUAGES.VI
+                                                            ? `${item.doctorData.lastName} ${item.doctorData.firstName}`
+                                                            : `${item.doctorData.firstName} ${item.doctorData.lastName}`)
+                                                        : ''}
+                                                </td>
+                                                <td>
+                                                    {item.date
+                                                        ? moment(Number(item.date)).format('DD/MM/YYYY')
+                                                        : '---'}
+                                                </td>
+                                                <td>
+                                                    <span className="badge bg-light text-dark border p-1 px-2 small">
+                                                        {language === LANGUAGES.VI
+                                                            ? item.timeTypeData?.valueVi || ''
+                                                            : item.timeTypeData?.valueEn || ''}
+                                                    </span>
+                                                </td>
+                                                <td className="text-center">
+                                                    <div className="d-flex gap-2 justify-content-center">
+                                                        <button
+                                                            className="btn btn-sm btn-outline-danger px-2 rounded-pill"
+                                                            onClick={() => this.handleDeleteSchedule(item)}
+                                                            title="Xóa"
+                                                        >
+                                                            <i className="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="5" className="text-center py-5 text-secondary">
+                                                <i className="fas fa-calendar-times fa-2x mb-3 text-muted"></i>
+                                                <p className="mb-0">Chưa có lịch khám</p>
                                             </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="5" className="empty-message">
-                                            <i className="fas fa-calendar-times"></i>
-                                            <p>Chưa có lịch khám</p>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

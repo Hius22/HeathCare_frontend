@@ -5,8 +5,9 @@ import HomeHeader from "../HomePage/HomeHeader";
 import HomeFooter from "../HomePage/HomeFooter";
 import "./BookingHistory.scss";
 import moment from 'moment';
-import { getAllBookings, postCancelBooking } from "../../services/userService";
+import { getAllBookings, postCancelBooking, updatePatientInfoService, getALLCodeService, getScheduleDoctorByDate, rescheduleBookingService } from "../../services/userService";
 import { toast } from "react-toastify";
+import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 class BookingHistory extends Component {
 
@@ -17,8 +18,51 @@ class BookingHistory extends Component {
             activeTab: 'all',
             searchEmail: '',
             hasSearched: false,
-            isLoading: false
+            isLoading: false,
+
+            // State for Edit Info Modal
+            isOpenEditModal: false,
+            editingBooking: null,
+            fullName: '',
+            phoneNumber: '',
+            address: '',
+            selectedGender: '',
+            genders: [],
+
+            // State for Reschedule Modal
+            isOpenRescheduleModal: false,
+            reschedulingBooking: null,
+            rescheduleDateStr: '',
+            rescheduleTimeSlots: [],
+            selectedRescheduleSlot: '',
+
+            // State for Cancel Confirmation Modal
+            isOpenCancelModal: false,
+            cancellingBooking: null
         };
+    }
+
+    getSpecialties = (doctor) => {
+        let list = [];
+        if (doctor && doctor.doctorSpecialties && doctor.doctorSpecialties.length > 0) {
+            doctor.doctorSpecialties.forEach(item => {
+                if (item.specialtyData && item.specialtyData.name) {
+                    list.push(item.specialtyData);
+                }
+            });
+        }
+        if (list.length === 0 && doctor && doctor.Doctor_Infor && doctor.Doctor_Infor.specialtyData) {
+            list.push(doctor.Doctor_Infor.specialtyData);
+        }
+        return list;
+    }
+
+    getSpecialtyName = (doctor) => {
+        let list = this.getSpecialties(doctor);
+        if (list.length > 0) {
+            return list.map(item => item.name).join(', ');
+        }
+        return 'Chuyên khoa';
     }
 
     componentDidMount() {
@@ -26,6 +70,7 @@ class BookingHistory extends Component {
         if (user?.id) {
             this.getBookingHistory(user.id);
         }
+        this.loadGenders();
     }
 
     componentDidUpdate(prevProps) {
@@ -35,6 +80,178 @@ class BookingHistory extends Component {
             this.getBookingHistory(newId);
         }
     }
+
+    loadGenders = async () => {
+        try {
+            let res = await getALLCodeService('GENDER');
+            if (res && res.errCode === 0) {
+                this.setState({ genders: res.data || [] });
+            }
+        } catch (e) {
+            console.error("Error loading genders:", e);
+        }
+    };
+
+    handleOpenEditModal = (booking) => {
+        this.setState({
+            isOpenEditModal: true,
+            editingBooking: booking,
+            fullName: booking.patientData?.firstName || '',
+            phoneNumber: booking.patientData?.phonenumber || '',
+            address: booking.patientData?.address || '',
+            selectedGender: booking.patientData?.gender || ''
+        });
+    };
+
+    handleCloseEditModal = () => {
+        this.setState({
+            isOpenEditModal: false,
+            editingBooking: null
+        });
+    };
+
+    handleSaveEdit = async () => {
+        const { editingBooking, fullName, phoneNumber, address, selectedGender } = this.state;
+        if (!editingBooking) return;
+
+        if (!fullName.trim() || !phoneNumber.trim() || !address.trim() || !selectedGender) {
+            toast.error("Vui lòng điền đầy đủ các thông tin!");
+            return;
+        }
+
+        // Validate phone number format
+        let phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+        if (!phoneRegex.test(phoneNumber.trim())) {
+            toast.error('Số điện thoại không hợp lệ! Vui lòng nhập số điện thoại Việt Nam.');
+            return;
+        }
+
+        this.setState({ isLoading: true });
+        try {
+            let res = await updatePatientInfoService({
+                id: editingBooking.patientId,
+                email: editingBooking.patientData?.email || this.state.searchEmail,
+                firstName: fullName.trim(),
+                lastName: editingBooking.patientData?.lastName || '',
+                phonenumber: phoneNumber.trim(),
+                address: address.trim(),
+                gender: selectedGender,
+                language: this.props.language || 'vi'
+            });
+
+            if (res && res.errCode === 0) {
+                toast.success("Cập nhật thông tin cá nhân thành công!");
+                this.setState({ isOpenEditModal: false, editingBooking: null });
+                // Refresh list
+                if (this.props.userInfo?.id) {
+                    this.getBookingHistory(this.props.userInfo.id);
+                } else if (this.state.searchEmail) {
+                    this.handleSearchEmail();
+                }
+            } else {
+                toast.error(res.errMessage || "Cập nhật thông tin thất bại!");
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Lỗi từ server!");
+        } finally {
+            this.setState({ isLoading: false });
+        }
+    };
+
+    handleOpenRescheduleModal = (booking) => {
+        // Default reschedule date to tomorrow
+        const tomorrowStr = moment().add(1, 'days').format('YYYY-MM-DD');
+        this.setState({
+            isOpenRescheduleModal: true,
+            reschedulingBooking: booking,
+            rescheduleDateStr: tomorrowStr,
+            rescheduleTimeSlots: [],
+            selectedRescheduleSlot: ''
+        }, () => {
+            this.handleRescheduleDateChange(tomorrowStr);
+        });
+    };
+
+    handleCloseRescheduleModal = () => {
+        this.setState({
+            isOpenRescheduleModal: false,
+            reschedulingBooking: null,
+            rescheduleDateStr: '',
+            rescheduleTimeSlots: [],
+            selectedRescheduleSlot: ''
+        });
+    };
+
+    handleRescheduleDateChange = async (dateStr) => {
+        if (!dateStr) return;
+        const { reschedulingBooking } = this.state;
+        if (!reschedulingBooking) return;
+
+        this.setState({ rescheduleDateStr: dateStr, rescheduleTimeSlots: [], selectedRescheduleSlot: '' });
+
+        // Convert YYYY-MM-DD to timestamp start of day
+        const dateTimestamp = moment(dateStr, 'YYYY-MM-DD').startOf('day').valueOf();
+
+        try {
+            let res = await getScheduleDoctorByDate(reschedulingBooking.doctorId, dateTimestamp);
+            if (res && res.errCode === 0) {
+                // Filter out past timeslots if the chosen date is today
+                let slots = res.data || [];
+                const isToday = moment(dateStr, 'YYYY-MM-DD').isSame(moment(), 'day');
+                if (isToday) {
+                    const currentHour = moment().hour();
+                    const currentMinute = moment().minute();
+                    slots = slots.filter(item => {
+                        const timeStr = item.timeTypeData?.valueVi;
+                        if (!timeStr) return false;
+                        const startStr = timeStr.split(' - ')[0];
+                        const [startHour, startMinute] = startStr.split(':').map(Number);
+                        return (startHour > currentHour) || (startHour === currentHour && startMinute > currentMinute);
+                    });
+                }
+                this.setState({ rescheduleTimeSlots: slots });
+            }
+        } catch (e) {
+            console.error("Error fetching schedule:", e);
+            toast.error("Không thể tải lịch làm việc của bác sĩ.");
+        }
+    };
+
+    handleConfirmReschedule = async () => {
+        const { reschedulingBooking, rescheduleDateStr, selectedRescheduleSlot } = this.state;
+        if (!reschedulingBooking || !rescheduleDateStr || !selectedRescheduleSlot) return;
+
+        const dateTimestamp = moment(rescheduleDateStr, 'YYYY-MM-DD').startOf('day').valueOf();
+
+        this.setState({ isLoading: true });
+        try {
+            let res = await rescheduleBookingService({
+                bookingId: reschedulingBooking.id,
+                date: dateTimestamp,
+                timeType: selectedRescheduleSlot,
+                language: this.props.language || 'vi'
+            });
+
+            if (res && res.errCode === 0) {
+                toast.success("Thay đổi lịch hẹn khám thành công!");
+                this.handleCloseRescheduleModal();
+                // Refresh list
+                if (this.props.userInfo?.id) {
+                    this.getBookingHistory(this.props.userInfo.id);
+                } else if (this.state.searchEmail) {
+                    this.handleSearchEmail();
+                }
+            } else {
+                toast.error(res.errMessage || "Thay đổi lịch hẹn thất bại!");
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Lỗi kết nối máy chủ!");
+        } finally {
+            this.setState({ isLoading: false });
+        }
+    };
 
     getBookingHistory = async (userId) => {
         if (!userId) return;
@@ -78,33 +295,49 @@ class BookingHistory extends Component {
         }
     };
 
-    handleCancelBooking = async (item) => {
-        const doctorName = item.doctorData ? `${item.doctorData.lastName || ''} ${item.doctorData.firstName || ''}`.trim() : '';
-        let isConfirm = window.confirm(
-            `Bạn có chắc chắn muốn hủy lịch hẹn với bác sĩ ${doctorName || 'này'} vào ngày ${this.formatDate(item.date)} không?`
-        );
-        if (isConfirm) {
-            try {
-                let res = await postCancelBooking({
-                    doctorId: item.doctorId,
-                    patientId: item.patientId,
-                    timeType: item.timeType,
-                    date: item.date
-                });
-                if (res && res.errCode === 0) {
-                    toast.success("Hủy lịch hẹn thành công!");
-                    // Refresh
-                    if (this.props.userInfo?.id) {
-                        this.getBookingHistory(this.props.userInfo.id);
-                    } else if (this.state.searchEmail) {
-                        this.handleSearchEmail();
-                    }
-                } else {
-                    toast.error(res?.errMessage || "Hủy lịch hẹn thất bại!");
+    handleOpenCancelModal = (item) => {
+        this.setState({
+            isOpenCancelModal: true,
+            cancellingBooking: item
+        });
+    };
+
+    handleCloseCancelModal = () => {
+        this.setState({
+            isOpenCancelModal: false,
+            cancellingBooking: null
+        });
+    };
+
+    handleConfirmCancelBooking = async () => {
+        const { cancellingBooking } = this.state;
+        if (!cancellingBooking) return;
+
+        this.setState({ isLoading: true });
+        try {
+            let res = await postCancelBooking({
+                doctorId: cancellingBooking.doctorId,
+                patientId: cancellingBooking.patientId,
+                timeType: cancellingBooking.timeType,
+                date: cancellingBooking.date
+            });
+            if (res && res.errCode === 0) {
+                toast.success("Hủy lịch hẹn thành công!");
+                this.handleCloseCancelModal();
+                // Refresh
+                if (this.props.userInfo?.id) {
+                    this.getBookingHistory(this.props.userInfo.id);
+                } else if (this.state.searchEmail) {
+                    this.handleSearchEmail();
                 }
-            } catch (e) {
-                toast.error("Có lỗi xảy ra từ máy chủ!");
+            } else {
+                toast.error(res?.errMessage || "Hủy lịch hẹn thất bại!");
             }
+        } catch (e) {
+            console.error(e);
+            toast.error("Có lỗi xảy ra từ máy chủ!");
+        } finally {
+            this.setState({ isLoading: false });
         }
     };
 
@@ -123,6 +356,17 @@ class BookingHistory extends Component {
     getStatusLabel = (statusId) => {
         const map = { S1: 'Chờ xác nhận', S2: 'Đã xác nhận', S3: 'Đã khám', S4: 'Đã hủy' };
         return map[statusId] || statusId;
+    };
+
+    getGenderLabel = (genderKey) => {
+        const { genders } = this.state;
+        const { language } = this.props;
+        if (!genders || genders.length === 0) return genderKey || '—';
+        const genderObj = genders.find(g => g.keyMap === genderKey);
+        if (genderObj) {
+            return language === 'vi' ? genderObj.valueVi : genderObj.valueEn;
+        }
+        return genderKey || '—';
     };
 
     getFilteredBookings = () => {
@@ -295,7 +539,7 @@ class BookingHistory extends Component {
                                                                     BS. {item.doctorData ? `${item.doctorData.lastName || ''} ${item.doctorData.firstName || ''}`.trim() : '—'}
                                                                 </h3>
                                                                 <p className="doctor-specialty">
-                                                                    {item.doctorData?.specialtyData?.name || 'Chuyên khoa'}
+                                                                    {this.getSpecialtyName(item.doctorData)}
                                                                 </p>
                                                             </div>
                                                             <span className={`status-badge ${item.statusId}`}>
@@ -314,7 +558,19 @@ class BookingHistory extends Component {
                                                             </div>
                                                             <div className="detail-item">
                                                                 <i className="fa-solid fa-user"></i>
-                                                                <span>{item.patientData?.firstName || 'Bệnh nhân'}</span>
+                                                                <span><strong>Bệnh nhân:</strong> {item.patientData?.firstName || '—'}</span>
+                                                            </div>
+                                                            <div className="detail-item">
+                                                                <i className="fa-solid fa-phone"></i>
+                                                                <span><strong>SĐT:</strong> {item.patientData?.phonenumber || '—'}</span>
+                                                            </div>
+                                                            <div className="detail-item">
+                                                                <i className="fa-solid fa-location-dot"></i>
+                                                                <span><strong>Địa chỉ:</strong> {item.patientData?.address || '—'}</span>
+                                                            </div>
+                                                            <div className="detail-item">
+                                                                <i className="fa-solid fa-venus-mars"></i>
+                                                                <span><strong>Giới tính:</strong> {this.getGenderLabel(item.patientData?.gender)}</span>
                                                             </div>
                                                         </div>
 
@@ -324,15 +580,32 @@ class BookingHistory extends Component {
                                                             <div className="card-actions">
                                                                 <button
                                                                     className="btn-reschedule"
-                                                                    onClick={() => toast.info("Để đổi lịch, vui lòng hủy lịch này và đặt lịch mới.")}
+                                                                    onClick={() => this.handleOpenRescheduleModal(item)}
                                                                 >
                                                                     Đổi lịch
                                                                 </button>
                                                                 <button
                                                                     className="btn-cancel"
-                                                                    onClick={() => this.handleCancelBooking(item)}
+                                                                    onClick={() => this.handleOpenCancelModal(item)}
                                                                 >
                                                                     Hủy lịch
+                                                                </button>
+                                                                <button
+                                                                    className="btn-edit-info"
+                                                                    onClick={() => this.handleOpenEditModal(item)}
+                                                                    style={{
+                                                                        backgroundColor: '#e8f0fe',
+                                                                        color: '#1a73e8',
+                                                                        border: '1px solid #1a73e8',
+                                                                        borderRadius: '8px',
+                                                                        padding: '8px 16px',
+                                                                        fontSize: '14px',
+                                                                        fontWeight: '600',
+                                                                        cursor: 'pointer',
+                                                                        transition: 'all 0.2s ease'
+                                                                    }}
+                                                                >
+                                                                    Sửa thông tin
                                                                 </button>
                                                             </div>
                                                         )}
@@ -377,6 +650,215 @@ class BookingHistory extends Component {
                             </div>
                         </>
                     )}
+
+                    {/* Edit Patient Info Modal */}
+                    <Modal
+                        isOpen={this.state.isOpenEditModal}
+                        toggle={this.handleCloseEditModal}
+                        className="edit-patient-modal"
+                        centered
+                    >
+                        <ModalHeader>
+                            <i className="fa-solid fa-user-pen header-icon"></i>
+                            Chỉnh sửa thông tin cá nhân bệnh nhân
+                        </ModalHeader>
+                        <ModalBody>
+                            <div className="form-group mb-3">
+                                <label className="form-label">Họ và tên <span className="text-danger">*</span></label>
+                                <input
+                                    type="text"
+                                    className="form-control text-input"
+                                    value={this.state.fullName}
+                                    onChange={(e) => this.setState({ fullName: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group mb-3">
+                                <label className="form-label">Số điện thoại <span className="text-danger">*</span></label>
+                                <input
+                                    type="text"
+                                    className="form-control text-input"
+                                    value={this.state.phoneNumber}
+                                    onChange={(e) => this.setState({ phoneNumber: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group mb-3">
+                                <label className="form-label">Địa chỉ liên hệ <span className="text-danger">*</span></label>
+                                <input
+                                    type="text"
+                                    className="form-control text-input"
+                                    value={this.state.address}
+                                    onChange={(e) => this.setState({ address: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group mb-3">
+                                <label className="form-label">Giới tính <span className="text-danger">*</span></label>
+                                <select
+                                    className="form-control select-input"
+                                    value={this.state.selectedGender}
+                                    onChange={(e) => this.setState({ selectedGender: e.target.value })}
+                                >
+                                    <option value="">-- Chọn giới tính --</option>
+                                    {this.state.genders.map((g, idx) => (
+                                        <option key={idx} value={g.keyMap}>
+                                            {this.props.language === 'vi' ? g.valueVi : g.valueEn}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </ModalBody>
+                        <ModalFooter>
+                            <button
+                                className="btn btn-secondary btn-cancel"
+                                onClick={this.handleCloseEditModal}
+                            >
+                                Hủy bỏ
+                            </button>
+                            <button
+                                className="btn btn-primary btn-save"
+                                onClick={this.handleSaveEdit}
+                            >
+                                Lưu thay đổi
+                            </button>
+                        </ModalFooter>
+                    </Modal>
+
+                    {/* Reschedule Booking Modal */}
+                    <Modal
+                        isOpen={this.state.isOpenRescheduleModal}
+                        toggle={this.handleCloseRescheduleModal}
+                        className="reschedule-modal"
+                        centered
+                        size="md"
+                    >
+                        <ModalHeader>
+                            <div className="modal-title-custom">
+                                <i className="fa-solid fa-calendar-plus header-icon"></i> Thay đổi lịch hẹn khám bệnh
+                            </div>
+                        </ModalHeader>
+                        <ModalBody>
+                            {this.state.reschedulingBooking && (
+                                <div className="reschedule-modal-body">
+                                    <div className="doctor-info-summary">
+                                        <div className="summary-item">
+                                            <span className="summary-label">Bác sĩ khám:</span>
+                                            <span className="summary-val text-primary-dark">BS. {this.state.reschedulingBooking.doctorData ? `${this.state.reschedulingBooking.doctorData.lastName || ''} ${this.state.reschedulingBooking.doctorData.firstName || ''}`.trim() : '—'}</span>
+                                        </div>
+                                        <div className="summary-item">
+                                            <span className="summary-label">Chuyên khoa:</span>
+                                            <span className="summary-val">{this.getSpecialtyName(this.state.reschedulingBooking.doctorData)}</span>
+                                        </div>
+                                        <div className="summary-item">
+                                            <span className="summary-label">Bệnh nhân:</span>
+                                            <span className="summary-val">{this.state.reschedulingBooking.patientData?.firstName || '—'}</span>
+                                        </div>
+                                        <div className="current-schedule-info">
+                                            <span className="summary-label">Lịch hẹn hiện tại:</span>
+                                            <span className="current-badge">
+                                                {this.state.reschedulingBooking.timeTypeDataPatient?.valueVi || this.state.reschedulingBooking.timeType} - {this.formatDate(this.state.reschedulingBooking.date)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="reschedule-inputs">
+                                        <div className="form-group mb-3">
+                                            <label className="form-label">Chọn ngày khám mới:</label>
+                                            <input
+                                                type="date"
+                                                className="form-control reschedule-date-picker"
+                                                value={this.state.rescheduleDateStr}
+                                                min={moment().add(1, 'days').format('YYYY-MM-DD')} // Can only reschedule from tomorrow
+                                                onChange={(e) => this.handleRescheduleDateChange(e.target.value)}
+                                            />
+                                        </div>
+                                        
+                                        <div className="form-group">
+                                            <label className="form-label">Chọn khung giờ khám mới:</label>
+                                            {this.state.rescheduleTimeSlots && this.state.rescheduleTimeSlots.length > 0 ? (
+                                                <div className="reschedule-slots-grid">
+                                                    {this.state.rescheduleTimeSlots.map((slot, idx) => {
+                                                        const timeLabel = this.props.language === 'vi' ? slot.timeTypeData?.valueVi : slot.timeTypeData?.valueEn;
+                                                        const isSelected = this.state.selectedRescheduleSlot === slot.timeType;
+                                                        return (
+                                                            <button
+                                                                key={idx}
+                                                                type="button"
+                                                                className={`btn-slot-select ${isSelected ? 'selected' : ''}`}
+                                                                onClick={() => this.setState({ selectedRescheduleSlot: slot.timeType })}
+                                                            >
+                                                                {timeLabel}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <p className="no-slots-alert">
+                                                    <i className="fa-solid fa-circle-exclamation me-2"></i> Không có khung giờ làm việc nào trống cho bác sĩ vào ngày đã chọn. Vui lòng chọn ngày khác.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </ModalBody>
+                        <ModalFooter>
+                            <button
+                                className="btn btn-secondary btn-cancel"
+                                onClick={this.handleCloseRescheduleModal}
+                            >
+                                Đóng
+                            </button>
+                            <button
+                                className="btn btn-primary btn-confirm-reschedule"
+                                disabled={!this.state.selectedRescheduleSlot}
+                                onClick={this.handleConfirmReschedule}
+                            >
+                                Xác nhận đổi lịch
+                            </button>
+                        </ModalFooter>
+                    </Modal>
+
+                    {/* Confirm Cancel Booking Modal */}
+                    <Modal
+                        isOpen={this.state.isOpenCancelModal}
+                        toggle={this.handleCloseCancelModal}
+                        className="cancel-booking-modal"
+                        centered
+                        size="sm"
+                    >
+                        <ModalHeader>
+                            <div className="modal-title-custom text-danger">
+                                <i className="fa-solid fa-circle-exclamation header-icon text-danger"></i> Xác nhận hủy lịch hẹn
+                            </div>
+                        </ModalHeader>
+                        <ModalBody>
+                            {this.state.cancellingBooking && (
+                                <div className="cancel-modal-body text-center">
+                                    <p className="mb-2">Bạn có chắc chắn muốn hủy lịch hẹn khám bệnh này?</p>
+                                    <div className="booking-summary-box">
+                                        <p><strong>Bác sĩ:</strong> BS. {this.state.cancellingBooking.doctorData ? `${this.state.cancellingBooking.doctorData.lastName || ''} ${this.state.cancellingBooking.doctorData.firstName || ''}`.trim() : '—'}</p>
+                                        <p><strong>Thời gian:</strong> {this.state.cancellingBooking.timeTypeDataPatient?.valueVi || this.state.cancellingBooking.timeType} - {this.formatDate(this.state.cancellingBooking.date)}</p>
+                                    </div>
+                                    <p className="text-muted small mt-2">Hành động này không thể hoàn tác.</p>
+                                </div>
+                            )}
+                        </ModalBody>
+                        <ModalFooter className="justify-content-center">
+                            <button
+                                className="btn btn-secondary"
+                                onClick={this.handleCloseCancelModal}
+                                style={{ borderRadius: '8px', padding: '8px 20px' }}
+                            >
+                                Quay lại
+                            </button>
+                            <button
+                                className="btn btn-danger"
+                                onClick={this.handleConfirmCancelBooking}
+                                style={{ borderRadius: '8px', padding: '8px 20px' }}
+                            >
+                                Đồng ý hủy
+                            </button>
+                        </ModalFooter>
+                    </Modal>
                 </div>
 
                 <HomeFooter />
@@ -387,7 +869,8 @@ class BookingHistory extends Component {
 
 const mapStateToProps = (state) => {
     return {
-        userInfo: state.user.userInfo
+        userInfo: state.user.userInfo,
+        language: state.app.language
     };
 };
 

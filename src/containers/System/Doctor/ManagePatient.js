@@ -108,6 +108,24 @@ class ManagePatient extends Component {
             });
         }
 
+        // Sort: checked-in patients first (by check-in time), then non-checked-in patients (by booking order)
+        filtered.sort((x, y) => {
+            let xVitals = x.weight && x.height && x.bloodPressure && x.temperature;
+            let yVitals = y.weight && y.height && y.bloodPressure && y.temperature;
+
+            // 1. Prioritize patients with recorded vitals (already checked in at the desk)
+            if (xVitals && !yVitals) return -1;
+            if (!xVitals && yVitals) return 1;
+
+            // 2. If both have recorded vitals, sort by check-in time (updatedAt ASC - who checked in first gets examined first)
+            if (xVitals && yVitals) {
+                return new Date(x.updatedAt) - new Date(y.updatedAt);
+            }
+
+            // 3. If both have not checked in yet, sort by scheduled slot & booking order (queueNumber ASC)
+            return (x.queueNumber || 0) - (y.queueNumber || 0);
+        });
+
         this.setState({ filteredPatients: filtered });
     }
 
@@ -223,15 +241,15 @@ class ManagePatient extends Component {
     getStatusBadge = (statusId) => {
         let { language } = this.props;
         let statusConfig = {
-            'S1': { label: language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending', color: '#ff9800', icon: 'fa-clock' },
-            'S2': { label: language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed', color: '#2196f3', icon: 'fa-check-circle' },
-            'S3': { label: language === LANGUAGES.VI ? 'Đã khám' : 'Completed', color: '#4caf50', icon: 'fa-check-double' },
-            'S4': { label: language === LANGUAGES.VI ? 'Đã hủy' : 'Cancelled', color: '#f44336', icon: 'fa-times-circle' }
+            'S1': { label: language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending', bg: '#fff3e0', color: '#e65100', border: '#ffe0b2', icon: 'fa-clock' },
+            'S2': { label: language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed', bg: '#e3f2fd', color: '#0d47a1', border: '#bbdefb', icon: 'fa-check-circle' },
+            'S3': { label: language === LANGUAGES.VI ? 'Đã khám' : 'Completed', bg: '#e8f5e9', color: '#1b5e20', border: '#c8e6c9', icon: 'fa-check-double' },
+            'S4': { label: language === LANGUAGES.VI ? 'Đã hủy' : 'Cancelled', bg: '#ffebee', color: '#c62828', border: '#ffcdd2', icon: 'fa-times-circle' }
         };
 
         let config = statusConfig[statusId] || statusConfig['S1'];
         return (
-            <span className="status-badge" style={{ backgroundColor: config.color }}>
+            <span className="status-badge" style={{ backgroundColor: config.bg, color: config.color, border: `1px solid ${config.border}`, padding: '4px 10px', borderRadius: '15px', fontSize: '11px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
                 <i className={`fa-solid ${config.icon}`}></i> {config.label}
             </span>
         );
@@ -241,41 +259,33 @@ class ManagePatient extends Component {
         let { language } = this.props;
 
         return (
-            <div className="action-buttons">
+            <div className="d-flex gap-2 justify-content-center">
                 <button
-                    className='btn btn-info'
+                    className='btn btn-sm btn-outline-info rounded-pill px-3'
                     onClick={() => this.handleBtnViewInfo(item)}
-                    style={{ marginRight: '8px', color: 'white', backgroundColor: '#17a2b8', borderColor: '#17a2b8' }}
                 >
                     <i className="fas fa-id-card"></i> {language === LANGUAGES.VI ? 'Chi tiết' : 'Details'}
                 </button>
 
-                {item.statusId === 'S2' && (
+                {item.statusId === 'S2' && item.weight && item.height && item.bloodPressure && item.temperature ? (
                     <button
-                        className='btn btn-complete'
+                        className='btn btn-sm btn-doctor rounded-pill px-3'
                         onClick={() => this.handleBtnConfirm(item)}
-                        style={{ marginRight: '8px' }}
                     >
                         <i className="fas fa-stethoscope"></i> {language === LANGUAGES.VI ? 'Khám bệnh' : 'Examine'}
                     </button>
+                ) : item.statusId === 'S2' && (
+                    <span className="badge bg-light text-muted border border-secondary-subtle px-3 py-2 rounded-pill" style={{ fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                        <i className="fas fa-user-clock"></i> {language === LANGUAGES.VI ? 'Chờ tiếp nhận' : 'Waiting Check-in'}
+                    </span>
                 )}
 
                 {item.statusId === 'S3' && (
                     <button
-                        className='btn btn-success btn-view-record'
+                        className='btn btn-sm btn-outline-success rounded-pill px-3'
                         onClick={() => this.handleBtnConfirm(item, true)}
-                        style={{ marginRight: '8px', color: 'white', backgroundColor: '#28a745', borderColor: '#28a745' }}
                     >
                         <i className="fas fa-file-medical"></i> {language === LANGUAGES.VI ? 'Xem bệnh án' : 'View record'}
-                    </button>
-                )}
-
-                {(item.statusId === 'S1' || item.statusId === 'S2') && (
-                    <button
-                        className='btn btn-cancel'
-                        onClick={() => this.handleBtnCancel(item)}
-                    >
-                        <i className="fa-solid fa-times"></i> {language === LANGUAGES.VI ? 'Hủy' : 'Cancel'}
                     </button>
                 )}
             </div>
@@ -286,7 +296,6 @@ class ManagePatient extends Component {
         let { filteredPatients, isLoading, currentDate, statusFilter, searchKeyword, isOpenRemedyModal, dataModal, isOpenCancelModal } = this.state;
         let { language } = this.props;
 
-        // Statistics
         let stats = {
             total: this.state.dataPatient.length,
             pending: this.state.dataPatient.filter(b => b.statusId === 'S1').length,
@@ -297,196 +306,229 @@ class ManagePatient extends Component {
 
         return (
             <>
-                <div className="manage-patient-container">
-                    <div className="manage-patient-header">
-                        <h2>
-                            <i className="fa-solid fa-user-injured"></i>
-                            {language === LANGUAGES.VI ? 'Quản lý bệnh nhân khám bệnh' : 'Manage Patients'}
-                        </h2>
+                <div className="manage-patient-container container-fluid">
+                    {/* Header & Stats Card */}
+                    <div className="card shadow-sm border-0 rounded-3 mb-4">
+                        <div className="card-body p-4">
+                            {/* Header */}
+                            <div className="row align-items-center mb-4">
+                                <div className="col-md-6">
+                                    <h4 className="text-doctor font-weight-bold mb-0">
+                                        <i className="fa-solid fa-user-injured me-2"></i>
+                                        {language === LANGUAGES.VI ? 'Quản lý bệnh nhân khám bệnh' : 'Manage Patients'}
+                                    </h4>
+                                    <p className="text-secondary small mb-0 mt-1">
+                                        {language === LANGUAGES.VI ? 'Xem, lọc danh sách bệnh nhân và thực hiện khám bệnh' : 'View, filter patient list and conduct medical examinations'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Statistics Cards */}
+                            <div className="row g-3 mb-4">
+                                <div className="col-6 col-md-3">
+                                    <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                        <div className="stat-icon bg-doctor-light text-doctor rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                            <i className="fa-solid fa-users"></i>
+                                        </div>
+                                        <div>
+                                            <div className="fw-bold text-dark fs-6">{stats.total}</div>
+                                            <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Tổng cộng' : 'Total'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="col-6 col-md-3">
+                                    <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                        <div className="stat-icon bg-warning-light text-warning rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                            <i className="fa-solid fa-clock"></i>
+                                        </div>
+                                        <div>
+                                            <div className="fw-bold text-dark fs-6">{stats.pending}</div>
+                                            <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="col-6 col-md-3">
+                                    <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                        <div className="stat-icon bg-primary-light text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                            <i className="fa-solid fa-check-circle"></i>
+                                        </div>
+                                        <div>
+                                            <div className="fw-bold text-dark fs-6">{stats.confirmed}</div>
+                                            <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="col-6 col-md-3">
+                                    <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                        <div className="stat-icon bg-success-light text-success rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                            <i className="fa-solid fa-check-double"></i>
+                                        </div>
+                                        <div>
+                                            <div className="fw-bold text-dark fs-6">{stats.completed}</div>
+                                            <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Đã khám' : 'Completed'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Filters */}
+                            <div className="row g-3 align-items-end border-top pt-4">
+                                <div className="col-md-3 col-sm-6">
+                                    <label className="form-label fw-bold small text-secondary mb-2">{language === LANGUAGES.VI ? 'Chọn ngày' : 'Select Date'}</label>
+                                    <div className="d-flex gap-2">
+                                        <DatePicker
+                                            onChange={this.handleOnchangeDatePicker}
+                                            className="form-control"
+                                            value={currentDate}
+                                        />
+                                        {currentDate && (
+                                            <button 
+                                                className="btn btn-outline-secondary" 
+                                                onClick={this.handleClearDate} 
+                                                title={language === LANGUAGES.VI ? 'Xóa bộ lọc ngày' : 'Clear date filter'}
+                                            >
+                                                <i className="fas fa-times"></i>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="col-md-4 col-sm-6">
+                                    <label className="form-label fw-bold small text-secondary mb-2">{language === LANGUAGES.VI ? 'Tìm kiếm' : 'Search'}</label>
+                                    <div className="input-group">
+                                        <span className="input-group-text bg-white border-end-0"><i className="fas fa-search text-muted"></i></span>
+                                        <input
+                                            type="text"
+                                            className="form-control border-start-0 ps-0"
+                                            placeholder={language === LANGUAGES.VI ? 'Tìm theo tên, email, SĐT...' : 'Search by name, email, phone...'}
+                                            value={searchKeyword}
+                                            onChange={this.handleSearchChange}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-5 col-12">
+                                    <label className="form-label fw-bold small text-secondary mb-2">{language === LANGUAGES.VI ? 'Trạng thái' : 'Status'}</label>
+                                    <div className="d-flex flex-wrap gap-2">
+                                        <button
+                                            className={`btn btn-sm rounded-pill px-3 ${statusFilter === 'all' ? 'btn-doctor' : 'btn-outline-doctor'}`}
+                                            onClick={() => this.handleStatusFilterChange('all')}
+                                        >
+                                            {language === LANGUAGES.VI ? 'Tất cả' : 'All'} ({stats.total})
+                                        </button>
+                                        <button
+                                            className={`btn btn-sm rounded-pill px-3 ${statusFilter === 'S1' ? 'btn-doctor' : 'btn-outline-doctor'}`}
+                                            onClick={() => this.handleStatusFilterChange('S1')}
+                                        >
+                                            {language === LANGUAGES.VI ? 'Chờ' : 'Pending'} ({stats.pending})
+                                        </button>
+                                        <button
+                                            className={`btn btn-sm rounded-pill px-3 ${statusFilter === 'S2' ? 'btn-doctor' : 'btn-outline-doctor'}`}
+                                            onClick={() => this.handleStatusFilterChange('S2')}
+                                        >
+                                            {language === LANGUAGES.VI ? 'Xác nhận' : 'Confirmed'} ({stats.confirmed})
+                                        </button>
+                                        <button
+                                            className={`btn btn-sm rounded-pill px-3 ${statusFilter === 'S4' ? 'btn-doctor' : 'btn-outline-doctor'}`}
+                                            onClick={() => this.handleStatusFilterChange('S4')}
+                                        >
+                                            {language === LANGUAGES.VI ? 'Hủy' : 'Cancelled'} ({stats.cancelled})
+                                        </button>
+                                        <button
+                                            className={`btn btn-sm rounded-pill px-3 ${statusFilter === 'S3' ? 'btn-doctor' : 'btn-outline-doctor'}`}
+                                            onClick={() => this.handleStatusFilterChange('S3')}
+                                        >
+                                            {language === LANGUAGES.VI ? 'Đã khám' : 'Completed'} ({stats.completed})
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Statistics Cards */}
-                    <div className="stats-cards">
-                        <div className="stat-card stat-total">
-                            <div className="stat-icon">
-                                <i className="fa-solid fa-users"></i>
+                    {/* Table Card */}
+                    <div className="card shadow-sm border-0 rounded-3">
+                        <div className="card-body p-4">
+                            <div className="row align-items-center mb-4">
+                                <div className="col-md-6">
+                                    <h4 className="text-doctor font-weight-bold mb-0">
+                                        <i className="fa-solid fa-list me-2"></i>
+                                        {language === LANGUAGES.VI ? 'Danh sách bệnh nhân khám bệnh' : 'Patients List'}
+                                    </h4>
+                                    <p className="text-secondary small mb-0 mt-1">
+                                        {language === LANGUAGES.VI ? `Tổng số: ${filteredPatients.length} bệnh nhân` : `Total: ${filteredPatients.length} patients`}
+                                    </p>
+                                </div>
                             </div>
-                            <div className="stat-info">
-                                <div className="stat-value">{stats.total}</div>
-                                <div className="stat-label">{language === LANGUAGES.VI ? 'Tổng cộng' : 'Total'}</div>
-                            </div>
-                        </div>
-                        <div className="stat-card stat-pending">
-                            <div className="stat-icon">
-                                <i className="fa-solid fa-clock"></i>
-                            </div>
-                            <div className="stat-info">
-                                <div className="stat-value">{stats.pending}</div>
-                                <div className="stat-label">{language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending'}</div>
-                            </div>
-                        </div>
-                        <div className="stat-card stat-confirmed">
-                            <div className="stat-icon">
-                                <i className="fa-solid fa-check-circle"></i>
-                            </div>
-                            <div className="stat-info">
-                                <div className="stat-value">{stats.confirmed}</div>
-                                <div className="stat-label">{language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed'}</div>
-                            </div>
-                        </div>
-                        <div className="stat-card stat-completed">
-                            <div className="stat-icon">
-                                <i className="fa-solid fa-check-double"></i>
-                            </div>
-                            <div className="stat-info">
-                                <div className="stat-value">{stats.completed}</div>
-                                <div className="stat-label">{language === LANGUAGES.VI ? 'Đã khám' : 'Completed'}</div>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Filters */}
-                    <div className="patient-filters">
-                        <div className="filter-group">
-                            <label>{language === LANGUAGES.VI ? 'Chọn ngày' : 'Select Date'}</label>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <DatePicker
-                                    onChange={this.handleOnchangeDatePicker}
-                                    className="form-control"
-                                    value={currentDate}
-                                />
-                                {currentDate && (
-                                    <button 
-                                        className="btn btn-secondary" 
-                                        onClick={this.handleClearDate} 
-                                        title={language === LANGUAGES.VI ? 'Xóa bộ lọc ngày' : 'Clear date filter'}
-                                        style={{ padding: '0 15px' }}
-                                    >
-                                        <i className="fas fa-times"></i>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="filter-group search-group">
-                            <label>{language === LANGUAGES.VI ? 'Tìm kiếm' : 'Search'}</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder={language === LANGUAGES.VI ? 'Tìm theo tên, email, SĐT...' : 'Search by name, email, phone...'}
-                                value={searchKeyword}
-                                onChange={this.handleSearchChange}
-                            />
-                        </div>
-
-                        <div className="filter-group">
-                            <label>{language === LANGUAGES.VI ? 'Trạng thái' : 'Status'}</label>
-                            <div className="status-filter-buttons">
-                                <button
-                                    className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
-                                    onClick={() => this.handleStatusFilterChange('all')}
-                                >
-                                    {language === LANGUAGES.VI ? 'Tất cả' : 'All'} ({stats.total})
-                                </button>
-                                <button
-                                    className={`filter-btn pending ${statusFilter === 'S1' ? 'active' : ''}`}
-                                    onClick={() => this.handleStatusFilterChange('S1')}
-                                >
-                                    {language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending'} ({stats.pending})
-                                </button>
-                                <button
-                                    className={`filter-btn confirmed ${statusFilter === 'S2' ? 'active' : ''}`}
-                                    onClick={() => this.handleStatusFilterChange('S2')}
-                                >
-                                    {language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed'} ({stats.confirmed})
-                                </button>
-                                <button
-                                    className={`filter-btn cancelled ${statusFilter === 'S4' ? 'active' : ''}`}
-                                    onClick={() => this.handleStatusFilterChange('S4')}
-                                >
-                                    {language === LANGUAGES.VI ? 'Đã hủy' : 'Cancelled'} ({stats.cancelled})
-                                </button>
-                                <button
-                                    className={`filter-btn completed ${statusFilter === 'S3' ? 'active' : ''}`}
-                                    onClick={() => this.handleStatusFilterChange('S3')}
-                                >
-                                    {language === LANGUAGES.VI ? 'Đã khám' : 'Completed'} ({stats.completed})
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Table */}
-                    <div className="patients-table-container">
-                        <div className="table-header-bar">
-                            <h3><i className="fas fa-list-alt"></i> Danh Sách Bệnh Nhân</h3>
-                            <span className="record-count">Tổng: {filteredPatients.length} bệnh nhân</span>
-                        </div>
-
-                        {isLoading ? (
-                            <div className="loading">
-                                <i className="fa-solid fa-spinner fa-spin"></i>
-                                <span>{language === LANGUAGES.VI ? 'Đang tải...' : 'Loading...'}</span>
-                            </div>
-                        ) : filteredPatients.length === 0 ? (
-                            <div className="no-data">
-                                <i className="fa-solid fa-users-slash"></i>
-                                <p>{language === LANGUAGES.VI ? 'Không có bệnh nhân nào' : 'No patients found'}</p>
-                            </div>
-                        ) : (
-                            <table className="patients-table">
-                                <thead>
-                                    <tr>
-                                        <th>{language === LANGUAGES.VI ? 'STT' : 'No.'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Thời gian' : 'Time'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Họ và tên' : 'Full Name'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Địa chỉ' : 'Address'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Giới tính' : 'Gender'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Trạng thái' : 'Status'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Thao tác' : 'Actions'}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredPatients.map((item, index) => {
-                                        let time = language === LANGUAGES.VI
-                                            ? item?.timeTypeDataPatient?.valueVi || ''
-                                            : item?.timeTypeDataPatient?.valueEn || '';
-                                        let gender = language === LANGUAGES.VI
-                                            ? item?.patientData?.genderData?.valueVi || ''
-                                            : item?.patientData?.genderData?.valueEn || '';
-                                            
-                                        return (
-                                            <tr key={index} className={`patient-row status-${item.statusId}`}>
-                                                <td>{index + 1}</td>
-                                                <td>
-                                                    <div className="time-info">
-                                                        <div><i className="fa-solid fa-clock"></i> {time}</div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div className="patient-info">
-                                                        <div className="patient-name">
-                                                            {item.patientData ? `${item.patientData.firstName || ''} ${item.patientData.lastName || ''}` : '—'}
-                                                        </div>
-                                                        <div className="patient-contact">
-                                                            <i className="fa-solid fa-phone"></i> {item.patientData?.phonenumber || '—'}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>{item.patientData?.address || '—'}</td>
-                                                <td>{gender || '—'}</td>
-                                                <td>
-                                                    {this.getStatusBadge(item.statusId)}
-                                                </td>
-                                                <td>
-                                                    {this.getActionButtons(item)}
+                            <div className="table-responsive">
+                                <table className="table table-hover align-middle">
+                                    <thead className="table-light text-secondary">
+                                        <tr>
+                                            <th>{language === LANGUAGES.VI ? 'STT' : 'No.'}</th>
+                                            <th>{language === LANGUAGES.VI ? 'Thời gian' : 'Time'}</th>
+                                            <th>{language === LANGUAGES.VI ? 'Họ và tên' : 'Full Name'}</th>
+                                            <th>{language === LANGUAGES.VI ? 'Địa chỉ' : 'Address'}</th>
+                                            <th>{language === LANGUAGES.VI ? 'Giới tính' : 'Gender'}</th>
+                                            <th>{language === LANGUAGES.VI ? 'Trạng thái' : 'Status'}</th>
+                                            <th className="text-center">{language === LANGUAGES.VI ? 'Thao tác' : 'Actions'}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {isLoading ? (
+                                            <tr>
+                                                <td colSpan="7" className="text-center py-4">
+                                                    <i className="fa-solid fa-spinner fa-spin me-2 text-doctor"></i>
+                                                    {language === LANGUAGES.VI ? 'Đang tải...' : 'Loading...'}
                                                 </td>
                                             </tr>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
-                        )}
+                                        ) : filteredPatients.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="7" className="text-center py-4 text-muted">
+                                                    {language === LANGUAGES.VI ? 'Không có bệnh nhân nào' : 'No patients found'}
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            filteredPatients.map((item, index) => {
+                                                let time = language === LANGUAGES.VI
+                                                    ? item?.timeTypeDataPatient?.valueVi || ''
+                                                    : item?.timeTypeDataPatient?.valueEn || '';
+                                                let gender = language === LANGUAGES.VI
+                                                    ? item?.patientData?.genderData?.valueVi || ''
+                                                    : item?.patientData?.genderData?.valueEn || '';
+                                                    
+                                                return (
+                                                    <tr key={index}>
+                                                        <td>
+                                                            <span className="fw-bold text-dark" style={{ color: '#000' }}>#{item.queueNumber || index + 1}</span>
+                                                        </td>
+                                                        <td>
+                                                            <span className="badge bg-primary-light text-primary border border-primary-subtle p-2">
+                                                                <i className="fa-solid fa-clock me-1"></i> {time}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div className="fw-bold text-dark">
+                                                                {item.patientData ? `${item.patientData.lastName || ''} ${item.patientData.firstName || ''}` : '—'}
+                                                            </div>
+                                                            <div className="text-secondary small mt-1">
+                                                                <i className="fa-solid fa-phone me-1"></i> {item.patientData?.phonenumber || '—'}
+                                                            </div>
+                                                        </td>
+                                                        <td>{item.patientData?.address || '—'}</td>
+                                                        <td>{gender || '—'}</td>
+                                                        <td>
+                                                            {this.getStatusBadge(item.statusId)}
+                                                        </td>
+                                                        <td className="text-center">
+                                                            {this.getActionButtons(item)}
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -518,10 +560,5 @@ const mapStateToProps = state => ({
     language: state.app.language,
     user: state.user.userInfo,
 });
-
-const mapDispatchToProps = dispatch => {
-    return {
-    };
-}
 
 export default connect(mapStateToProps)(ManagePatient);

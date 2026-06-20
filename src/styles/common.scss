@@ -15,3 +15,114 @@
 .text-red {
     color: $common-red !important;
 }
+
+/* Purple and utility badge helper classes */
+.btn-purple {
+    background-color: #7c3aed !important;
+    border-color: #7c3aed !important;
+    color: #ffffff !important;
+    
+    &:hover {
+        background-color: #6d28d9 !important;
+        border-color: #6d28d9 !important;
+        color: #ffffff !important;
+    }
+}
+
+.btn-outline-purple {
+    background-color: transparent !important;
+    border-color: #7c3aed !important;
+    color: #7c3aed !important;
+    
+    &:hover {
+        background-color: #7c3aed !important;
+        border-color: #7c3aed !important;
+        color: #ffffff !important;
+    }
+}
+
+.bg-purple-light {
+    background-color: #f5f3ff !important;
+}
+
+.bg-warning-light {
+    background-color: #fffbeb !important;
+}
+
+.bg-primary-light {
+    background-color: #eff6ff !important;
+}
+
+.bg-success-light {
+    background-color: #f0fdf4 !important;
+}
+
+/* Admin Theme helper classes */
+.text-admin {
+    color: #1a56db !important;
+}
+
+.border-admin-subtle {
+    border-color: #bfdbfe !important;
+}
+
+.bg-admin-light {
+    background-color: #eff6ff !important;
+}
+
+.btn-admin {
+    background-color: #1a56db !important;
+    border-color: #1a56db !important;
+    color: #ffffff !important;
+    
+    &:hover {
+        background-color: #1d4ed8 !important;
+        border-color: #1d4ed8 !important;
+        color: #ffffff !important;
+    }
+}
+
+.btn-outline-admin {
+    background-color: transparent !important;
+    border-color: #1a56db !important;
+    color: #1a56db !important;
+    
+    &:hover {
+        background-color: #1a56db !important;
+        border-color: #1a56db !important;
+        color: #ffffff !important;
+    }
+}
+
+/* Doctor Theme helper classes */
+.text-doctor {
+    color: #006591 !important;
+}
+
+.bg-doctor-light {
+    background-color: #eaf2f8 !important;
+}
+
+.btn-doctor {
+    background-color: #006591 !important;
+    border-color: #006591 !important;
+    color: #ffffff !important;
+    
+    &:hover {
+        background-color: #004d70 !important;
+        border-color: #004d70 !important;
+        color: #ffffff !important;
+    }
+}
+
+.btn-outline-doctor {
+    background-color: transparent !important;
+    border-color: #006591 !important;
+    color: #006591 !important;
+    
+    &:hover {
+        background-color: #006591 !important;
+        border-color: #006591 !important;
+        color: #ffffff !important;
+    }
+}

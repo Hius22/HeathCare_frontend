@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { withRouter } from 'react-router';
-import { getAllSpecialty, getAllDoctors, getDoctorsBySpecialty } from '../../../services/userService';
+import { getAllSpecialty, getAllDoctors, getDoctorsBySpecialty, getAllClinic } from '../../../services/userService';
 import { LANGUAGES } from '../../../utils';
 import './Hero.scss';
 
@@ -17,25 +17,101 @@ class Hero extends Component {
             listSpecialty: [],
             listDoctor: [],
             listDoctorFiltered: [],
+            listClinic: [],
             // UI state
             isLoadingDoctors: false,
             isSubmitting: false,
+
+            // Unified search state
+            activeTab: 'schedule', // 'schedule' or 'search'
+            searchKeyword: '',
+            isSearchFocused: false,
+            filteredSpecialties: [],
+            filteredDoctors: [],
+            filteredClinics: []
         }
     }
 
     async componentDidMount() {
         try {
-            const [resSpecialty, resDoctor] = await Promise.all([
+            const [resSpecialty, resDoctor, resClinic] = await Promise.all([
                 getAllSpecialty(),
-                getAllDoctors()
+                getAllDoctors(),
+                getAllClinic()
             ]);
 
             let listSpecialty = resSpecialty?.errCode === 0 ? (resSpecialty.data || []) : [];
             let listDoctor = resDoctor?.errCode === 0 ? (resDoctor.data || []) : [];
+            let listClinic = resClinic?.errCode === 0 ? (resClinic.data || []) : [];
 
-            this.setState({ listSpecialty, listDoctor, listDoctorFiltered: listDoctor });
+            this.setState({ 
+                listSpecialty, 
+                listDoctor, 
+                listDoctorFiltered: listDoctor,
+                listClinic 
+            });
         } catch (err) {
             // silent fail — form still usable
+        }
+    }
+
+    handleSearchInputChange = (e) => {
+        const query = e.target.value;
+        const queryLower = query.toLowerCase().trim();
+        const { listSpecialty, listDoctor, listClinic } = this.state;
+
+        if (!queryLower) {
+            this.setState({
+                searchKeyword: query,
+                filteredSpecialties: [],
+                filteredDoctors: [],
+                filteredClinics: []
+            });
+            return;
+        }
+
+        // Filter Specialties
+        const filteredSpecialties = listSpecialty.filter(item => 
+            item.name && item.name.toLowerCase().includes(queryLower)
+        );
+
+        // Filter Clinics
+        const filteredClinics = listClinic.filter(item => 
+            (item.name && item.name.toLowerCase().includes(queryLower)) ||
+            (item.address && item.address.toLowerCase().includes(queryLower))
+        );
+
+        // Filter Doctors
+        const filteredDoctors = listDoctor.filter(item => {
+            const fullNameVi = `${item.lastName || ''} ${item.firstName || ''}`.toLowerCase();
+            const fullNameEn = `${item.firstName || ''} ${item.lastName || ''}`.toLowerCase();
+            const position = item.positionData?.valueVi?.toLowerCase() || '';
+            const specialtyNames = this.getDoctorSpecialtyNames(item).toLowerCase();
+            return fullNameVi.includes(queryLower) || fullNameEn.includes(queryLower) || position.includes(queryLower) || specialtyNames.includes(queryLower);
+        });
+
+        this.setState({
+            searchKeyword: query,
+            filteredSpecialties,
+            filteredClinics,
+            filteredDoctors
+        });
+    }
+
+    handleClearSearch = () => {
+        this.setState({
+            searchKeyword: '',
+            filteredSpecialties: [],
+            filteredClinics: [],
+            filteredDoctors: []
+        });
+    }
+
+    handleSearchSubmit = (e) => {
+        e.preventDefault();
+        const { searchKeyword } = this.state;
+        if (searchKeyword.trim()) {
+            this.props.history.push(`/doctors?search=${encodeURIComponent(searchKeyword.trim())}`);
         }
     }
 
@@ -93,13 +169,18 @@ class Hero extends Component {
 
     // Get specialty names from doctorSpecialties array (new M-N structure)
     getDoctorSpecialtyNames = (doctor) => {
+        let list = [];
         if (doctor.doctorSpecialties && doctor.doctorSpecialties.length > 0) {
-            return doctor.doctorSpecialties
-                .map(ds => ds.specialtyData?.name)
-                .filter(Boolean)
-                .join(', ');
+            doctor.doctorSpecialties.forEach(ds => {
+                if (ds.specialtyData && ds.specialtyData.name) {
+                    list.push(ds.specialtyData.name);
+                }
+            });
         }
-        return '';
+        if (list.length === 0 && doctor.Doctor_Infor && doctor.Doctor_Infor.specialtyData) {
+            list.push(doctor.Doctor_Infor.specialtyData.name);
+        }
+        return list.filter(Boolean).join(', ');
     }
 
     render() {
@@ -107,7 +188,9 @@ class Hero extends Component {
         const isVi = language === LANGUAGES.VI;
         const {
             specialtyId, doctorId, date,
-            listSpecialty, listDoctorFiltered
+            listSpecialty, listDoctorFiltered,
+            activeTab, searchKeyword, isSearchFocused,
+            filteredSpecialties, filteredClinics, filteredDoctors
         } = this.state;
 
         // min date = today
@@ -174,89 +257,246 @@ class Hero extends Component {
 
                         {/* ── Right: search form ── */}
                         <div className="hero-form-card">
-                            <div className="form-card-header">
-                                <i className="fas fa-calendar-plus"></i>
-                                <h3 className="form-title">
-                                    {isVi ? 'Tìm lịch khám' : 'Find Appointment'}
-                                </h3>
+                            <div className="card-tabs">
+                                <button 
+                                    type="button"
+                                    className={`tab-btn ${activeTab === 'schedule' ? 'active' : ''}`}
+                                    onClick={() => this.setState({ activeTab: 'schedule' })}
+                                >
+                                    <i className="fas fa-calendar-plus"></i>
+                                    {isVi ? 'Đặt lịch khám' : 'Find Appointment'}
+                                </button>
+                                <button 
+                                    type="button"
+                                    className={`tab-btn ${activeTab === 'search' ? 'active' : ''}`}
+                                    onClick={() => this.setState({ activeTab: 'search' })}
+                                >
+                                    <i className="fas fa-search"></i>
+                                    {isVi ? 'Tìm nhanh' : 'Quick Search'}
+                                </button>
                             </div>
 
-                            <form className="booking-form" onSubmit={this.handleSubmit}>
-
-                                {/* Specialty */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        <i className="fas fa-stethoscope"></i>
-                                        {isVi ? 'Chuyên khoa' : 'Specialty'}
-                                    </label>
-                                    <select
-                                        className="form-input"
-                                        value={specialtyId}
-                                        onChange={this.handleSpecialtyChange}
-                                    >
-                                        <option value="">
-                                            {isVi ? '— Tất cả chuyên khoa —' : '— All specialties —'}
-                                        </option>
-                                        {listSpecialty.map(sp => (
-                                            <option key={sp.id} value={sp.id}>
-                                                {sp.name}
+                            {activeTab === 'schedule' ? (
+                                <form className="booking-form" onSubmit={this.handleSubmit}>
+                                    {/* Specialty */}
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <i className="fas fa-stethoscope"></i>
+                                            {isVi ? 'Chuyên khoa' : 'Specialty'}
+                                        </label>
+                                        <select
+                                            className="form-input"
+                                            value={specialtyId}
+                                            onChange={this.handleSpecialtyChange}
+                                        >
+                                            <option value="">
+                                                {isVi ? '— Tất cả chuyên khoa —' : '— All specialties —'}
                                             </option>
-                                        ))}
-                                    </select>
-                                </div>
+                                            {listSpecialty.map(sp => (
+                                                <option key={sp.id} value={sp.id}>
+                                                    {sp.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
 
-                                {/* Doctor */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        <i className="fas fa-user-md"></i>
-                                        {isVi ? 'Bác sĩ' : 'Doctor'}
-                                    </label>
-                                    <select
-                                        className="form-input"
-                                        value={doctorId}
-                                        onChange={this.handleDoctorChange}
-                                        disabled={listDoctorFiltered.length === 0}
-                                    >
-                                        <option value="">
-                                            {listDoctorFiltered.length === 0
-                                                ? (isVi ? 'Không có bác sĩ phù hợp' : 'No doctors available')
-                                                : (isVi ? '— Tất cả bác sĩ —' : '— All doctors —')}
-                                        </option>
-                                        {listDoctorFiltered.map(d => (
-                                            <option key={d.id} value={d.id}>
-                                                {this.getDoctorName(d)}
+                                    {/* Doctor */}
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <i className="fas fa-user-md"></i>
+                                            {isVi ? 'Bác sĩ' : 'Doctor'}
+                                        </label>
+                                        <select
+                                            className="form-input"
+                                            value={doctorId}
+                                            onChange={this.handleDoctorChange}
+                                            disabled={listDoctorFiltered.length === 0}
+                                        >
+                                            <option value="">
+                                                {listDoctorFiltered.length === 0
+                                                    ? (isVi ? 'Không có bác sĩ phù hợp' : 'No doctors available')
+                                                    : (isVi ? '— Tất cả bác sĩ —' : '— All doctors —')}
                                             </option>
-                                        ))}
-                                    </select>
-                                </div>
+                                            {listDoctorFiltered.map(d => (
+                                                <option key={d.id} value={d.id}>
+                                                    {this.getDoctorName(d)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
 
-                                {/* Date */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        <i className="fas fa-calendar-alt"></i>
-                                        {isVi ? 'Ngày khám' : 'Appointment Date'}
-                                    </label>
-                                    <input
-                                        type="date"
-                                        className="form-input"
-                                        value={date}
-                                        min={today}
-                                        onChange={this.handleDateChange}
-                                    />
-                                </div>
+                                    {/* Date */}
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <i className="fas fa-calendar-alt"></i>
+                                            {isVi ? 'Ngày khám' : 'Appointment Date'}
+                                        </label>
+                                        <input
+                                            type="date"
+                                            className="form-input"
+                                            value={date}
+                                            min={today}
+                                            onChange={this.handleDateChange}
+                                        />
+                                    </div>
 
-                                <button type="submit" className="submit-btn">
-                                    <i className="fas fa-search"></i>
-                                    {isVi ? 'Tìm lịch khám' : 'Search Appointments'}
-                                </button>
+                                    <button type="submit" className="submit-btn">
+                                        <i className="fas fa-search"></i>
+                                        {isVi ? 'Tìm lịch khám' : 'Search Appointments'}
+                                    </button>
 
-                                <p className="form-note">
-                                    <i className="fas fa-info-circle"></i>
-                                    {isVi
-                                        ? 'Xác nhận lịch hẹn qua email ngay lập tức'
-                                        : 'Appointment confirmed via email instantly'}
-                                </p>
-                            </form>
+                                    <p className="form-note">
+                                        <i className="fas fa-info-circle"></i>
+                                        {isVi
+                                            ? 'Xác nhận lịch hẹn qua email ngay lập tức'
+                                            : 'Appointment confirmed via email instantly'}
+                                    </p>
+                                </form>
+                            ) : (
+                                <form className="booking-form" onSubmit={this.handleSearchSubmit}>
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <i className="fa-solid fa-magnifying-glass"></i>
+                                            {isVi ? 'Nhập từ khóa tìm kiếm' : 'Search keyword'}
+                                        </label>
+                                        <div className="unified-search-wrapper" style={{ position: 'relative' }}>
+                                            <input 
+                                                type="text"
+                                                className="form-input"
+                                                placeholder={isVi ? "Bác sĩ, chuyên khoa, phòng khám..." : "Doctor, specialty, clinic..."}
+                                                value={searchKeyword}
+                                                onChange={this.handleSearchInputChange}
+                                                onFocus={() => this.setState({ isSearchFocused: true })}
+                                                onBlur={() => setTimeout(() => this.setState({ isSearchFocused: false }), 200)}
+                                            />
+                                            {searchKeyword && (
+                                                <button type="button" className="clear-search-btn" onClick={this.handleClearSearch}>
+                                                    <i className="fa-solid fa-xmark"></i>
+                                                </button>
+                                            )}
+
+                                            {/* Suggestions Dropdown */}
+                                            {isSearchFocused && (filteredSpecialties.length > 0 || filteredDoctors.length > 0 || filteredClinics.length > 0) && (
+                                                <div className="search-suggestions-dropdown">
+                                                    {filteredSpecialties.length > 0 && (
+                                                        <div className="suggestion-section specialty-section">
+                                                            <div className="section-title">
+                                                                <i className="fa-solid fa-stethoscope"></i>
+                                                                {isVi ? 'Chuyên khoa' : 'Specialties'}
+                                                            </div>
+                                                            <div className="section-items">
+                                                                {filteredSpecialties.slice(0, 3).map(item => (
+                                                                    <div 
+                                                                        key={`spec-${item.id}`} 
+                                                                        className="suggestion-item"
+                                                                        onMouseDown={() => this.props.history.push(`/detail-specialty/${item.id}`)}
+                                                                    >
+                                                                        <div className="item-row">
+                                                                            <span className="item-name">{item.name}</span>
+                                                                            <span className="item-tag tag-specialty">{isVi ? 'Chuyên khoa' : 'Specialty'}</span>
+                                                                        </div>
+                                                                        <span className="item-sub">
+                                                                            <i className="fa-solid fa-stethoscope" style={{ marginRight: '4px', color: '#94a3b8' }}></i>
+                                                                            {isVi ? 'Danh sách bác sĩ và lịch khám chuyên khoa' : 'Specialty doctors and schedules'}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {filteredClinics.length > 0 && (
+                                                        <div className="suggestion-section clinic-section">
+                                                            <div className="section-title">
+                                                                <i className="fa-solid fa-hospital"></i>
+                                                                {isVi ? 'Cơ sở y tế' : 'Clinics'}
+                                                            </div>
+                                                            <div className="section-items">
+                                                                {filteredClinics.slice(0, 3).map(item => (
+                                                                    <div 
+                                                                        key={`clinic-${item.id}`} 
+                                                                        className="suggestion-item"
+                                                                        onMouseDown={() => this.props.history.push(`/detail-clinic/${item.id}`)}
+                                                                    >
+                                                                        <div className="item-row">
+                                                                            <span className="item-name">{item.name}</span>
+                                                                            <span className="item-tag tag-clinic">{isVi ? 'Cơ sở y tế' : 'Clinic'}</span>
+                                                                        </div>
+                                                                        <span className="item-sub">
+                                                                            <i className="fa-solid fa-location-dot" style={{ marginRight: '4px', color: '#94a3b8' }}></i>
+                                                                            {item.address}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {filteredDoctors.length > 0 && (
+                                                        <div className="suggestion-section doctor-section">
+                                                            <div className="section-title">
+                                                                <i className="fa-solid fa-user-md"></i>
+                                                                {isVi ? 'Bác sĩ' : 'Doctors'}
+                                                            </div>
+                                                            <div className="section-items">
+                                                                {filteredDoctors.slice(0, 3).map(item => (
+                                                                    <div 
+                                                                        key={`doc-${item.id}`} 
+                                                                        className="suggestion-item"
+                                                                        onMouseDown={() => this.props.history.push(`/detail-doctor/${item.id}`)}
+                                                                    >
+                                                                        <div className="item-row">
+                                                                            <span className="item-name">
+                                                                                {isVi 
+                                                                                    ? `${item.positionData?.valueVi || 'Bác sĩ'} ${item.lastName || ''} ${item.firstName || ''}`
+                                                                                    : `${item.positionData?.valueEn || 'Doctor'} ${item.firstName || ''} ${item.lastName || ''}`
+                                                                                }
+                                                                            </span>
+                                                                            <span className="item-tag tag-doctor">{isVi ? 'Bác sĩ' : 'Doctor'}</span>
+                                                                        </div>
+                                                                        {this.getDoctorSpecialtyNames(item) && (
+                                                                            <span className="item-sub">
+                                                                                <i className="fa-solid fa-stethoscope" style={{ marginRight: '4px', color: '#94a3b8' }}></i>
+                                                                                {this.getDoctorSpecialtyNames(item)}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {isSearchFocused && searchKeyword && filteredSpecialties.length === 0 && filteredDoctors.length === 0 && filteredClinics.length === 0 && (
+                                                <div className="search-suggestions-dropdown empty">
+                                                    {isVi ? 'Không tìm thấy kết quả' : 'No results found'}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" className="submit-btn" style={{ marginTop: '16px' }}>
+                                        <i className="fas fa-search"></i>
+                                        {isVi ? 'Tìm kiếm' : 'Search'}
+                                    </button>
+
+                                    <div className="search-shortcuts" style={{ marginTop: '20px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        <span style={{ color: '#475569', fontWeight: 600 }}>{isVi ? 'Xem danh sách:' : 'Browse lists:'}</span>
+                                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                            <a href="/doctors" onClick={(e) => { e.preventDefault(); this.props.history.push('/doctors'); }} style={{ color: '#006ea8', textDecoration: 'none', fontWeight: 500 }}>
+                                                {isVi ? '🩺 Bác sĩ' : '🩺 Doctors'}
+                                            </a>
+                                            <a href="/facilities" onClick={(e) => { e.preventDefault(); this.props.history.push('/facilities'); }} style={{ color: '#006ea8', textDecoration: 'none', fontWeight: 500 }}>
+                                                {isVi ? '🏥 Phòng khám' : '🏥 Clinics'}
+                                            </a>
+                                            <a href="/all-specialty" onClick={(e) => { e.preventDefault(); this.props.history.push('/all-specialty'); }} style={{ color: '#006ea8', textDecoration: 'none', fontWeight: 500 }}>
+                                                {isVi ? '🔬 Chuyên khoa' : '🔬 Specialties'}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            )}
                         </div>
 
                     </div>

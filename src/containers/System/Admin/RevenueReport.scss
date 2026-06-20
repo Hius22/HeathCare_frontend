@@ -1,4 +1,4 @@
-.manage-booking-container {
+.revenue-report-container {
   padding: 0;
 
   .stat-card {
@@ -17,22 +17,25 @@
       align-items: center;
       justify-content: center;
 
-      &.bg-admin-light {
-        background-color: #eff6ff !important;
-        color: #1a56db !important;
-      }
-      &.bg-warning-light {
-        background-color: #fffbeb !important;
-        color: #b27b00 !important;
+      &.bg-info-light {
+        background-color: #ecfeff !important;
+        color: #0891b2 !important;
       }
       &.bg-primary-light {
         background-color: #eff6ff !important;
         color: #1d4ed8 !important;
       }
-      &.bg-success-light {
-        background-color: #f0fdf4 !important;
-        color: #15803d !important;
-      }
+    }
+  }
+
+  .btn-purple {
+    background-color: #7c3aed;
+    color: white;
+    border: 1px solid #7c3aed;
+
+    &:hover {
+      background-color: #6d28d9;
+      color: white;
     }
   }
 

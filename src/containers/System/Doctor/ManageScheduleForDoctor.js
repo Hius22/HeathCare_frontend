@@ -75,7 +75,6 @@ class ManageScheduleForDoctor extends Component {
         let stats = {
             total: schedules.length,
             morning: schedules.filter(s => {
-                // Determine if morning based on timeType (T1, T2, T3, T4 usually)
                 let type = s.timeType;
                 return ['T1', 'T2', 'T3', 'T4'].includes(type);
             }).length,
@@ -86,114 +85,148 @@ class ManageScheduleForDoctor extends Component {
         };
 
         return (
-            <div className="manage-schedule-doctor-container">
-                <div className="manage-schedule-header">
-                    <h2>
-                        <i className="fa-solid fa-calendar-days"></i>
-                        {language === LANGUAGES.VI ? 'Lịch khám của tôi' : 'My Schedule'}
-                    </h2>
+            <div className="manage-schedule-doctor-container container-fluid">
+                {/* Header & Stats Card */}
+                <div className="card shadow-sm border-0 rounded-3 mb-4">
+                    <div className="card-body p-4">
+                        {/* Header */}
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-12">
+                                <h4 className="text-doctor font-weight-bold mb-0">
+                                    <i className="fa-solid fa-calendar-days me-2"></i>
+                                    {language === LANGUAGES.VI ? 'Lịch khám của tôi' : 'My Schedule'}
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    {language === LANGUAGES.VI ? 'Xem và quản lý các ca khám bệnh đã đăng ký' : 'View and manage registered medical examination shifts'}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Statistics Cards */}
+                        <div className="row g-3 mb-4">
+                            <div className="col-6 col-md-4">
+                                <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                    <div className="stat-icon bg-doctor-light text-doctor rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                        <i className="fa-solid fa-list-check"></i>
+                                    </div>
+                                    <div>
+                                        <div className="fw-bold text-dark fs-6">{stats.total}</div>
+                                        <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Tổng ca khám' : 'Total Shifts'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-6 col-md-4">
+                                <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                    <div className="stat-icon bg-warning-light text-warning rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                        <i className="fa-solid fa-sun"></i>
+                                    </div>
+                                    <div>
+                                        <div className="fw-bold text-dark fs-6">{stats.morning}</div>
+                                        <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Ca sáng' : 'Morning'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-6 col-md-4">
+                                <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                    <div className="stat-icon bg-primary-light text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                        <i className="fa-solid fa-cloud-sun"></i>
+                                    </div>
+                                    <div>
+                                        <div className="fw-bold text-dark fs-6">{stats.afternoon}</div>
+                                        <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Ca chiều' : 'Afternoon'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Filters */}
+                        <div className="row g-3 align-items-end border-top pt-4">
+                            <div className="col-md-4 col-sm-6">
+                                <label className="form-label fw-bold small text-secondary mb-2">{language === LANGUAGES.VI ? 'Chọn ngày xem lịch' : 'Select Date'}</label>
+                                <div className="d-flex gap-2">
+                                    <DatePicker
+                                        className="form-control"
+                                        value={currentDate}
+                                        onChange={this.handleChangeDate}
+                                    />
+                                    {currentDate && (
+                                        <button 
+                                            className="btn btn-outline-secondary" 
+                                            onClick={this.handleClearDate} 
+                                            title={language === LANGUAGES.VI ? 'Xóa bộ lọc ngày' : 'Clear date filter'}
+                                        >
+                                            <i className="fas fa-times"></i>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="stats-cards">
-                    <div className="stat-card stat-total">
-                        <div className="stat-icon">
-                            <i className="fa-solid fa-list-check"></i>
+                {/* Table Card */}
+                <div className="card shadow-sm border-0 rounded-3">
+                    <div className="card-body p-4">
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-6">
+                                <h4 className="text-doctor font-weight-bold mb-0">
+                                    <i className="fa-solid fa-clock me-2"></i>
+                                    {language === LANGUAGES.VI ? 'Danh sách thời gian khám' : 'Schedule Timetable'}
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    {language === LANGUAGES.VI ? `Tổng số: ${schedules.length} ca` : `Total: ${schedules.length} shifts`}
+                                </p>
+                            </div>
                         </div>
-                        <div className="stat-info">
-                            <div className="stat-value">{stats.total}</div>
-                            <div className="stat-label">{language === LANGUAGES.VI ? 'Tổng ca khám' : 'Total Shifts'}</div>
-                        </div>
-                    </div>
-                    <div className="stat-card stat-morning">
-                        <div className="stat-icon" style={{background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'}}>
-                            <i className="fa-solid fa-sun"></i>
-                        </div>
-                        <div className="stat-info">
-                            <div className="stat-value">{stats.morning}</div>
-                            <div className="stat-label">{language === LANGUAGES.VI ? 'Ca sáng' : 'Morning'}</div>
-                        </div>
-                    </div>
-                    <div className="stat-card stat-afternoon">
-                        <div className="stat-icon" style={{background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'}}>
-                            <i className="fa-solid fa-cloud-sun"></i>
-                        </div>
-                        <div className="stat-info">
-                            <div className="stat-value">{stats.afternoon}</div>
-                            <div className="stat-label">{language === LANGUAGES.VI ? 'Ca chiều' : 'Afternoon'}</div>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="schedule-filters">
-                    <div className="filter-group">
-                        <label>{language === LANGUAGES.VI ? 'Chọn ngày xem lịch' : 'Select Date'}</label>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <DatePicker
-                                className="form-control"
-                                value={currentDate}
-                                onChange={this.handleChangeDate}
-                            />
-                            {currentDate && (
-                                <button 
-                                    className="btn btn-secondary" 
-                                    onClick={this.handleClearDate} 
-                                    title={language === LANGUAGES.VI ? 'Xóa bộ lọc ngày' : 'Clear date filter'}
-                                    style={{ padding: '0 15px', borderRadius: '8px', border: 'none', background: '#e0e0e0', cursor: 'pointer' }}
-                                >
-                                    <i className="fas fa-times"></i>
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="schedules-table-container">
-                    <div className="table-header-bar">
-                        <h3><i className="fas fa-clock"></i> {language === LANGUAGES.VI ? 'Danh Sách Thời Gian Khám' : 'Schedule Timetable'}</h3>
-                        <span className="record-count">{language === LANGUAGES.VI ? `Tổng: ${schedules.length} ca` : `Total: ${schedules.length} shifts`}</span>
-                    </div>
-
-                    {isLoading ? (
-                        <div className="loading">
-                            <i className="fa-solid fa-spinner fa-spin"></i>
-                            <span>{language === LANGUAGES.VI ? 'Đang tải...' : 'Loading...'}</span>
-                        </div>
-                    ) : schedules.length === 0 ? (
-                        <div className="no-data">
-                            <i className="fa-solid fa-calendar-xmark"></i>
-                            <p>{language === LANGUAGES.VI ? 'Chưa có lịch khám nào' : 'No schedules found'}</p>
-                        </div>
-                    ) : (
-                        <table className="schedules-table">
-                            <thead>
-                                <tr>
-                                    <th>{language === LANGUAGES.VI ? 'STT' : 'No.'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Ngày khám' : 'Date'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Giờ khám' : 'Time Shift'}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {schedules.map((item, index) => (
-                                    <tr key={item.id} className="schedule-row">
-                                        <td>{index + 1}</td>
-                                        <td>
-                                            <div className="date-info">
-                                                <i className="fa-solid fa-calendar"></i> {moment(Number(item.date)).format('DD/MM/YYYY')}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span className="time-badge">
-                                                <i className="fa-regular fa-clock"></i>
-                                                {language === LANGUAGES.VI
-                                                    ? item.timeTypeData?.valueVi
-                                                    : item.timeTypeData?.valueEn}
-                                            </span>
-                                        </td>
+                        <div className="table-responsive">
+                            <table className="table table-hover align-middle">
+                                <thead className="table-light text-secondary">
+                                    <tr>
+                                        <th style={{ width: '80px' }}>{language === LANGUAGES.VI ? 'STT' : 'No.'}</th>
+                                        <th>{language === LANGUAGES.VI ? 'Ngày khám' : 'Date'}</th>
+                                        <th>{language === LANGUAGES.VI ? 'Giờ khám' : 'Time Shift'}</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
+                                </thead>
+                                <tbody>
+                                    {isLoading ? (
+                                        <tr>
+                                            <td colSpan="3" className="text-center py-4">
+                                                <i className="fa-solid fa-spinner fa-spin me-2 text-doctor"></i>
+                                                {language === LANGUAGES.VI ? 'Đang tải...' : 'Loading...'}
+                                            </td>
+                                        </tr>
+                                    ) : schedules.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="3" className="text-center py-4 text-muted">
+                                                {language === LANGUAGES.VI ? 'Chưa có lịch khám nào' : 'No schedules found'}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        schedules.map((item, index) => (
+                                            <tr key={item.id}>
+                                                <td>{index + 1}</td>
+                                                <td>
+                                                    <div className="fw-bold text-dark">
+                                                        <i className="fa-solid fa-calendar me-2 text-doctor"></i>
+                                                        {moment(Number(item.date)).format('DD/MM/YYYY')}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span className="badge bg-primary-light text-primary border border-primary-subtle p-2">
+                                                        <i className="fa-regular fa-clock me-1"></i>
+                                                        {language === LANGUAGES.VI
+                                                            ? item.timeTypeData?.valueVi
+                                                            : item.timeTypeData?.valueEn}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -203,7 +236,7 @@ class ManageScheduleForDoctor extends Component {
 const mapStateToProps = state => {
     return {
         language: state.app.language,
-        userInfo: state.user.userInfo // doctor đang đăng nhập
+        userInfo: state.user.userInfo
     };
 };
 

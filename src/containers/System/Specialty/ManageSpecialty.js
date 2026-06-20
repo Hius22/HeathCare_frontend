@@ -201,179 +201,208 @@ class ManageSpecialty extends Component {
         let filteredSpecialties = this.getFilteredSpecialties();
 
         return (
-            <div className='manage-specialty-container'>
-                <div className='ms-header'>
-                    <h2>
-                        <i className="fa-solid fa-stethoscope"></i>
-                        {language === LANGUAGES.VI ? 'Quản lý chuyên khoa' : 'Manage Specialties'}
-                    </h2>
-                </div>
-
-                {/* Form Section */}
-                <div className='form-section'>
-                    <div className='form-title'>
-                        <i className={`fa-solid ${editingId ? 'fa-edit' : 'fa-plus-circle'}`}></i>
-                        {editingId
-                            ? (language === LANGUAGES.VI ? 'Chỉnh sửa chuyên khoa' : 'Edit Specialty')
-                            : (language === LANGUAGES.VI ? 'Thêm mới chuyên khoa' : 'Add New Specialty')
-                        }
-                    </div>
-
-                    <div className='add-new-specialty row'>
-                        <div className='col-6 form-group'>
-                            <label>{language === LANGUAGES.VI ? 'Tên chuyên khoa' : 'Specialty Name'}</label>
-                            <input className='form-control'
-                                type='text'
-                                value={this.state.name}
-                                onChange={(event) => this.handleOnChangeInput(event, 'name')}
-                                placeholder={language === LANGUAGES.VI ? 'Nhập tên chuyên khoa...' : 'Enter specialty name...'}
-                            />
+            <div className='manage-specialty-container container-fluid'>
+                {/* Form Card */}
+                <div className="card shadow-sm border-0 rounded-3 mb-4">
+                    <div className="card-body p-4">
+                        {/* Header */}
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-6">
+                                <h4 className="text-admin font-weight-bold mb-0">
+                                    <i className="fa-solid fa-stethoscope me-2"></i>
+                                    {language === LANGUAGES.VI ? 'Quản lý chuyên khoa' : 'Manage Specialties'}
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    {language === LANGUAGES.VI ? 'Tạo mới, chỉnh sửa và quản lý các chuyên khoa khám bệnh' : 'Create, edit and manage clinic specialties'}
+                                </p>
+                            </div>
                         </div>
 
-                        <div className='col-6 form-group'>
-                            <label>{language === LANGUAGES.VI ? 'Ảnh chuyên khoa' : 'Specialty Image'}</label>
-                            <div className='preview-img-container'>
-                                <input id="previewImg" type='file' hidden
-                                    onChange={(event) => this.handleOnChangeImage(event)}
-                                />
-                                <label className='label-upload' htmlFor='previewImg'>
-                                    {language === LANGUAGES.VI ? 'Tải ảnh' : 'Upload Image'} <i className="fa-solid fa-upload"></i>
-                                </label>
+                        {/* Form Section */}
+                        <div className='row g-3 border-top pt-4'>
+                            <div className='col-12 mb-2 fw-bold text-dark fs-6'>
+                                <i className={`fa-solid ${editingId ? 'fa-edit' : 'fa-plus-circle'} me-2 text-admin`}></i>
+                                {editingId
+                                    ? (language === LANGUAGES.VI ? 'Chỉnh sửa chuyên khoa' : 'Edit Specialty')
+                                    : (language === LANGUAGES.VI ? 'Thêm mới chuyên khoa' : 'Add New Specialty')
+                                }
+                            </div>
 
-                                <div className='preview-image'
-                                    style={{ backgroundImage: `url(${this.state.previewImgURL})` }}
-                                    onClick={() => this.openPreviewImage()}
-                                >
+                            <div className='col-md-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2">{language === LANGUAGES.VI ? 'Tên chuyên khoa' : 'Specialty Name'}</label>
+                                <input className='form-control'
+                                    type='text'
+                                    value={this.state.name}
+                                    onChange={(event) => this.handleOnChangeInput(event, 'name')}
+                                    placeholder={language === LANGUAGES.VI ? 'Nhập tên chuyên khoa...' : 'Enter specialty name...'}
+                                />
+                            </div>
+
+                            <div className='col-md-6'>
+                                <label className="form-label fw-bold small text-secondary mb-2">{language === LANGUAGES.VI ? 'Ảnh chuyên khoa' : 'Specialty Image'}</label>
+                                <div className='preview-img-container d-flex align-items-center gap-3'>
+                                    <input id="previewImg" type='file' hidden
+                                        onChange={(event) => this.handleOnChangeImage(event)}
+                                    />
+                                    <label className='btn btn-outline-admin btn-sm rounded-pill px-3 mb-0' htmlFor='previewImg'>
+                                        {language === LANGUAGES.VI ? 'Tải ảnh' : 'Upload Image'} <i className="fa-solid fa-upload ms-1"></i>
+                                    </label>
+
+                                    {this.state.previewImgURL && (
+                                        <div className='preview-image rounded border'
+                                            style={{ 
+                                                backgroundImage: `url(${this.state.previewImgURL})`,
+                                                width: '100px',
+                                                height: '45px',
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
+                                                cursor: 'pointer'
+                                             }}
+                                            onClick={() => this.openPreviewImage()}
+                                        >
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className='col-12 mt-3'>
+                                <label className="form-label fw-bold small text-secondary mb-2">{language === LANGUAGES.VI ? 'Mô tả chi tiết' : 'Detailed Description'}</label>
+                                <div className="border rounded-3 overflow-hidden">
+                                    <MdEditor
+                                        style={{ height: '300px' }}
+                                        renderHTML={text => mdParser.render(text)}
+                                        onChange={this.handleEditorChange}
+                                        value={this.state.descriptionMarkdown}
+                                        placeholder={language === LANGUAGES.VI ? 'Nhập mô tả về chuyên khoa...' : 'Enter specialty description...'}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className='col-12 mt-4'>
+                                <div className='d-flex gap-2 justify-content-end'>
+                                    {editingId && (
+                                        <button className='btn btn-sm btn-outline-secondary rounded-pill px-4' onClick={this.resetForm}>
+                                            <i className="fa-solid fa-times me-1"></i> {language === LANGUAGES.VI ? 'Hủy' : 'Cancel'}
+                                        </button>
+                                    )}
+                                    <button className={`btn btn-sm rounded-pill px-4 ${editingId ? 'btn-warning text-white' : 'btn-admin'}`}
+                                        onClick={() => this.handleSaveNewSpecialty()}
+                                    >
+                                        <i className={`fa-solid ${editingId ? 'fa-save' : 'fa-plus'} me-1`}></i>
+                                        {editingId
+                                            ? (language === LANGUAGES.VI ? 'Lưu thay đổi' : 'Save Changes')
+                                            : (language === LANGUAGES.VI ? 'Thêm mới' : 'Create New')
+                                        }
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Specialties List Card */}
+                <div className="card shadow-sm border-0 rounded-3">
+                    <div className="card-body p-4">
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-6">
+                                <h4 className="text-admin font-weight-bold mb-0">
+                                    <i className="fa-solid fa-list me-2"></i>
+                                    {language === LANGUAGES.VI ? 'Danh sách chuyên khoa' : 'Specialties List'}
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    {language === LANGUAGES.VI ? `Tổng số: ${filteredSpecialties.length} chuyên khoa` : `Total: ${filteredSpecialties.length} specialties`}
+                                </p>
+                            </div>
+                            <div className="col-md-6 d-flex justify-content-md-end mt-3 mt-md-0">
+                                <div className="input-group" style={{ maxWidth: '300px' }}>
+                                    <span className="input-group-text bg-white border-end-0"><i className="fas fa-search text-muted"></i></span>
+                                    <input
+                                        type="text"
+                                        className="form-control border-start-0 ps-0"
+                                        placeholder={language === LANGUAGES.VI ? 'Tìm kiếm chuyên khoa...' : 'Search specialties...'}
+                                        value={searchKeyword}
+                                        onChange={this.handleSearchChange}
+                                    />
                                 </div>
                             </div>
                         </div>
 
-
-                        <div className='col-12'>
-                            <label>{language === LANGUAGES.VI ? 'Mô tả chi tiết' : 'Detailed Description'}</label>
-                            <MdEditor
-                                style={{ height: '300px' }}
-                                renderHTML={text => mdParser.render(text)}
-                                onChange={this.handleEditorChange}
-                                value={this.state.descriptionMarkdown}
-                                placeholder={language === LANGUAGES.VI ? 'Nhập mô tả về chuyên khoa...' : 'Enter specialty description...'}
-                            />
-                        </div>
-                        <div className='col-12'>
-                            <div className='form-actions'>
-                                {editingId && (
-                                    <button className='btn btn-cancel' onClick={this.resetForm}>
-                                        <i className="fa-solid fa-times"></i> {language === LANGUAGES.VI ? 'Hủy' : 'Cancel'}
-                                    </button>
-                                )}
-                                <button className='btn btn-save'
-                                    onClick={() => this.handleSaveNewSpecialty()}
-                                >
-                                    <i className={`fa-solid ${editingId ? 'fa-save' : 'fa-plus'}`}></i>
-                                    {editingId
-                                        ? (language === LANGUAGES.VI ? 'Lưu thay đổi' : 'Save Changes')
-                                        : (language === LANGUAGES.VI ? 'Thêm mới' : 'Create New')
-                                    }
-                                </button>
+                        {isLoading ? (
+                            <div className='text-center py-5 text-secondary'>
+                                <i className="fa-solid fa-spinner fa-spin fa-2x mb-3 text-admin"></i>
+                                <div>{language === LANGUAGES.VI ? 'Đang tải...' : 'Loading...'}</div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Specialties List */}
-                <div className='specialties-list-section'>
-                    <div className='list-header'>
-                        <h3>
-                            <i className="fa-solid fa-list"></i>
-                            {language === LANGUAGES.VI ? 'Danh sách chuyên khoa' : 'Specialties List'}
-                        </h3>
-                        <div className='search-box'>
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder={language === LANGUAGES.VI ? 'Tìm kiếm chuyên khoa...' : 'Search specialties...'}
-                                value={searchKeyword}
-                                onChange={this.handleSearchChange}
-                            />
-                            <i className="fa-solid fa-search"></i>
-                        </div>
-                    </div>
-
-                    {isLoading ? (
-                        <div className='loading'>
-                            <i className="fa-solid fa-spinner fa-spin"></i>
-                            <span>{language === LANGUAGES.VI ? 'Đang tải...' : 'Loading...'}</span>
-                        </div>
-                    ) : filteredSpecialties.length === 0 ? (
-                        <div className='no-data'>
-                            <i className="fa-solid fa-folder-open"></i>
-                            <p>{language === LANGUAGES.VI ? 'Không có chuyên khoa nào' : 'No specialties found'}</p>
-                        </div>
-                    ) : (
-                        <div className='specialties-table-container'>
-                            <table className='specialties-table'>
-                                <thead>
-                                    <tr>
-                                        <th>{language === LANGUAGES.VI ? 'STT' : 'No.'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Tên chuyên khoa' : 'Specialty Name'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Hình ảnh' : 'Image'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Mô tả' : 'Description'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Ngày tạo' : 'Created Date'}</th>
-                                        <th>{language === LANGUAGES.VI ? 'Thao tác' : 'Actions'}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredSpecialties.map((specialty, index) => (
-                                        <tr key={specialty.id}>
-                                            <td>{index + 1}</td>
-                                            <td className='specialty-name'>{specialty.name}</td>
-                                            <td>
-                                                {specialty.image ? (
-                                                    <img
-                                                        src={specialty.image}
-                                                        alt={specialty.name}
-                                                        className='specialty-thumb'
-                                                    />
-                                                ) : (
-                                                    <span className='no-image'>No image</span>
-                                                )}
-                                            </td>
-                                            <td className='description-cell'>
-                                                {specialty.descriptionMarkdown
-                                                    ? specialty.descriptionMarkdown.substring(0, 100) + '...'
-                                                    : '—'
-                                                }
-                                            </td>
-                                            <td>
-                                                {specialty.createdAt
-                                                    ? moment(specialty.createdAt).format('DD/MM/YYYY HH:mm')
-                                                    : '—'
-                                                }
-                                            </td>
-                                            <td>
-                                                <div className='action-buttons'>
-                                                    <button
-                                                        className='btn-edit'
-                                                        onClick={() => this.handleEditSpecialty(specialty)}
-                                                        title={language === LANGUAGES.VI ? 'Sửa' : 'Edit'}
-                                                    >
-                                                        <i className="fa-solid fa-edit"></i>
-                                                    </button>
-                                                    <button
-                                                        className='btn-delete'
-                                                        onClick={() => this.handleDeleteSpecialty(specialty.id)}
-                                                        title={language === LANGUAGES.VI ? 'Xóa' : 'Delete'}
-                                                    >
-                                                        <i className="fa-solid fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
+                        ) : filteredSpecialties.length === 0 ? (
+                            <div className='text-center py-5 text-secondary border rounded-3 bg-light'>
+                                <i className="fa-solid fa-folder-open fa-2x mb-3 text-muted"></i>
+                                <p className="mb-0">{language === LANGUAGES.VI ? 'Không có chuyên khoa nào' : 'No specialties found'}</p>
+                            </div>
+                        ) : (
+                            <div className='table-responsive'>
+                                <table className='table table-hover align-middle'>
+                                    <thead className="table-light text-secondary">
+                                        <tr>
+                                            <th style={{ width: '80px' }}>{language === LANGUAGES.VI ? 'STT' : 'No.'}</th>
+                                            <th>{language === LANGUAGES.VI ? 'Tên chuyên khoa' : 'Specialty Name'}</th>
+                                            <th style={{ width: '120px' }}>{language === LANGUAGES.VI ? 'Hình ảnh' : 'Image'}</th>
+                                            <th>{language === LANGUAGES.VI ? 'Mô tả' : 'Description'}</th>
+                                            <th style={{ width: '180px' }}>{language === LANGUAGES.VI ? 'Ngày tạo' : 'Created Date'}</th>
+                                            <th className="text-center" style={{ width: '120px' }}>{language === LANGUAGES.VI ? 'Thao tác' : 'Actions'}</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                    </thead>
+                                    <tbody>
+                                        {filteredSpecialties.map((specialty, index) => (
+                                            <tr key={specialty.id}>
+                                                <td>{index + 1}</td>
+                                                <td className='fw-bold text-dark'>{specialty.name}</td>
+                                                <td>
+                                                    {specialty.image ? (
+                                                        <img
+                                                            src={specialty.image}
+                                                            alt={specialty.name}
+                                                            className='rounded shadow-sm'
+                                                            style={{ width: '60px', height: '40px', objectFit: 'cover' }}
+                                                        />
+                                                    ) : (
+                                                        <span className='text-muted small italic'>No image</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <div className="text-truncate" style={{ maxWidth: '300px' }} title={specialty.descriptionMarkdown}>
+                                                        {specialty.descriptionMarkdown || '—'}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {specialty.createdAt
+                                                        ? moment(specialty.createdAt).format('DD/MM/YYYY HH:mm')
+                                                        : '—'
+                                                    }
+                                                </td>
+                                                <td className="text-center">
+                                                    <div className='d-flex gap-2 justify-content-center'>
+                                                        <button
+                                                            className='btn btn-sm btn-outline-admin px-2 rounded-pill'
+                                                            onClick={() => this.handleEditSpecialty(specialty)}
+                                                            title={language === LANGUAGES.VI ? 'Sửa' : 'Edit'}
+                                                        >
+                                                            <i className="fa-solid fa-edit"></i>
+                                                        </button>
+                                                        <button
+                                                            className='btn btn-sm btn-outline-danger px-2 rounded-pill'
+                                                            onClick={() => this.handleDeleteSpecialty(specialty.id)}
+                                                            title={language === LANGUAGES.VI ? 'Xóa' : 'Delete'}
+                                                        >
+                                                            <i className="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {this.state.isOpen === true &&

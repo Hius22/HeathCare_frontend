@@ -202,151 +202,186 @@ class ManageClinic extends Component {
     render() {
 
         return (
-            <div className='manage-clinic-container'>
-                <div className='clinic-header'>
-                    <i className="fas fa-hospital"></i> Thông Tin Phòng Khám
-                </div>
-
-                <div className='clinic-form'>
-                    <div className='row'>
-                        <div className='col-6 form-group'>
-                            <label><i className="fas fa-hospital-user"></i> Tên phòng khám</label>
-                            <input className='form-control'
-                                type='text'
-                                placeholder='Nhập tên phòng khám...'
-                                value={this.state.name}
-                                onChange={(event) => this.handleOnChangeInput(event, 'name')}
-                            />
+            <div className='manage-clinic-container container-fluid'>
+                {/* Form Card */}
+                <div className="card shadow-sm border-0 rounded-3 mb-4">
+                    <div className="card-body p-4">
+                        {/* Header */}
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-6">
+                                <h4 className="text-admin font-weight-bold mb-0">
+                                    <i className="fa-solid fa-hospital me-2"></i>
+                                    {this.props.language === LANGUAGES.VI ? 'Quản lý cơ sở phòng khám' : 'Manage Clinics'}
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    {this.props.language === LANGUAGES.VI ? 'Tạo mới, chỉnh sửa thông tin các cơ sở phòng khám trong hệ thống' : 'Create and update clinic details in the system'}
+                                </p>
+                            </div>
                         </div>
 
-                        <div className='col-6 form-group'>
-                            <label><i className="fas fa-map-marker-alt"></i> Địa chỉ phòng khám</label>
-                            <select className='form-control'
-                                value={this.state.address}
-                                onChange={(event) => this.handleOnChangeInput(event, 'address')}
-                            >
-                                <option value="">Chọn địa chỉ phòng khám...</option>
-                                {this.state.listAddresses && this.state.listAddresses.length > 0 &&
-                                    this.state.listAddresses.map((item, index) => {
-                                        return (
-                                            <option key={index} value={item.valueVi}>
-                                                {this.props.language === LANGUAGES.VI ? item.valueVi : item.valueEn}
-                                            </option>
-                                        )
-                                    })
+                        {/* Form Section */}
+                        <div className='row g-3 border-top pt-4'>
+                            <div className='col-12 mb-2 fw-bold text-dark fs-6'>
+                                <i className={`fa-solid ${this.state.isEditMode ? 'fa-edit' : 'fa-plus-circle'} me-2 text-admin`}></i>
+                                {this.state.isEditMode 
+                                    ? (this.props.language === LANGUAGES.VI ? 'Chỉnh sửa phòng khám' : 'Edit Clinic')
+                                    : (this.props.language === LANGUAGES.VI ? 'Thêm mới phòng khám' : 'Add New Clinic')
                                 }
-                            </select>
-                        </div>
+                            </div>
 
-                        <div className='col-6 form-group'>
-                            <label><i className="fas fa-image"></i> Ảnh phòng khám</label>
-                            <div className='preview-img-container'>
-                                <input id="previewImg" type='file' hidden
-                                    onChange={(event) => this.handleOnChangeImage(event)}
+                            <div className='col-md-6 col-sm-12'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><i className="fas fa-hospital-user me-1"></i> Tên phòng khám</label>
+                                <input className='form-control'
+                                    type='text'
+                                    placeholder='Nhập tên phòng khám...'
+                                    value={this.state.name}
+                                    onChange={(event) => this.handleOnChangeInput(event, 'name')}
                                 />
-                                <label className='label-upload' htmlFor='previewImg'>
-                                    <i className="fas fa-cloud-upload-alt"></i> Tải ảnh lên
-                                </label>
+                            </div>
 
-                                <div className='preview-image'
-                                    style={{ backgroundImage: `url(${this.state.previewImgURL})` }}
-                                    onClick={() => this.openPreviewImage()}
+                            <div className='col-md-6 col-sm-12'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><i className="fas fa-map-marker-alt me-1"></i> Địa chỉ phòng khám</label>
+                                <select className='form-control'
+                                    value={this.state.address}
+                                    onChange={(event) => this.handleOnChangeInput(event, 'address')}
                                 >
-                                    {!this.state.previewImgURL && (
-                                        <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            height: '100%',
-                                            color: '#999',
-                                            fontSize: '14px'
-                                        }}>
-                                            <i className="fas fa-image" style={{ fontSize: '48px', marginBottom: '10px' }}></i>
-                                            <br />Xem trước ảnh
+                                    <option value="">Chọn địa chỉ phòng khám...</option>
+                                    {this.state.listAddresses && this.state.listAddresses.length > 0 &&
+                                        this.state.listAddresses.map((item, index) => {
+                                            return (
+                                                <option key={index} value={item.valueVi}>
+                                                    {this.props.language === LANGUAGES.VI ? item.valueVi : item.valueEn}
+                                                </option>
+                                            )
+                                        })
+                                    }
+                                </select>
+                            </div>
+
+                            <div className='col-12 mt-3'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><i className="fas fa-image me-1"></i> Ảnh phòng khám</label>
+                                <div className='preview-img-container d-flex align-items-center gap-3'>
+                                    <input id="previewImg" type='file' hidden
+                                        onChange={(event) => this.handleOnChangeImage(event)}
+                                    />
+                                    <label className='btn btn-outline-admin btn-sm rounded-pill px-3 mb-0' htmlFor='previewImg'>
+                                        Tải ảnh <i className="fa-solid fa-upload ms-1"></i>
+                                    </label>
+
+                                    {this.state.previewImgURL && (
+                                        <div className='preview-image rounded border'
+                                            style={{ 
+                                                backgroundImage: `url(${this.state.previewImgURL})`,
+                                                width: '100px',
+                                                height: '45px',
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
+                                                cursor: 'pointer'
+                                             }}
+                                            onClick={() => this.openPreviewImage()}
+                                        >
                                         </div>
                                     )}
                                 </div>
                             </div>
-                        </div>
 
-                        <div className='col-12 form-group'>
-                            <label><i className="fas fa-align-left"></i> Mô tả chi tiết</label>
-                            <div className='editor-container'>
-                                <MdEditor
-                                    style={{ height: '400px' }}
-                                    renderHTML={text => mdParser.render(text)}
-                                    onChange={this.handleEditorChange}
-                                    value={this.state.descriptionMarkdown}
-                                />
+                            <div className='col-12 mt-3'>
+                                <label className="form-label fw-bold small text-secondary mb-2"><i className="fas fa-align-left me-1"></i> Mô tả chi tiết</label>
+                                <div className="border rounded-3 overflow-hidden">
+                                    <MdEditor
+                                        style={{ height: '300px' }}
+                                        renderHTML={text => mdParser.render(text)}
+                                        onChange={this.handleEditorChange}
+                                        value={this.state.descriptionMarkdown}
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className='col-12 btn-actions-container' style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                            <button className='btn-save-clinic'
-                                onClick={() => this.handleSaveClinic()}
-                            >
-                                <i className={`fas ${this.state.isEditMode ? 'fa-save' : 'fa-plus-circle'}`}></i>
-                                {this.state.isEditMode ? ' Cập Nhật Thông Tin' : ' Tạo Phòng Khám'}
-                            </button>
-                            {this.state.isEditMode && (
-                                <button className='btn btn-secondary'
-                                    onClick={() => this.handleClearForm()}
-                                    style={{ padding: '10px 20px', borderRadius: '4px' }}
-                                >
-                                    Hủy / Làm mới
-                                </button>
-                            )}
+                            <div className='col-12 mt-4'>
+                                <div className='d-flex gap-2 justify-content-end'>
+                                    {this.state.isEditMode && (
+                                        <button className='btn btn-sm btn-outline-secondary rounded-pill px-4'
+                                            onClick={() => this.handleClearForm()}
+                                        >
+                                            <i className="fa-solid fa-times me-1"></i> Hủy / Làm mới
+                                        </button>
+                                    )}
+                                    <button className={`btn btn-sm rounded-pill px-4 ${this.state.isEditMode ? 'btn-warning text-white' : 'btn-admin'}`}
+                                        onClick={() => this.handleSaveClinic()}
+                                    >
+                                        <i className={`fas ${this.state.isEditMode ? 'fa-save' : 'fa-plus-circle'} me-1`}></i>
+                                        {this.state.isEditMode ? ' Cập Nhật' : ' Tạo Phòng Khám'}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className='clinic-list-table' style={{ marginTop: '45px', padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '15px', color: '#191c1e' }}>
-                        <i className="fas fa-list"></i> Danh Sách Cơ Sở Phòng Khám
-                    </h3>
-                    <table className="table table-hover table-bordered">
-                        <thead className="thead-light">
-                            <tr>
-                                <th>STT</th>
-                                <th>Tên phòng khám</th>
-                                <th>Địa chỉ</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {this.state.listClinics && this.state.listClinics.length > 0 ? (
-                                this.state.listClinics.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{index + 1}</td>
-                                        <td>{item.name}</td>
-                                        <td>{item.address}</td>
-                                        <td>
-                                            <div className="action-buttons">
-                                                <button
-                                                    className="btn-edit"
-                                                    onClick={() => this.handleEditClinic(item)}
-                                                    title={this.props.language === LANGUAGES.VI ? 'Sửa' : 'Edit'}
-                                                >
-                                                    <i className="fas fa-edit"></i>
-                                                </button>
-                                                <button
-                                                    className="btn-delete"
-                                                    onClick={() => this.handleDeleteClinic(item)}
-                                                    title={this.props.language === LANGUAGES.VI ? 'Xóa' : 'Delete'}
-                                                >
-                                                    <i className="fas fa-trash-alt"></i>
-                                                </button>
-                                            </div>
-                                        </td>
+                {/* Clinics List Card */}
+                <div className="card shadow-sm border-0 rounded-3">
+                    <div className="card-body p-4">
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-6">
+                                <h4 className="text-admin font-weight-bold mb-0">
+                                    <i className="fa-solid fa-list me-2"></i>
+                                    Danh Sách Cơ Sở Phòng Khám
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    {this.props.language === LANGUAGES.VI 
+                                        ? `Tổng số: ${this.state.listClinics ? this.state.listClinics.length : 0} phòng khám`
+                                        : `Total: ${this.state.listClinics ? this.state.listClinics.length : 0} clinics`
+                                    }
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className='table-responsive'>
+                            <table className="table table-hover align-middle">
+                                <thead className="table-light text-secondary">
+                                    <tr>
+                                        <th style={{ width: '80px' }}>STT</th>
+                                        <th>Tên phòng khám</th>
+                                        <th>Địa chỉ</th>
+                                        <th className="text-center" style={{ width: '120px' }}>Thao tác</th>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="4" className="text-center">Không có cơ sở phòng khám nào.</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                    {this.state.listClinics && this.state.listClinics.length > 0 ? (
+                                        this.state.listClinics.map((item, index) => (
+                                            <tr key={index}>
+                                                <td>{index + 1}</td>
+                                                <td className="fw-bold text-dark">{item.name}</td>
+                                                <td>{item.address}</td>
+                                                <td className="text-center">
+                                                    <div className="d-flex gap-2 justify-content-center">
+                                                        <button
+                                                            className="btn btn-sm btn-outline-admin px-2 rounded-pill"
+                                                            onClick={() => this.handleEditClinic(item)}
+                                                            title={this.props.language === LANGUAGES.VI ? 'Sửa' : 'Edit'}
+                                                        >
+                                                            <i className="fas fa-edit"></i>
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-sm btn-outline-danger px-2 rounded-pill"
+                                                            onClick={() => this.handleDeleteClinic(item)}
+                                                            title={this.props.language === LANGUAGES.VI ? 'Xóa' : 'Delete'}
+                                                        >
+                                                            <i className="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="4" className="text-center text-muted">Không có cơ sở phòng khám nào.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 {this.state.isOpen === true &&

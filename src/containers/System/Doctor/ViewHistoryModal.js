@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
+import { Modal, ModalBody, ModalFooter, Button } from 'reactstrap';
 import moment from 'moment';
 import { getPatientHistory } from '../../../services/userService';
 import { LANGUAGES } from '../../../utils';
@@ -11,14 +11,13 @@ class ViewHistoryModal extends Component {
         super(props);
         this.state = {
             patientHistory: [],
-            isLoading: false
+            isLoading: false,
+            expandedIndex: null,  // mở rộng 1 record tại một thời điểm
         }
     }
 
     async componentDidMount() {
-        if (this.props.patientId) {
-            await this.fetchHistory();
-        }
+        if (this.props.patientId) await this.fetchHistory();
     }
 
     async componentDidUpdate(prevProps) {
@@ -28,395 +27,318 @@ class ViewHistoryModal extends Component {
     }
 
     fetchHistory = async () => {
-        this.setState({ isLoading: true });
+        this.setState({ isLoading: true, expandedIndex: null });
         try {
             let res = await getPatientHistory(this.props.patientId);
             if (res && res.errCode === 0) {
-                this.setState({
-                    patientHistory: res.data || []
-                });
+                this.setState({ patientHistory: res.data || [] });
+                if (res.data && res.data.length > 0) this.setState({ expandedIndex: 0 });
             }
         } catch (e) {
-            console.error("Error fetching patient history", e);
+            console.error('Error fetching patient history', e);
         } finally {
             this.setState({ isLoading: false });
         }
     }
 
-    renderHistoryDescription = (descriptionStr, item) => {
-        let { language } = this.props;
-        try {
-            let desc = JSON.parse(descriptionStr);
-            return (
-                <div className="history-details">
-                    <p>
-                        <strong>{language === LANGUAGES.VI ? 'Chẩn đoán:' : 'Diagnosis:'}</strong> {desc.diagnosis || '—'}
-                    </p>
-                    <p>
-                        <strong>{language === LANGUAGES.VI ? 'Cận lâm sàng chỉ định:' : 'Clinical Services:'}</strong> {desc.services || '—'}
-                    </p>
-                    <p>
-                        <strong>{language === LANGUAGES.VI ? 'Đơn thuốc/Ghi chú:' : 'Prescription/Notes:'}</strong> {desc.prescription || '—'}
-                    </p>
-                    
-                    {desc.price ? (
-                        <p>
-                            <strong>{language === LANGUAGES.VI ? 'Giá khám:' : 'Doctor Fee:'}</strong> <span>
-                                {language === LANGUAGES.VI 
-                                    ? (isNaN(desc.price.split(' / ')[0]) ? desc.price.split(' / ')[0] : Number(desc.price.split(' / ')[0]).toLocaleString('vi-VN') + ' VNĐ')
-                                    : desc.price.split(' / ')[1]
-                                }
-                            </span>
-                        </p>
-                    ) : (
-                        item?.doctorData?.Doctor_Infor?.priceTypeData && (
-                            <p>
-                                <strong>{language === LANGUAGES.VI ? 'Giá khám:' : 'Doctor Fee:'}</strong> <span>
-                                    {language === LANGUAGES.VI 
-                                        ? (isNaN(item.doctorData.Doctor_Infor.priceTypeData.valueVi) 
-                                            ? `${item.doctorData.Doctor_Infor.priceTypeData.valueVi} VNĐ`
-                                            : `${Number(item.doctorData.Doctor_Infor.priceTypeData.valueVi).toLocaleString('vi-VN')} VNĐ`)
-                                        : `${item.doctorData.Doctor_Infor.priceTypeData.valueEn} USD`
-                                    }
-                                </span>
-                            </p>
-                        )
-                    )}
-
-                    {desc.paymentMethod ? (
-                        <p>
-                            <strong>{language === LANGUAGES.VI ? 'Hình thức thanh toán:' : 'Payment Method:'}</strong> {desc.paymentMethod}
-                        </p>
-                    ) : (
-                        item?.doctorData?.Doctor_Infor?.paymentTypeData && (
-                            <p>
-                                <strong>{language === LANGUAGES.VI ? 'Hình thức thanh toán:' : 'Payment Method:'}</strong> {
-                                    language === LANGUAGES.VI 
-                                        ? item.doctorData.Doctor_Infor.paymentTypeData.valueVi 
-                                        : item.doctorData.Doctor_Infor.paymentTypeData.valueEn
-                                }
-                            </p>
-                        )
-                    )}
-
-                    {desc.followUpDate && (
-                        <p className="follow-up-date">
-                            <strong>{language === LANGUAGES.VI ? 'Hẹn tái khám:' : 'Follow-up Date:'}</strong> <span>{desc.followUpDate}</span>
-                        </p>
-                    )}
-                </div>
-            );
-        } catch (e) {
-            return <p>{descriptionStr}</p>;
-        }
+    /* Đọc desc và render chi tiết theo format mới */
+    parseDesc = (descriptionStr) => {
+        try { return JSON.parse(descriptionStr); } catch (e) { return null; }
     }
 
-    handlePrint = (item, patientName) => {
+    renderDetailPanel = (item, index) => {
         let { language } = this.props;
-        let desc = {};
-        try {
-            desc = JSON.parse(item.description);
-        } catch (e) {
-            console.error(e);
-        }
+        let vi = language === LANGUAGES.VI;
+        let desc = this.parseDesc(item.description);
 
-        // Format dates
-        let dateStr = moment(item.createdAt).format('DD/MM/YYYY HH:mm');
-        let printDateStr = moment().format('DD/MM/YYYY HH:mm');
+        if (!desc) return <p className="text-muted" style={{ fontSize: 13 }}>{item.description}</p>;
 
-        // Extract values
-        let diagnosis = desc.diagnosis || '—';
-        let services = desc.services || '—';
-        let prescription = desc.prescription || '—';
-        let followUpDate = desc.followUpDate || '';
+        // Services
+        let services = Array.isArray(desc.clinicalServices) ? desc.clinicalServices : [];
+        let legacyService = desc.services || '';
 
-        // Payment method fallback
-        let paymentMethod = desc.paymentMethod || '';
-        if (!paymentMethod && item.doctorData?.Doctor_Infor?.paymentTypeData) {
-            paymentMethod = language === LANGUAGES.VI 
-                ? item.doctorData.Doctor_Infor.paymentTypeData.valueVi 
-                : item.doctorData.Doctor_Infor.paymentTypeData.valueEn;
-        }
-        if (!paymentMethod) {
-            paymentMethod = language === LANGUAGES.VI ? 'Tiền mặt' : 'Cash';
-        }
+        // Medicines
+        let medicines = Array.isArray(desc.medicines) ? desc.medicines : [];
+        let legacyPrescription = desc.prescription || '';
 
-        // Pricing fallback
-        let priceStr = language === LANGUAGES.VI ? '200.000 VNĐ' : '10 USD';
-        if (desc.price) {
-            priceStr = language === LANGUAGES.VI 
-                ? (isNaN(desc.price.split(' / ')[0]) ? desc.price.split(' / ')[0] : Number(desc.price.split(' / ')[0]).toLocaleString('vi-VN') + ' VNĐ')
-                : desc.price.split(' / ')[1];
-        } else if (item.doctorData?.Doctor_Infor?.priceTypeData) {
-            priceStr = language === LANGUAGES.VI 
-                ? (isNaN(item.doctorData.Doctor_Infor.priceTypeData.valueVi) 
-                    ? `${item.doctorData.Doctor_Infor.priceTypeData.valueVi} VNĐ`
-                    : `${Number(item.doctorData.Doctor_Infor.priceTypeData.valueVi).toLocaleString('vi-VN')} VNĐ`)
-                : `${item.doctorData.Doctor_Infor.priceTypeData.valueEn} USD`;
-        }
+        // Conclusion
+        let conclusion = desc.conclusion || desc.diagnosis || '';
 
-        // Doctor Name
-        let doctorNameStr = '';
+        return (
+            <div className="detail-panel">
+                {/* KẾT LUẬN */}
+                <div className="detail-block">
+                    <div className="block-label"><i className="fas fa-stethoscope"></i>{vi ? 'Kết luận bệnh' : 'Conclusion'}</div>
+                    <div className="block-content conclusion-text">{conclusion || <span className="text-muted">—</span>}</div>
+                </div>
+
+                {/* CHỈNH ĐỊNH LÂM SÀNG */}
+                {(services.length > 0 || legacyService) && (
+                    <div className="detail-block">
+                        <div className="block-label"><i className="fas fa-vials"></i>{vi ? 'Chỉ định Lâm Sàng' : 'Clinical Services'}</div>
+                        {services.length > 0 ? (
+                            <table className="detail-table">
+                                <thead><tr><th style={{ width: 40 }}>STT</th><th>{vi ? 'Tên chỉ định' : 'Service'}</th></tr></thead>
+                                <tbody>
+                                    {services.map((s, i) => (
+                                        <tr key={i}><td className="text-center">{i + 1}</td><td>{s.name}</td></tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div className="block-content">{legacyService}</div>
+                        )}
+                    </div>
+                )}
+
+                {/* ĐƠN THUỐC */}
+                {(medicines.length > 0 || legacyPrescription) && (
+                    <div className="detail-block">
+                        <div className="block-label"><i className="fas fa-pills"></i>{vi ? 'Đơn thuốc' : 'Prescription'}</div>
+                        {medicines.length > 0 ? (
+                            <table className="detail-table">
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: 36 }}>STT</th>
+                                        <th>{vi ? 'Tên thuốc' : 'Medicine'}</th>
+                                        <th style={{ width: 70 }}>{vi ? 'SL' : 'Qty'}</th>
+                                        <th>{vi ? 'Liều dùng' : 'Dosage'}</th>
+                                        <th>{vi ? 'Ghi chú' : 'Note'}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {medicines.map((m, i) => (
+                                        <tr key={i}>
+                                            <td className="text-center">{i + 1}</td>
+                                            <td>{m.name}</td>
+                                            <td className="text-center">{m.quantity || '—'}</td>
+                                            <td>{m.dosage || '—'}</td>
+                                            <td>{m.note || '—'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div className="block-content">{legacyPrescription}</div>
+                        )}
+                    </div>
+                )}
+
+                {/* TÁI KHÁM */}
+                {desc.followUpDate && (
+                    <div className="detail-block">
+                        <div className="block-label follow-label"><i className="fas fa-calendar-check"></i>{vi ? 'Hẹn tái khám' : 'Follow-up'}</div>
+                        <div className="block-content follow-date">{desc.followUpDate}</div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    handlePrint = (item, index) => {
+        let { language, patientName } = this.props;
+        let vi = language === LANGUAGES.VI;
+        let desc = this.parseDesc(item.description) || {};
+        let visitNo = this.state.patientHistory.length - index;
+
+        let conclusion = desc.conclusion || desc.diagnosis || (vi ? 'Không có' : 'None');
+        let services = Array.isArray(desc.clinicalServices) ? desc.clinicalServices : [];
+        let medicines = Array.isArray(desc.medicines) ? desc.medicines : [];
+
+        let serviceRows = services.map((s, i) =>
+            `<tr><td style="text-align:center">${i + 1}</td><td>${s.name}</td></tr>`
+        ).join('') || `<tr><td colspan="2" style="text-align:center;color:#999">${vi ? 'Không có' : 'None'}</td></tr>`;
+
+        let medicineRows = medicines.map((m, i) =>
+            `<tr><td style="text-align:center">${i + 1}</td><td>${m.name || ''}</td><td style="text-align:center">${m.quantity || ''}</td><td>${m.dosage || ''}</td><td>${m.note || ''}</td></tr>`
+        ).join('') || `<tr><td colspan="5" style="text-align:center;color:#999">${vi ? 'Không có' : 'None'}</td></tr>`;
+
+        let doctorName = '';
         if (item.doctorData) {
-            doctorNameStr = language === LANGUAGES.VI
+            doctorName = vi
                 ? `${item.doctorData.lastName} ${item.doctorData.firstName}`
                 : `${item.doctorData.firstName} ${item.doctorData.lastName}`;
         }
 
-        let printWindow = window.open('', '_blank', 'width=800,height=600');
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>${language === LANGUAGES.VI ? 'Hóa đơn & Đơn thuốc' : 'Receipt & Prescription'}</title>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            padding: 30px;
-                            color: #333;
-                            line-height: 1.5;
-                        }
-                        .header {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            border-bottom: 2px solid #333;
-                            padding-bottom: 15px;
-                            margin-bottom: 25px;
-                        }
-                        .clinic-info h3 {
-                            margin: 0 0 5px 0;
-                            color: #1a73e8;
-                            font-size: 20px;
-                        }
-                        .clinic-info p {
-                            margin: 0;
-                            font-size: 13px;
-                            color: #666;
-                        }
-                        .doc-title {
-                            text-align: center;
-                            font-size: 22px;
-                            font-weight: bold;
-                            text-transform: uppercase;
-                            margin-bottom: 25px;
-                            letter-spacing: 1px;
-                        }
-                        .section {
-                            margin-bottom: 20px;
-                        }
-                        .section-title {
-                            font-weight: bold;
-                            text-transform: uppercase;
-                            font-size: 14px;
-                            border-bottom: 1px solid #ddd;
-                            padding-bottom: 5px;
-                            margin-bottom: 10px;
-                            color: #1a73e8;
-                        }
-                        .grid-2 {
-                            display: grid;
-                            grid-template-columns: 1fr 1fr;
-                            gap: 15px;
-                        }
-                        .info-item {
-                            margin-bottom: 8px;
-                            font-size: 14px;
-                        }
-                        .info-item strong {
-                            color: #555;
-                        }
-                        .prescription-box {
-                            background-color: #f9f9f9;
-                            border: 1px dashed #ccc;
-                            padding: 15px;
-                            font-family: Courier, monospace;
-                            white-space: pre-wrap;
-                            font-size: 14px;
-                            margin-top: 10px;
-                        }
-                        .signatures {
-                            margin-top: 50px;
-                            display: flex;
-                            justify-content: space-between;
-                            text-align: center;
-                        }
-                        .sig-block {
-                            width: 30%;
-                            font-size: 14px;
-                        }
-                        .sig-space {
-                            height: 80px;
-                        }
-                        @media print {
-                            body { padding: 0; }
-                            .print-btn-container { display: none !important; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="print-btn-container" style="text-align: right; margin-bottom: 10px;">
-                        <button onclick="window.print()" style="padding: 8px 15px; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                            ${language === LANGUAGES.VI ? 'In hóa đơn' : 'Print Document'}
-                        </button>
-                    </div>
-                    <div class="header">
-                        <div class="clinic-info">
-                            <h3>HỆ THỐNG Y TẾ CARE DIRECT</h3>
-                            <p>Địa chỉ: 123 Đường Ba Tháng Hai, Quận 10, TP. Hồ Chí Minh</p>
-                            <p>Hotline: 1900 8181 - Website: caredirect.vn</p>
-                        </div>
-                        <div style="text-align: right; font-size: 12px; color: #777;">
-                            <p>Mã HS: HS-${item.id}</p>
-                            <p>Ngày in: ${printDateStr}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="doc-title">${language === LANGUAGES.VI ? 'Hóa đơn & Đơn thuốc' : 'Receipt & Prescription'}</div>
+        let html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+        <title>${vi ? 'Hồ Sơ Bệnh Án' : 'Medical Record'}</title>
+        <style>
+            body { font-family: Arial, sans-serif; font-size: 13px; color: #222; margin: 30px; }
+            .header { display:flex; justify-content:space-between; border-bottom:2px solid #1a73e8; padding-bottom:12px; margin-bottom:20px; }
+            .clinic-name { color:#1a73e8; font-size:18px; font-weight:bold; margin:0 0 4px; }
+            .clinic-sub { font-size:11px; color:#666; margin:0; }
+            h2 { text-align:center; font-size:17px; text-transform:uppercase; letter-spacing:1px; margin-bottom:20px; color:#333; }
+            .info-box { background:#f0f4ff; border:1px solid #c5d5f8; border-radius:6px; padding:10px 14px; margin-bottom:16px; display:grid; grid-template-columns:1fr 1fr; gap:4px 20px; }
+            .info-box p { margin:3px 0; font-size:13px; }
+            .section-label { font-weight:bold; color:#1a73e8; margin:14px 0 6px; border-bottom:1px solid #ddd; padding-bottom:4px; font-size:13px; }
+            table { width:100%; border-collapse:collapse; margin-bottom:10px; }
+            th { background:#e8f0fe; color:#1a73e8; padding:6px 8px; border:1px solid #ccc; font-size:12px; text-align:left; }
+            td { padding:5px 8px; border:1px solid #ddd; font-size:12px; }
+            .conclusion-box { background:#fff8e1; border-left:4px solid #fbc02d; padding:10px 14px; border-radius:4px; font-size:13px; }
+            .followup { color:#d32f2f; font-weight:bold; margin-top:8px; }
+            .sigs { display:flex; justify-content:space-between; margin-top:40px; text-align:center; }
+            .sig { width:30%; font-size:13px; }
+            .sig-line { height:60px; border-bottom:1px solid #999; margin-bottom:6px; }
+            .footer { text-align:center; font-size:11px; color:#888; margin-top:30px; border-top:1px dashed #ddd; padding-top:10px; }
+            @media print { body{margin:10px;} }
+        </style></head><body>
+        <div class="header">
+            <div>
+                <p class="clinic-name">HỆ THỐNG Y TẾ CARE DIRECT</p>
+                <p class="clinic-sub">Địa chỉ: 123 Đường Ba Tháng Hai, Quận 10, TP. HCM | Hotline: 1900 8181</p>
+            </div>
+            <div style="text-align:right;font-size:11px;color:#777">
+                <p>Mã HS: HS-${item.id}</p>
+                <p>${vi ? 'Lần khám' : 'Visit'} #${visitNo}</p>
+                <p>${vi ? 'Ngày in:' : 'Printed:'} ${new Date().toLocaleString('vi-VN')}</p>
+            </div>
+        </div>
 
-                    <div class="section">
-                        <div class="section-title">${language === LANGUAGES.VI ? 'Thông tin bệnh nhân' : 'Patient Information'}</div>
-                        <div class="grid-2">
-                            <div class="info-item"><strong>${language === LANGUAGES.VI ? 'Họ và tên:' : 'Full Name:'}</strong> ${patientName}</div>
-                            <div class="info-item"><strong>${language === LANGUAGES.VI ? 'Ngày khám:' : 'Date of Exam:'}</strong> ${dateStr}</div>
-                        </div>
-                    </div>
+        <h2>${vi ? 'Hồ Sơ Bệnh Án' : 'Medical Record'}</h2>
 
-                    <div class="section">
-                        <div class="section-title">${language === LANGUAGES.VI ? 'Kết quả chẩn đoán & Chỉ định cận lâm sàng' : 'Diagnosis & Clinical Services'}</div>
-                        <div class="info-item"><strong>${language === LANGUAGES.VI ? 'Chẩn đoán bệnh:' : 'Diagnosis:'}</strong> ${diagnosis}</div>
-                        <div class="info-item"><strong>${language === LANGUAGES.VI ? 'Cận lâm sàng chỉ định:' : 'Clinical Services:'}</strong> ${services}</div>
-                    </div>
+        <div class="info-box">
+            <p><strong>${vi ? 'Bệnh nhân:' : 'Patient:'}</strong> ${patientName}</p>
+            <p><strong>${vi ? 'Ngày khám:' : 'Exam Date:'}</strong> ${moment(item.createdAt).format('DD/MM/YYYY HH:mm')}</p>
+            ${doctorName ? `<p><strong>${vi ? 'Bác sĩ:' : 'Doctor:'}</strong> ${doctorName}</p>` : ''}
+        </div>
 
-                    <div class="section">
-                        <div class="section-title">${language === LANGUAGES.VI ? 'Đơn thuốc & Dặn dò của bác sĩ' : "Prescription & Doctor's Notes"}</div>
-                        <div class="prescription-box">${prescription}</div>
-                        ${followUpDate ? `
-                            <p style="margin-top: 10px; color: #d32f2f; font-weight: bold; font-size: 14px;">
-                                * ${language === LANGUAGES.VI ? 'Hẹn tái khám vào ngày:' : 'Follow-up appointment:'} ${followUpDate}
-                            </p>
-                        ` : ''}
-                    </div>
+        <div class="section-label">${vi ? 'Kết luận bệnh' : 'Conclusion'}</div>
+        <div class="conclusion-box">${conclusion}</div>
 
-                    <div class="section" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
-                        <div class="section-title">${language === LANGUAGES.VI ? 'Thông tin thanh toán dịch vụ' : 'Payment Details'}</div>
-                        <div class="grid-2">
-                            <div class="info-item"><strong>${language === LANGUAGES.VI ? 'Phí dịch vụ khám:' : 'Booking Fee:'}</strong> ${priceStr}</div>
-                            <div class="info-item"><strong>${language === LANGUAGES.VI ? 'Hình thức thanh toán:' : 'Payment Method:'}</strong> ${paymentMethod}</div>
-                            <div class="info-item" style="grid-column: span 2;">
-                                <strong>${language === LANGUAGES.VI ? 'Trạng thái giao dịch:' : 'Transaction Status:'}</strong> 
-                                <span style="color: #2e7d32; font-weight: bold;">${language === LANGUAGES.VI ? 'Đã xác nhận thanh toán thành công' : 'Payment Confirmed Successfully'}</span>
-                            </div>
-                        </div>
-                    </div>
+        <div class="section-label">${vi ? 'Chỉ định Lâm Sàng' : 'Clinical Services'}</div>
+        <table>
+            <thead><tr><th style="width:40px">STT</th><th>${vi ? 'Tên chỉ định' : 'Service Name'}</th></tr></thead>
+            <tbody>${serviceRows}</tbody>
+        </table>
 
-                    <div class="signatures">
-                        <div class="sig-block">
-                            <strong>${language === LANGUAGES.VI ? 'Bệnh nhân' : 'Patient'}</strong>
-                            <p style="font-size: 12px; color: #888;">(Ký và ghi rõ họ tên)</p>
-                            <div class="sig-space"></div>
-                        </div>
-                        <div class="sig-block">
-                            <strong>${language === LANGUAGES.VI ? 'Thu ngân / Lễ tân' : 'Cashier / Receptionist'}</strong>
-                            <p style="font-size: 12px; color: #888;">(Ký và đóng dấu)</p>
-                            <div class="sig-space"></div>
-                        </div>
-                        <div class="sig-block">
-                            <strong>${language === LANGUAGES.VI ? 'Bác sĩ điều trị' : 'Medical Doctor'}</strong>
-                            <p style="font-size: 12px; color: #888;">(Ký và đóng dấu)</p>
-                            <div class="sig-space"></div>
-                            ${doctorNameStr ? `<p style="font-weight: bold; font-size: 14px; margin-top: 10px;">${doctorNameStr}</p>` : ''}
-                        </div>
-                    </div>
-                </body>
-            </html>
-        `);
-        printWindow.document.close();
+        <div class="section-label">${vi ? 'Đơn thuốc' : 'Prescription'}</div>
+        <table>
+            <thead><tr>
+                <th style="width:36px">STT</th>
+                <th>${vi ? 'Tên thuốc' : 'Medicine'}</th>
+                <th style="width:60px">${vi ? 'SL' : 'Qty'}</th>
+                <th>${vi ? 'Liều dùng' : 'Dosage'}</th>
+                <th>${vi ? 'Ghi chú' : 'Note'}</th>
+            </tr></thead>
+            <tbody>${medicineRows}</tbody>
+        </table>
+
+        ${desc.followUpDate ? `<p class="followup">★ ${vi ? 'Hẹn tái khám:' : 'Follow-up:'} ${desc.followUpDate}</p>` : ''}
+
+        <div class="sigs">
+            <div class="sig"><div class="sig-line"></div><strong>${vi ? 'Bệnh nhân' : 'Patient'}</strong><br/><small>(${vi ? 'Ký và ghi rõ họ tên' : 'Signature'})</small></div>
+            <div class="sig"><div class="sig-line"></div><strong>${vi ? 'Thu ngân / Lễ tân' : 'Cashier'}</strong><br/><small>(${vi ? 'Ký và đóng dấu' : 'Signature & Stamp'})</small></div>
+            <div class="sig"><div class="sig-line"></div><strong>${vi ? 'Bác sĩ điều trị' : 'Doctor'}</strong><br/><small>${doctorName}</small></div>
+        </div>
+        <div class="footer">${vi ? 'Cảm ơn quý bệnh nhân đã tin tưởng và sử dụng dịch vụ!' : 'Thank you for choosing our services!'}</div>
+        </body></html>`;
+
+        let win = window.open('', '_blank', 'width=800,height=700');
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+        setTimeout(() => win.print(), 400);
     }
 
     render() {
         let { isOpen, closeModal, patientName, language } = this.props;
-        let { patientHistory, isLoading } = this.state;
+        let { patientHistory, isLoading, expandedIndex } = this.state;
+        let vi = language === LANGUAGES.VI;
 
         return (
-            <Modal
-                isOpen={isOpen}
-                toggle={closeModal}
-                size="lg"
-                centered
-                className="view-history-modal-container"
-            >
-                <ModalHeader toggle={closeModal}>
-                    <div className="modal-title">
+            <Modal isOpen={isOpen} toggle={closeModal} size="xl" centered className="view-history-modal-container">
+                {/* HEADER */}
+                <div className="modal-header vhm-header">
+                    <div className="vhm-title">
                         <i className="fas fa-file-medical-alt"></i>
-                        <span>
-                            {language === LANGUAGES.VI ? `Lịch sử bệnh án - Bệnh nhân: ${patientName}` : `Medical Records - Patient: ${patientName}`}
-                        </span>
-                    </div>
-                </ModalHeader>
-                <ModalBody>
-                    {isLoading ? (
-                        <div className="loading-section">
-                            <i className="fas fa-spinner fa-spin"></i>
-                            <p>{language === LANGUAGES.VI ? 'Đang tải hồ sơ bệnh án...' : 'Loading medical records...'}</p>
+                        <div>
+                            <div className="vhm-title-main">{vi ? 'Hồ Sơ Bệnh Án' : 'Medical Records'}</div>
+                            <div className="vhm-title-sub">{patientName}</div>
                         </div>
-                    ) : patientHistory && patientHistory.length > 0 ? (
-                        <div className="history-list-wrapper">
-                            {patientHistory.map((item, index) => {
-                                return (
-                                    <div key={index} className="history-item" style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '15px', marginBottom: '15px', backgroundColor: '#fff' }}>
-                                        <div className="history-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #edf2f7', paddingBottom: '10px', marginBottom: '12px' }}>
-                                            <span className="history-date" style={{ fontWeight: '600', color: '#4a5568' }}>
-                                                <i className="far fa-calendar-check" style={{ marginRight: '6px', color: '#3182ce' }}></i>
-                                                {moment(item.createdAt).format('DD/MM/YYYY HH:mm')}
-                                            </span>
-                                            
-                                            <div className="history-actions" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                                                {item.files && (
-                                                    <div className="history-file">
-                                                        <a href={item.files} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: '#4a5568', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                                            <i className="fas fa-paperclip"></i>
-                                                            {language === LANGUAGES.VI ? 'Xem file đính kèm' : 'View attachment'}
-                                                        </a>
-                                                    </div>
+                    </div>
+                    <button type="button" className="btn-close btn-close-white" onClick={closeModal}></button>
+                </div>
+
+                <ModalBody className="vhm-body">
+                    {isLoading ? (
+                        <div className="vhm-loading">
+                            <i className="fas fa-spinner fa-spin"></i>
+                            <p>{vi ? 'Đang tải hồ sơ bệnh án...' : 'Loading medical records...'}</p>
+                        </div>
+                    ) : patientHistory.length > 0 ? (
+                        <div className="vhm-content">
+                            {/* DANH SÁCH LẦN KHÁM - CỘT TRÁI */}
+                            <div className="vhm-timeline">
+                                <div className="timeline-header">{vi ? `${patientHistory.length} lần khám` : `${patientHistory.length} visit(s)`}</div>
+                                {patientHistory.map((item, index) => {
+                                    let visitNo = patientHistory.length - index;
+                                    let isActive = expandedIndex === index;
+                                    let desc = this.parseDesc(item.description) || {};
+                                    let conclusion = desc.conclusion || desc.diagnosis || '';
+                                    return (
+                                        <div
+                                            key={index}
+                                            className={`timeline-item ${isActive ? 'active' : ''}`}
+                                            onClick={() => this.setState({ expandedIndex: index })}
+                                        >
+                                            <div className="tl-badge">#{visitNo}</div>
+                                            <div className="tl-info">
+                                                <div className="tl-date">
+                                                    <i className="far fa-calendar-alt"></i>{' '}
+                                                    {moment(item.createdAt).format('DD/MM/YYYY')}
+                                                    <span className="tl-time">{moment(item.createdAt).format('HH:mm')}</span>
+                                                </div>
+                                                {conclusion && (
+                                                    <div className="tl-preview">{conclusion.length > 50 ? conclusion.slice(0, 50) + '…' : conclusion}</div>
                                                 )}
-                                                <button 
-                                                    className="btn btn-print-invoice"
-                                                    onClick={() => this.handlePrint(item, patientName)}
-                                                    style={{ background: 'none', border: 'none', color: '#1a73e8', cursor: 'pointer', padding: 0, fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' }}
-                                                >
-                                                    <i className="fas fa-print"></i>
-                                                    {language === LANGUAGES.VI ? 'In hóa đơn & Đơn thuốc' : 'Print Receipt & Rx'}
-                                                </button>
                                             </div>
                                         </div>
-                                        {this.renderHistoryDescription(item.description, item)}
-                                    </div>
-                                )
-                            })}
+                                    );
+                                })}
+                            </div>
+
+                            {/* CHI TIẾT LẦN KHÁM - CỘT PHẢI */}
+                            <div className="vhm-detail">
+                                {expandedIndex !== null && patientHistory[expandedIndex] && (() => {
+                                    let item = patientHistory[expandedIndex];
+                                    let visitNo = patientHistory.length - expandedIndex;
+                                    return (
+                                        <>
+                                            <div className="detail-top-bar">
+                                                <div className="detail-visit-label">
+                                                    <span className="detail-badge">#{visitNo}</span>
+                                                    <span className="detail-date">{moment(item.createdAt).format('DD/MM/YYYY HH:mm')}</span>
+                                                </div>
+                                                <button
+                                                    className="btn-print-record"
+                                                    onClick={() => this.handlePrint(item, expandedIndex)}
+                                                >
+                                                    <i className="fas fa-print"></i>{' '}{vi ? 'In bệnh án' : 'Print'}
+                                                </button>
+                                            </div>
+                                            {this.renderDetailPanel(item, expandedIndex)}
+                                        </>
+                                    );
+                                })()}
+                            </div>
                         </div>
                     ) : (
-                        <div className="empty-history">
+                        <div className="vhm-empty">
                             <i className="far fa-folder-open"></i>
-                            <p>
-                                {language === LANGUAGES.VI ? 'Bệnh nhân chưa có lịch sử bệnh án nào.' : 'No medical record history available for this patient.'}
-                            </p>
+                            <p>{vi ? 'Bệnh nhân chưa có lịch sử bệnh án nào.' : 'No medical record history available.'}</p>
                         </div>
                     )}
                 </ModalBody>
-                <ModalFooter>
+
+                <ModalFooter className="vhm-footer">
                     <Button color="secondary" onClick={closeModal} className="px-4">
-                        {language === LANGUAGES.VI ? 'Đóng' : 'Close'}
+                        {vi ? 'Đóng' : 'Close'}
                     </Button>
                 </ModalFooter>
             </Modal>
-        )
+        );
     }
 }
 
-const mapStateToProps = state => {
-    return {
-        language: state.app.language,
-    };
-};
-
+const mapStateToProps = state => ({ language: state.app.language });
 export default connect(mapStateToProps)(ViewHistoryModal);

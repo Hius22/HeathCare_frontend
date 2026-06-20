@@ -7,7 +7,7 @@ import { getAllBookings, updateBookingStatus } from '../../../services/userServi
 import { toast } from 'react-toastify';
 import DatePicker from '../../../components/Input/DatePicker';
 import ViewHistoryModal from '../Doctor/ViewHistoryModal';
-import ConfirmPaymentModal from './ConfirmPaymentModal';
+import PatientInfoModal from '../Doctor/PatientInfoModal';
 
 class ManageBooking extends Component {
     constructor(props) {
@@ -22,7 +22,7 @@ class ManageBooking extends Component {
             isOpenHistoryModal: false,
             selectedPatientId: null,
             selectedPatientName: '',
-            isOpenConfirmModal: false,
+            isOpenPatientInfoModal: false,
             selectedBooking: null
         }
     }
@@ -170,98 +170,64 @@ class ManageBooking extends Component {
         });
     }
 
-    handleOpenConfirmModal = (booking) => {
+    handleBtnViewInfo = (booking) => {
         this.setState({
-            isOpenConfirmModal: true,
+            isOpenPatientInfoModal: true,
             selectedBooking: booking
         });
     }
 
-    handleCloseConfirmModal = () => {
+    closePatientInfoModal = () => {
         this.setState({
-            isOpenConfirmModal: false,
+            isOpenPatientInfoModal: false,
             selectedBooking: null
         });
-    }
-
-    handleConfirmPayment = async (bookingId, price, paymentMethod) => {
-        try {
-            this.setState({ isLoading: true });
-            let res = await updateBookingStatus({
-                bookingId: bookingId,
-                statusId: 'S3',
-                price: price,
-                paymentMethod: paymentMethod
-            });
-
-            if (res && res.errCode === 0) {
-                toast.success(this.props.language === LANGUAGES.VI ? 'Thanh toán và hoàn thành lịch hẹn thành công!' : 'Payment confirmed and appointment completed!');
-                this.handleCloseConfirmModal();
-                await this.loadBookings();
-            } else {
-                toast.error(this.props.language === LANGUAGES.VI ? 'Hoàn tất thanh toán thất bại!' : 'Failed to complete checkout!');
-            }
-        } catch (error) {
-            console.error('Error confirming payment:', error);
-            toast.error(this.props.language === LANGUAGES.VI ? 'Lỗi hệ thống khi thanh toán!' : 'System error during checkout!');
-        }
-        this.setState({ isLoading: false });
     }
 
     getActionButtons = (booking) => {
         let { language } = this.props;
 
-        if (booking.statusId === 'S1') {
-            return (
-                <div className="action-buttons">
+        return (
+            <div className="d-flex gap-2 justify-content-center flex-wrap">
+                <button
+                    className="btn btn-sm btn-outline-info rounded-pill px-3"
+                    onClick={() => this.handleBtnViewInfo(booking)}
+                >
+                    <i className="fas fa-id-card"></i> {language === LANGUAGES.VI ? 'Chi tiết' : 'Details'}
+                </button>
+
+                {booking.statusId === 'S1' && (
                     <button
-                        className="btn btn-confirm"
+                        className="btn btn-sm btn-outline-admin rounded-pill px-3"
                         onClick={() => this.handleUpdateStatus(booking.id, 'S2')}
                     >
                         <i className="fa-solid fa-check"></i> {language === LANGUAGES.VI ? 'Xác nhận' : 'Confirm'}
                     </button>
+                )}
+
+                {(booking.statusId === 'S1' || booking.statusId === 'S2') && (
                     <button
-                        className="btn btn-cancel"
+                        className="btn btn-sm btn-outline-danger rounded-pill px-3"
                         onClick={() => this.handleUpdateStatus(booking.id, 'S4')}
                     >
                         <i className="fa-solid fa-times"></i> {language === LANGUAGES.VI ? 'Hủy' : 'Cancel'}
                     </button>
-                </div>
-            );
-        } else if (booking.statusId === 'S2') {
-            return (
-                <div className="action-buttons">
+                )}
+
+                {booking.statusId === 'S3' && (
                     <button
-                        className="btn btn-complete"
-                        onClick={() => this.handleOpenConfirmModal(booking)}
-                    >
-                        <i className="fa-solid fa-check-double"></i> {language === LANGUAGES.VI ? 'Hoàn thành' : 'Complete'}
-                    </button>
-                </div>
-            );
-        } else if (booking.statusId === 'S3') {
-            return (
-                <div className="action-buttons" style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                        className="btn"
+                        className="btn btn-sm btn-outline-success rounded-pill px-3"
                         onClick={() => this.handleOpenHistoryModal(booking)}
-                        style={{ backgroundColor: '#28a745', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' }}
                     >
                         <i className="fa-solid fa-file-medical"></i> {language === LANGUAGES.VI ? 'Xem bệnh án' : 'View record'}
                     </button>
-                    {booking.isPaid !== 1 && booking.isPaid !== '1' && (
-                        <button
-                            className="btn btn-complete"
-                            onClick={() => this.handleOpenConfirmModal(booking)}
-                            style={{ padding: '6px 12px', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#e0a800', borderColor: '#d39e00' }}
-                        >
-                            <i className="fa-solid fa-file-invoice-dollar"></i> {language === LANGUAGES.VI ? 'Thanh toán' : 'Checkout'}
-                        </button>
-                    )}
-                </div>
-            );
-        }
-        return null;
+                )}
+            </div>
+        );
+    }
+
+    formatVND = (num) => {
+        return Number(num || 0).toLocaleString('vi-VN') + ' đ';
     }
 
     render() {
@@ -274,239 +240,221 @@ class ManageBooking extends Component {
             pending: this.state.bookings.filter(b => b.statusId === 'S1').length,
             confirmed: this.state.bookings.filter(b => b.statusId === 'S2').length,
             completed: this.state.bookings.filter(b => b.statusId === 'S3').length,
-            cancelled: this.state.bookings.filter(b => b.statusId === 'S4').length
+            cancelled: this.state.bookings.filter(b => b.statusId === 'S4').length,
+            revenue: this.state.bookings.reduce((sum, b) => b.isPaid === 1 ? sum + Number(b.price || 0) : sum, 0)
         };
 
         return (
-            <div className="manage-booking-container">
-                <div className="manage-booking-header">
-                    <h2>
-                        <i className="fa-solid fa-calendar-check"></i>
-                        {language === LANGUAGES.VI ? 'Quản lý lịch hẹn khám bệnh' : 'Manage Appointments'}
-                    </h2>
-                </div>
+            <div className="manage-booking-container container-fluid">
+                <div className="card shadow-sm border-0 rounded-3 mb-4">
+                    <div className="card-body p-4">
+                        {/* Header */}
+                        <div className="row align-items-center mb-4">
+                            <div className="col-md-6">
+                                <h4 className="text-admin font-weight-bold mb-0">
+                                    <i className="fa-solid fa-calendar-check me-2"></i>
+                                    {language === LANGUAGES.VI ? 'Quản lý lịch hẹn khám bệnh' : 'Manage Appointments'}
+                                </h4>
+                                <p className="text-secondary small mb-0 mt-1">
+                                    {language === LANGUAGES.VI ? 'Xem thống kê, lọc và xử lý danh sách lịch hẹn khám bệnh' : 'View statistics, filter and process patient appointments'}
+                                </p>
+                            </div>
+                        </div>
 
-                {/* Statistics Cards */}
-                <div className="stats-cards">
-                    <div className="stat-card stat-total">
-                        <div className="stat-icon">
-                            <i className="fa-solid fa-calendar-days"></i>
+                        {/* Statistics Cards */}
+                        <div className="row g-3 mb-4">
+                            <div className="col-6 col-md">
+                                <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                    <div className="stat-icon bg-admin-light text-admin rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                        <i className="fa-solid fa-calendar-days"></i>
+                                    </div>
+                                    <div>
+                                        <div className="fw-bold text-dark fs-6">{stats.total}</div>
+                                        <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Tổng cộng' : 'Total'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-6 col-md">
+                                <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                    <div className="stat-icon bg-warning-light text-warning rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                        <i className="fa-solid fa-clock"></i>
+                                    </div>
+                                    <div>
+                                        <div className="fw-bold text-dark fs-6">{stats.pending}</div>
+                                        <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-6 col-md">
+                                <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                    <div className="stat-icon bg-primary-light text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                        <i className="fa-solid fa-check-circle"></i>
+                                    </div>
+                                    <div>
+                                        <div className="fw-bold text-dark fs-6">{stats.confirmed}</div>
+                                        <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-6 col-md">
+                                <div className="stat-card p-3 border rounded-3 bg-light d-flex align-items-center gap-3">
+                                    <div className="stat-icon bg-success-light text-success rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                        <i className="fa-solid fa-check-double"></i>
+                                    </div>
+                                    <div>
+                                        <div className="fw-bold text-dark fs-6">{stats.completed}</div>
+                                        <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Hoàn thành' : 'Completed'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-12 col-md">
+                                <div className="stat-card p-3 border rounded-3 d-flex align-items-center gap-3" style={{ backgroundColor: 'rgba(40, 167, 69, 0.08)', borderColor: 'rgba(40, 167, 69, 0.2)' }}>
+                                    <div className="stat-icon bg-success text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style={{ width: '45px', height: '45px', fontSize: '18px' }}>
+                                        <i className="fa-solid fa-wallet"></i>
+                                    </div>
+                                    <div>
+                                        <div className="fw-bold text-success fs-6">{this.formatVND(stats.revenue)}</div>
+                                        <div className="text-secondary small" style={{ fontSize: '11px' }}>{language === LANGUAGES.VI ? 'Doanh thu' : 'Revenue'}</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="stat-info">
-                            <div className="stat-value">{stats.total}</div>
-                            <div className="stat-label">{language === LANGUAGES.VI ? 'Tổng cộng' : 'Total'}</div>
-                        </div>
-                    </div>
-                    <div className="stat-card stat-pending">
-                        <div className="stat-icon">
-                            <i className="fa-solid fa-clock"></i>
-                        </div>
-                        <div className="stat-info">
-                            <div className="stat-value">{stats.pending}</div>
-                            <div className="stat-label">{language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending'}</div>
-                        </div>
-                    </div>
-                    <div className="stat-card stat-confirmed">
-                        <div className="stat-icon">
-                            <i className="fa-solid fa-check-circle"></i>
-                        </div>
-                        <div className="stat-info">
-                            <div className="stat-value">{stats.confirmed}</div>
-                            <div className="stat-label">{language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed'}</div>
-                        </div>
-                    </div>
-                    <div className="stat-card stat-completed">
-                        <div className="stat-icon">
-                            <i className="fa-solid fa-check-double"></i>
-                        </div>
-                        <div className="stat-info">
-                            <div className="stat-value">{stats.completed}</div>
-                            <div className="stat-label">{language === LANGUAGES.VI ? 'Hoàn thành' : 'Completed'}</div>
-                        </div>
-                    </div>
-                </div>
 
-                {/* Filters */}
-                <div className="booking-filters">
-                    <div className="filter-group">
-                        <label>{language === LANGUAGES.VI ? 'Chọn ngày' : 'Select Date'}</label>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <DatePicker
-                                onChange={this.handleOnchangeDatePicker}
-                                className="form-control"
-                                value={currentDate}
-                            />
-                            {currentDate && (
-                                <button 
-                                    className="btn btn-secondary" 
-                                    onClick={this.handleClearDate} 
-                                    title={language === LANGUAGES.VI ? 'Xóa bộ lọc ngày' : 'Clear date filter'}
-                                    style={{ padding: '0 15px' }}
-                                >
-                                    <i className="fas fa-times"></i>
-                                </button>
-                            )}
+                        {/* Filters */}
+                        <div className="row g-3 align-items-end mb-4 border-top pt-4">
+                            <div className="col-md-3 col-sm-6">
+                                <label className="form-label fw-bold small text-secondary mb-2">{language === LANGUAGES.VI ? 'Chọn ngày' : 'Select Date'}</label>
+                                <div className="d-flex gap-2">
+                                    <DatePicker
+                                        onChange={this.handleOnchangeDatePicker}
+                                        className="form-control"
+                                        value={currentDate}
+                                    />
+                                    {currentDate && (
+                                        <button 
+                                            className="btn btn-outline-secondary" 
+                                            onClick={this.handleClearDate} 
+                                            title={language === LANGUAGES.VI ? 'Xóa bộ lọc ngày' : 'Clear date filter'}
+                                        >
+                                            <i className="fas fa-times"></i>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="col-md-4 col-sm-6">
+                                <label className="form-label fw-bold small text-secondary mb-2">{language === LANGUAGES.VI ? 'Tìm kiếm' : 'Search'}</label>
+                                <div className="input-group">
+                                    <span className="input-group-text bg-white border-end-0"><i className="fas fa-search text-muted"></i></span>
+                                    <input
+                                        type="text"
+                                        className="form-control border-start-0 ps-0"
+                                        placeholder={language === LANGUAGES.VI ? 'Tìm theo tên, email, SĐT...' : 'Search by name, email, phone...'}
+                                        value={searchKeyword}
+                                        onChange={this.handleSearchChange}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-md-5 col-12">
+                                <label className="form-label fw-bold small text-secondary mb-2">{language === LANGUAGES.VI ? 'Trạng thái' : 'Status'}</label>
+                                <div className="d-flex flex-wrap gap-2">
+                                    <button
+                                        className={`btn btn-sm rounded-pill px-3 ${statusFilter === 'all' ? 'btn-admin' : 'btn-outline-admin'}`}
+                                        onClick={() => this.handleStatusFilterChange('all')}
+                                    >
+                                        {language === LANGUAGES.VI ? 'Tất cả' : 'All'} ({stats.total})
+                                    </button>
+                                    <button
+                                        className={`btn btn-sm rounded-pill px-3 ${statusFilter === 'S1' ? 'btn-admin' : 'btn-outline-admin'}`}
+                                        onClick={() => this.handleStatusFilterChange('S1')}
+                                    >
+                                        {language === LANGUAGES.VI ? 'Chờ' : 'Pending'} ({stats.pending})
+                                    </button>
+                                    <button
+                                        className={`btn btn-sm rounded-pill px-3 ${statusFilter === 'S2' ? 'btn-admin' : 'btn-outline-admin'}`}
+                                        onClick={() => this.handleStatusFilterChange('S2')}
+                                    >
+                                        {language === LANGUAGES.VI ? 'Xác nhận' : 'Confirmed'} ({stats.confirmed})
+                                    </button>
+                                    <button
+                                        className={`btn btn-sm rounded-pill px-3 ${statusFilter === 'S4' ? 'btn-admin' : 'btn-outline-admin'}`}
+                                        onClick={() => this.handleStatusFilterChange('S4')}
+                                    >
+                                        {language === LANGUAGES.VI ? 'Hủy' : 'Cancelled'} ({stats.cancelled})
+                                    </button>
+                                    <button
+                                        className={`btn btn-sm rounded-pill px-3 ${statusFilter === 'S3' ? 'btn-admin' : 'btn-outline-admin'}`}
+                                        onClick={() => this.handleStatusFilterChange('S3')}
+                                    >
+                                        {language === LANGUAGES.VI ? 'Xong' : 'Done'} ({stats.completed})
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="filter-group search-group">
-                        <label>{language === LANGUAGES.VI ? 'Tìm kiếm' : 'Search'}</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder={language === LANGUAGES.VI ? 'Tìm theo tên, email, SĐT...' : 'Search by name, email, phone...'}
-                            value={searchKeyword}
-                            onChange={this.handleSearchChange}
-                        />
-                    </div>
-
-                    <div className="filter-group">
-                        <label>{language === LANGUAGES.VI ? 'Trạng thái' : 'Status'}</label>
-                        <div className="status-filter-buttons">
-                            <button
-                                className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
-                                onClick={() => this.handleStatusFilterChange('all')}
-                            >
-                                {language === LANGUAGES.VI ? 'Tất cả' : 'All'} ({stats.total})
-                            </button>
-                            <button
-                                className={`filter-btn pending ${statusFilter === 'S1' ? 'active' : ''}`}
-                                onClick={() => this.handleStatusFilterChange('S1')}
-                            >
-                                {language === LANGUAGES.VI ? 'Chờ xác nhận' : 'Pending'} ({stats.pending})
-                            </button>
-                            <button
-                                className={`filter-btn confirmed ${statusFilter === 'S2' ? 'active' : ''}`}
-                                onClick={() => this.handleStatusFilterChange('S2')}
-                            >
-                                {language === LANGUAGES.VI ? 'Đã xác nhận' : 'Confirmed'} ({stats.confirmed})
-                            </button>
-                            <button
-                                className={`filter-btn cancelled ${statusFilter === 'S4' ? 'active' : ''}`}
-                                onClick={() => this.handleStatusFilterChange('S4')}
-                            >
-                                {language === LANGUAGES.VI ? 'Đã hủy' : 'Cancelled'} ({stats.cancelled})
-                            </button>
-                            <button
-                                className={`filter-btn completed ${statusFilter === 'S3' ? 'active' : ''}`}
-                                onClick={() => this.handleStatusFilterChange('S3')}
-                            >
-                                {language === LANGUAGES.VI ? 'Hoàn thành' : 'Completed'} ({stats.completed})
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Bookings Table */}
-                <div className="bookings-table-container">
-                    <div className="table-header-bar">
-                        <h3><i className="fas fa-calendar-check"></i> Danh Sách Lịch Hẹn</h3>
-                        <span className="record-count">Tổng: {filteredBookings.length} lịch hẹn</span>
-                    </div>
-
-                    {isLoading ? (
-                        <div className="loading">
-                            <i className="fa-solid fa-spinner fa-spin"></i>
-                            <span>{language === LANGUAGES.VI ? 'Đang tải...' : 'Loading...'}</span>
-                        </div>
-                    ) : filteredBookings.length === 0 ? (
-                        <div className="no-data">
-                            <i className="fa-solid fa-calendar-xmark"></i>
-                            <p>{language === LANGUAGES.VI ? 'Không có lịch hẹn nào' : 'No bookings found'}</p>
-                        </div>
-                    ) : (
-                        <table className="bookings-table">
-                            <thead>
-                                <tr>
-                                    <th>{language === LANGUAGES.VI ? 'STT' : 'No.'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Bệnh nhân' : 'Patient'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Liên hệ' : 'Contact'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Bác sĩ' : 'Doctor'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Thời gian' : 'Time'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Lý do khám' : 'Reason'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Giá khám' : 'Fee'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Thanh toán' : 'Payment'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Trạng thái' : 'Status'}</th>
-                                    <th>{language === LANGUAGES.VI ? 'Thao tác' : 'Actions'}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredBookings.map((booking, index) => (
-                                    <tr key={booking.id} className={`booking-row status-${booking.statusId}`}>
-                                        <td>{index + 1}</td>
-                                        <td>
-                                            <div className="patient-info">
-                                                <div className="patient-name">
-                                                    {booking.patientData ? `${booking.patientData.firstName || ''} ${booking.patientData.lastName || ''}` : '—'}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className="contact-info">
-                                                <div><i className="fa-solid fa-envelope"></i> {booking.patientData?.email || '—'}</div>
-                                                <div><i className="fa-solid fa-phone"></i> {booking.patientData?.phonenumber || '—'}</div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className="doctor-info">
-                                                {booking.doctorData ? (
-                                                    language === LANGUAGES.VI
-                                                        ? `${booking.doctorData.lastName} ${booking.doctorData.firstName}`
-                                                        : `${booking.doctorData.firstName} ${booking.doctorData.lastName}`
-                                                ) : ''}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className="time-info">
-                                                <div><i className="fa-solid fa-calendar"></i> {booking.date ? moment(isNaN(booking.date) ? booking.date : +booking.date).format('DD/MM/YYYY') : '—'}</div>
-                                                <div><i className="fa-solid fa-clock"></i> {language === LANGUAGES.VI ? booking.timeTypeDataPatient?.valueVi : booking.timeTypeDataPatient?.valueEn}</div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className="reason-text">{booking.reason || '—'}</div>
-                                        </td>
-                                        <td>
-                                            {/* Price / Fee */}
-                                            {booking.doctorData?.Doctor_Infor?.priceTypeData ? (
-                                                language === LANGUAGES.VI
-                                                    ? (isNaN(booking.doctorData.Doctor_Infor.priceTypeData.valueVi) 
-                                                        ? `${booking.doctorData.Doctor_Infor.priceTypeData.valueVi} VNĐ`
-                                                        : `${Number(booking.doctorData.Doctor_Infor.priceTypeData.valueVi).toLocaleString('vi-VN')} VNĐ`)
-                                                    : `${booking.doctorData.Doctor_Infor.priceTypeData.valueEn} USD`
-                                            ) : '—'}
-                                        </td>
-                                        <td>
-                                            {/* Payment Method */}
-                                            <div className="payment-cell">
-                                                <div style={{ fontWeight: '500' }}>
-                                                    {booking.doctorData?.Doctor_Infor?.paymentTypeData ? (
-                                                        language === LANGUAGES.VI
-                                                            ? booking.doctorData.Doctor_Infor.paymentTypeData.valueVi
-                                                            : booking.doctorData.Doctor_Infor.paymentTypeData.valueEn
-                                                    ) : '—'}
-                                                </div>
-                                                {(booking.isPaid === 1 || booking.isPaid === '1') ? (
-                                                    <span className="badge-paid" style={{ backgroundColor: '#e2fbe8', color: '#1a7f37', border: '1px solid #acf2bd', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', display: 'inline-block', marginTop: '4px', fontWeight: 'bold' }}>
-                                                        <i className="fa-solid fa-circle-check"></i> {language === LANGUAGES.VI ? 'Đã thu tiền' : 'Paid'}
-                                                    </span>
-                                                ) : (
-                                                    <span className="badge-unpaid" style={{ backgroundColor: '#fff8e6', color: '#b27b00', border: '1px solid #ffe8b3', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', display: 'inline-block', marginTop: '4px', fontWeight: 'bold' }}>
-                                                        <i className="fa-solid fa-circle-info"></i> {language === LANGUAGES.VI ? 'Chưa thu tiền' : 'Unpaid'}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {this.getStatusBadge(booking.statusId)}
-                                        </td>
-                                        <td>
-                                            {this.getActionButtons(booking)}
-                                        </td>
+                        {/* Table */}
+                        <div className="table-responsive mt-3">
+                            <table className="table table-hover align-middle">
+                                <thead className="table-light text-secondary">
+                                    <tr>
+                                        <th style={{ width: '60px' }}>#</th>
+                                        <th>{language === LANGUAGES.VI ? 'Bệnh nhân' : 'Patient'}</th>
+                                        <th>{language === LANGUAGES.VI ? 'Bác sĩ' : 'Doctor'}</th>
+                                        <th>{language === LANGUAGES.VI ? 'Thời gian' : 'Time'}</th>
+                                        <th>{language === LANGUAGES.VI ? 'Lý do khám' : 'Reason'}</th>
+                                        <th>{language === LANGUAGES.VI ? 'Trạng thái' : 'Status'}</th>
+                                        <th className="text-center" style={{ width: '220px' }}>{language === LANGUAGES.VI ? 'Thao tác' : 'Actions'}</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
+                                </thead>
+                                <tbody>
+                                    {isLoading ? (
+                                        <tr>
+                                            <td colSpan="7" className="text-center py-4">
+                                                <i className="fa-solid fa-spinner fa-spin me-2"></i>
+                                                {language === LANGUAGES.VI ? 'Đang tải...' : 'Loading...'}
+                                            </td>
+                                        </tr>
+                                    ) : filteredBookings.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="7" className="text-center py-4 text-muted">
+                                                {language === LANGUAGES.VI ? 'Không có lịch hẹn nào' : 'No bookings found'}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredBookings.map((booking, index) => (
+                                            <tr key={booking.id}>
+                                                <td>{index + 1}</td>
+                                                <td>
+                                                    <div className="fw-bold text-dark">
+                                                        {booking.patientData ? `${booking.patientData.lastName || ''} ${booking.patientData.firstName || ''}` : '—'}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div className="fw-bold text-primary">
+                                                        Bs. {booking.doctorData ? `${booking.doctorData.lastName} ${booking.doctorData.firstName}` : ''}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div><i className="fa-solid fa-calendar text-muted small me-1"></i> {booking.date ? moment(isNaN(booking.date) ? booking.date : +booking.date).format('DD/MM/YYYY') : '—'}</div>
+                                                    <div className="text-secondary small"><i className="fa-solid fa-clock me-1"></i> {language === LANGUAGES.VI ? booking.timeTypeDataPatient?.valueVi : booking.timeTypeDataPatient?.valueEn}</div>
+                                                </td>
+                                                <td>
+                                                    <div className="text-truncate" style={{ maxWidth: '180px' }} title={booking.reason}>
+                                                        {booking.reason || '—'}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {this.getStatusBadge(booking.statusId)}
+                                                </td>
+                                                <td className="text-center">
+                                                    {this.getActionButtons(booking)}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 <ViewHistoryModal
@@ -516,11 +464,10 @@ class ManageBooking extends Component {
                     patientName={this.state.selectedPatientName}
                 />
 
-                <ConfirmPaymentModal
-                    isOpenModal={this.state.isOpenConfirmModal}
-                    closeConfirmModal={this.handleCloseConfirmModal}
-                    bookingData={this.state.selectedBooking}
-                    handleConfirmPayment={this.handleConfirmPayment}
+                <PatientInfoModal
+                    isOpenModal={this.state.isOpenPatientInfoModal}
+                    closePatientInfoModal={this.closePatientInfoModal}
+                    dataModal={this.state.selectedBooking}
                 />
             </div>
         );

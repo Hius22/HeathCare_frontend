@@ -27,8 +27,12 @@ class MedicalFacility extends Component {
         }
     }
 
-    handleBookAppointment = () => {
-        this.props.history.push('/booking-flow');
+    handleBookAppointment = (id) => {
+        if (id) {
+            this.props.history.push(`/booking-flow?clinicId=${id}`);
+        } else {
+            this.props.history.push('/booking-flow');
+        }
     }
 
     render() {
@@ -80,7 +84,7 @@ class MedicalFacility extends Component {
                                                     className="btn-primary-action"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        this.handleBookAppointment();
+                                                        this.handleBookAppointment(item.id);
                                                     }}
                                                 >
                                                     <i className="fa-solid fa-calendar-check"></i>

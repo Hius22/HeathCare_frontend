@@ -13,6 +13,7 @@ export const path = {
     APPOINTMENTS: '/appointments',
     ALL_DOCTORS: '/doctors',
     ALL_CLINICS: '/facilities',
+    RECEPTIONIST: '/receptionist',
 };
 
 export const LANGUAGES = {
@@ -39,5 +40,6 @@ export const YesNoObj = {
 export const USER_ROLE = {
     ADMIN: 'R1',
     DOCTOR: 'R2',
-    PATIENT: 'R3'
+    PATIENT: 'R3',
+    RECEPTIONIST: 'R4'
 }

@@ -142,6 +142,50 @@ class PatientInfoModal extends Component {
                                         </div>
                                     </div>
                                 </div>
+
+                                {booking && (booking.weight || booking.height || booking.bloodPressure || booking.temperature || booking.symptoms) && (
+                                    <div className="col-12 mt-3">
+                                        <h5 className="text-secondary border-bottom pb-2 mb-3" style={{ fontSize: '15px', fontWeight: '600' }}>
+                                            <i className="fas fa-heartbeat text-danger"></i> {language === LANGUAGES.VI ? 'Chỉ số sinh tồn ban đầu (Đo tại quầy tiếp đón)' : 'Initial Vitals (Recorded at Reception)'}
+                                        </h5>
+                                        <div className="row text-center mb-3">
+                                            <div className="col-3">
+                                                <div className="border rounded p-2 bg-light">
+                                                    <div className="small text-muted">{language === LANGUAGES.VI ? 'Cân nặng' : 'Weight'}</div>
+                                                    <strong style={{ fontSize: '16px' }} className="text-primary">{booking.weight ? `${booking.weight} kg` : '—'}</strong>
+                                                </div>
+                                            </div>
+                                            <div className="col-3">
+                                                <div className="border rounded p-2 bg-light">
+                                                    <div className="small text-muted">{language === LANGUAGES.VI ? 'Chiều cao' : 'Height'}</div>
+                                                    <strong style={{ fontSize: '16px' }} className="text-primary">{booking.height ? `${booking.height} cm` : '—'}</strong>
+                                                </div>
+                                            </div>
+                                            <div className="col-3">
+                                                <div className="border rounded p-2 bg-light">
+                                                    <div className="small text-muted">{language === LANGUAGES.VI ? 'Huyết áp' : 'Blood Pressure'}</div>
+                                                    <strong style={{ fontSize: '16px' }} className="text-primary">{booking.bloodPressure ? `${booking.bloodPressure} mmHg` : '—'}</strong>
+                                                </div>
+                                            </div>
+                                            <div className="col-3">
+                                                <div className="border rounded p-2 bg-light">
+                                                    <div className="small text-muted">{language === LANGUAGES.VI ? 'Nhiệt độ' : 'Temperature'}</div>
+                                                    <strong style={{ fontSize: '16px' }} className="text-primary">{booking.temperature ? `${booking.temperature} °C` : '—'}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {booking.symptoms && (
+                                            <div className="card border-warning bg-light mb-3">
+                                                <div className="card-body py-2">
+                                                    <strong className="text-warning small d-block mb-1">
+                                                        <i className="fas fa-stethoscope"></i> {language === LANGUAGES.VI ? 'Triệu chứng ban đầu ghi nhận tại quầy:' : 'Initial symptoms recorded at reception:'}
+                                                    </strong>
+                                                    <span className="text-dark small">{booking.symptoms}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

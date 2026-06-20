@@ -73,6 +73,10 @@ const postVerifyBookingAppointment = (data) => {
     return axios.post('/api/verify-book-appointment', data)
 }
 
+const getPatientByEmail = (email) => {
+    return axios.get(`/api/get-patient-by-email?email=${encodeURIComponent(email)}`)
+}
+
 const createNewSpecialty = (data) => {
     return axios.post('/api/create-new-specialty', data)
 }
@@ -172,6 +176,14 @@ const getNotificationsDoctor = (doctorId) => {
     return axios.get(`/api/get-notifications-doctor?doctorId=${doctorId}`);
 }
 
+const updatePatientInfoService = (inputData) => {
+    return axios.put('/api/update-patient-info', inputData);
+}
+
+const rescheduleBookingService = (inputData) => {
+    return axios.put('/api/reschedule-booking', inputData);
+}
+
 export {
     handleLoginApi, getAllUsers, createNewUserService,
     deleteUserService, editUserService, getALLCodeService,
@@ -186,5 +198,6 @@ export {
     updateSpecialty, deleteSpecialty,
     getAllBookings, updateBookingStatus,
     getPatientHistory, savePatientHistory,
-    getNotifications, getNotificationsDoctor
+    getNotifications, getNotificationsDoctor,
+    updatePatientInfoService, getPatientByEmail, rescheduleBookingService
 }
